@@ -1,26 +1,63 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Tailwind 4 es CSS-first: los tokens viven aca, no hay tailwind.config.js.
+   La paleta sale del verde del propio cliente. Su verde claro (#128A64) da
+   3.95:1 contra texto claro y NO pasa WCAG AA, asi que el acento operativo es
+   su verde oscuro (#0E6E50), que da 5.69:1. El claro queda solo como estado
+   hover, donde aclarar sube el contraste en vez de bajarlo. */
+@theme {
+  --color-verde: #0e6e50;        /* acento unico. 5.69:1 con hueso */
+  --color-verde-vivo: #128a64;   /* hover: aclara, no oscurece */
+  --color-hondo: #0a2e23;        /* campo profundo del hero y el pie */
+  --color-hondo-alto: #0d3b2d;   /* superficie elevada sobre el hondo */
+  --color-papel: #f3f5f1;        /* campo claro de la tienda */
+  --color-papel-hondo: #e8ebe5;  /* superficie hundida sobre el papel */
+  --color-tinta: #141815;        /* texto. 16.34:1 sobre papel */
+  --color-tinta-media: #56605a;  /* texto secundario. 5.9:1 sobre papel */
+  --color-hueso: #f3f5f1;        /* texto sobre campo profundo */
+  --color-hueso-medio: #a8b5ad;  /* secundario sobre campo profundo */
+
+  /* Un solo radio en todo el sitio. Para ablandar o endurecer, se cambia aca. */
+  --radius-brand: 4px;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-papel);
+  color: var(--color-tinta);
+  -webkit-font-smoothing: antialiased;
 }
+
+/* El eje de ancho de Archivo es de donde sale el caracter de los titulos,
+   no del peso. Condensado y con tracking negativo a tamaño grande. */
+.type-display {
+  font-variation-settings: "wdth" 88;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+.type-body { text-wrap: pretty; }
+
+/* Revelado al scroll. Una sola clase, un solo IntersectionObserver.
+   Sin JS, el <noscript> del layout las deja visibles. */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.in-view { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* El carrusel de la ficha oculta su barra: las miniaturas ya dicen donde estas. */
+.sin-barra { scrollbar-width: none; -ms-overflow-style: none; }
+.sin-barra::-webkit-scrollbar { display: none; }

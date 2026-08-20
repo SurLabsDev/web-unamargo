@@ -41,5 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 # La demo original del cliente: material de referencia, nunca se modifica
-"claude code unamargo"/
+claude code unamargo/
 .DS_Store
