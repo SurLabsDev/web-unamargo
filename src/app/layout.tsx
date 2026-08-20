@@ -19,8 +19,10 @@ export const metadata: Metadata = {
     template: `%s | ${SITE.nombre}`,
   },
   description: SITE.descripcion,
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
+    url: SITE.url,
     locale: "es_UY",
     siteName: SITE.nombre,
     title: `${SITE.nombre} | Mates y accesorios en Montevideo`,
