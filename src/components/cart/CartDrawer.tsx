@@ -63,7 +63,7 @@ export function CartDrawer() {
   return (
     <div
       aria-hidden={!abierto}
-      className={`fixed inset-0 z-50 ${abierto ? "" : "pointer-events-none"}`}
+      className={`fixed inset-0 z-50 overflow-hidden ${abierto ? "" : "pointer-events-none"}`}
     >
       <div
         onClick={() => setAbierto(false)}
@@ -79,7 +79,7 @@ export function CartDrawer() {
           abierto ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <header className="flex items-center justify-between border-b border-tinta/10 px-5 py-4">
+        <header className="flex items-center justify-between border-b border-linea px-5 py-4">
           <h2 className="text-lg font-semibold tracking-tight">
             Tu pedido
             {unidades > 0 && (
@@ -92,7 +92,7 @@ export function CartDrawer() {
             ref={cerrarRef}
             onClick={() => setAbierto(false)}
             aria-label="Cerrar el pedido"
-            className="rounded-brand p-2 text-tinta-media transition-colors hover:bg-papel-hondo hover:text-tinta"
+            className="rounded-pill p-2 text-tinta-media transition-colors hover:bg-humo hover:text-tinta"
           >
             <X size={20} weight="bold" />
           </button>
@@ -107,17 +107,17 @@ export function CartDrawer() {
             </p>
             <button
               onClick={() => setAbierto(false)}
-              className="mt-2 rounded-brand bg-verde px-5 py-2.5 text-sm font-semibold text-hueso transition-colors hover:bg-verde-vivo"
+              className="mt-2 rounded-pill bg-verde px-5 py-2.5 text-sm font-semibold text-papel transition-colors hover:bg-verde-vivo"
             >
               Ver la tienda
             </button>
           </div>
         ) : (
           <>
-            <ul className="flex-1 divide-y divide-tinta/10 overflow-y-auto px-5">
+            <ul className="flex-1 divide-y divide-linea overflow-y-auto px-5">
               {items.map((it) => (
                 <li key={it.sku} className="flex gap-4 py-4">
-                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-brand bg-papel-hondo">
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-foto bg-humo">
                     {it.imagen && (
                       <Image
                         src={it.imagen}
@@ -134,13 +134,13 @@ export function CartDrawer() {
                       <button
                         onClick={() => quitar(it.sku)}
                         aria-label={`Quitar ${it.nombre}`}
-                        className="shrink-0 rounded-brand p-1 text-tinta-media transition-colors hover:text-tinta"
+                        className="shrink-0 rounded-pill p-1 text-tinta-media transition-colors hover:text-tinta"
                       >
                         <X size={15} />
                       </button>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center rounded-brand border border-tinta/15">
+                      <div className="flex items-center rounded-pill border border-linea">
                         <button
                           onClick={() => cambiarCantidad(it.sku, it.cantidad - 1)}
                           aria-label={`Quitar una unidad de ${it.nombre}`}
@@ -169,7 +169,7 @@ export function CartDrawer() {
               ))}
             </ul>
 
-            <footer className="border-t border-tinta/10 px-5 py-4">
+            <footer className="border-t border-linea px-5 py-4">
               <div className="mb-3 flex items-baseline justify-between">
                 <span className="text-tinta-media">Total</span>
                 <span className="text-2xl font-semibold tabular-nums tracking-tight">
@@ -183,7 +183,7 @@ export function CartDrawer() {
               <a
                 href={href}
                 onClick={enviar}
-                className="flex w-full items-center justify-center gap-2 rounded-brand bg-verde px-5 py-3.5 font-semibold text-hueso transition-colors hover:bg-verde-vivo"
+                className="flex w-full items-center justify-center gap-2 rounded-pill bg-verde px-5 py-3.5 font-semibold text-papel transition-colors hover:bg-verde-vivo"
               >
                 <WhatsappLogo size={19} weight="fill" />
                 Enviar el pedido

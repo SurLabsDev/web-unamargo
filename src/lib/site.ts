@@ -14,6 +14,12 @@ export const SITE = {
   whatsappLegible: "098 702 638",
   email: "unamargo.info@gmail.com",
   ciudad: "Montevideo",
+  instagram: "https://www.instagram.com/unamargo_/",
+  instagramUsuario: "@unamargo_",
+  /** La playlist que armaron ellos. Es de las cosas mas suyas que tiene la
+   *  marca y no puede faltar. */
+  spotify:
+    "https://open.spotify.com/playlist/2e3Gb1Cfnrop9ZJS6OBLrE?si=tofpgyjRQU-NrKYnMN-ySg",
   pais: "Uruguay",
 } as const;
 

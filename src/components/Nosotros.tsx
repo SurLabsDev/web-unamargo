@@ -1,28 +1,50 @@
-/** Declaracion a ancho completo. Sin foto y sin columnas: despues de una
- *  grilla de 34 productos, el descanso es la composicion. */
+import { ArrowRight, WhatsappLogo } from "@phosphor-icons/react/dist/ssr";
+import { linkWhatsApp } from "@/lib/site";
+
+/** Copia textual del cliente. Los rotulos chicos sobre el titular son parte de
+ *  su diseño y los quiso asi. */
 export function Nosotros() {
   return (
-    <section
-      id="nosotros"
-      className="scroll-mt-20 border-y border-tinta/10 bg-papel-hondo py-24 lg:py-32"
-    >
-      <div className="mx-auto max-w-[1400px] px-5 lg:px-8">
-        <div className="reveal max-w-[22ch]">
-          <h2 className="type-display text-[clamp(2rem,5.5vw,4rem)] font-semibold">
-            Más que vender mates, sostener la ronda.
+    <section id="nosotros" className="scroll-mt-24 px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
+      <div className="mx-auto grid max-w-[1400px] gap-10 lg:grid-cols-12 lg:gap-16">
+        <div className="reveal lg:col-span-5">
+          <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-tinta-suave">
+            Servicios
+          </p>
+          <h2 className="type-display text-[clamp(2.5rem,6vw,4.5rem)]">
+            ¿Qué hacemos?
           </h2>
         </div>
-        <div className="reveal mt-10 grid gap-8 md:grid-cols-2 md:gap-16 lg:mt-14">
+
+        <div className="reveal lg:col-span-6 lg:col-start-7" style={{ "--d": "120ms" } as React.CSSProperties}>
           <p className="type-body text-lg leading-relaxed text-tinta-media">
-            Nos dedicamos a acercarte mates y accesorios seleccionados con
-            dedicación. Elegimos pieza por pieza, probamos lo que vendemos y te
-            decimos la verdad sobre cada material.
+            En Un Amargo nos dedicamos a acercarte mates y accesorios
+            seleccionados con dedicación y pasión. Más que vender productos,
+            queremos fomentar la cultura del mate, el encuentro y la conexión
+            entre personas.
           </p>
-          <p className="type-body text-lg leading-relaxed text-tinta-media">
-            Queremos que cada mate que llevás a casa sea un compañero fiel en
-            tus momentos de pausa, de charla y de tradición. Eso es todo el
-            negocio.
+          <p className="type-body mt-5 text-lg leading-relaxed text-tinta-media">
+            Buscamos que cada mate que llevés a casa sea un compañero fiel en
+            tus momentos de pausa, charla y tradición.
           </p>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <a
+              href="#tienda"
+              className="group inline-flex items-center gap-2 rounded-pill bg-tinta px-6 py-3 text-sm font-semibold text-papel transition-transform duration-300 hover:scale-[1.03]"
+            >
+              Ver colección
+              <ArrowRight size={14} weight="bold" className="transition-transform duration-300 group-hover:translate-x-0.5" />
+            </a>
+            <a
+              href={linkWhatsApp("Hola! Tengo una consulta.")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-pill border border-linea px-6 py-3 text-sm font-semibold transition-colors duration-300 hover:border-tinta"
+            >
+              <WhatsappLogo size={16} weight="fill" />
+              Escribinos
+            </a>
+          </div>
         </div>
       </div>
     </section>

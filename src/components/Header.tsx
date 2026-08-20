@@ -37,17 +37,12 @@ export function Header() {
       <header
         className={`fixed inset-x-0 top-0 z-40 transition-colors duration-300 ${
           bajado
-            ? "border-b border-tinta/10 bg-papel/95 backdrop-blur-md"
-            : "border-b border-transparent"
+            ? "border-b border-linea bg-papel/90 backdrop-blur-md"
+            : "border-b border-transparent bg-papel"
         }`}
       >
-        <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-6 px-5 md:h-[72px] lg:px-8">
-          <a
-            href="#top"
-            className={`shrink-0 text-lg font-semibold tracking-tight transition-colors ${
-              bajado ? "text-tinta" : "text-hueso"
-            }`}
-          >
+        <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-6 px-5 sm:px-8 md:h-[72px] lg:px-12">
+          <a href="#top" className="shrink-0 text-lg font-semibold tracking-tight">
             Un Amargo
           </a>
 
@@ -56,11 +51,7 @@ export function Header() {
               <a
                 key={n.href}
                 href={n.href}
-                className={`text-sm transition-colors ${
-                  bajado
-                    ? "text-tinta-media hover:text-tinta"
-                    : "text-hueso-medio hover:text-hueso"
-                }`}
+                className="text-sm text-tinta-media transition-colors hover:text-tinta"
               >
                 {n.label}
               </a>
@@ -71,16 +62,12 @@ export function Header() {
             <button
               onClick={() => setAbierto(true)}
               aria-label={`Ver el pedido, ${unidades} artículos`}
-              className={`relative flex items-center gap-2 rounded-brand px-3 py-2 text-sm font-medium transition-colors ${
-                bajado
-                  ? "text-tinta hover:bg-papel-hondo"
-                  : "text-hueso hover:bg-hueso/10"
-              }`}
+              className="relative flex items-center gap-2 rounded-pill px-3 py-2 text-sm font-medium transition-colors hover:bg-humo"
             >
               <Bag size={19} />
               <span className="hidden sm:inline">Pedido</span>
               {unidades > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-verde px-1.5 text-[11px] font-bold tabular-nums text-hueso">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-pill bg-verde px-1.5 text-[11px] font-bold tabular-nums text-papel">
                   {unidades}
                 </span>
               )}
@@ -89,9 +76,7 @@ export function Header() {
               onClick={() => setMenu((v) => !v)}
               aria-label={menu ? "Cerrar el menu" : "Abrir el menu"}
               aria-expanded={menu}
-              className={`rounded-brand p-2 lg:hidden ${
-                bajado ? "text-tinta" : "text-hueso"
-              }`}
+              className="rounded-pill p-2 lg:hidden"
             >
               {menu ? <X size={21} weight="bold" /> : <List size={21} weight="bold" />}
             </button>
@@ -99,7 +84,7 @@ export function Header() {
         </div>
 
         {menu && (
-          <nav className="border-t border-tinta/10 bg-papel px-5 py-3 lg:hidden">
+          <nav className="border-t border-linea bg-papel px-5 py-3 sm:px-8 lg:hidden">
             {NAV.map((n) => (
               <a
                 key={n.href}

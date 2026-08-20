@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import { Archivo } from "next/font/google";
+import { Geist } from "next/font/google";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
 /* Una sola familia, con el eje de ancho pedido: el caracter de los titulos
    sale de condensar, no de engordar. */
-const archivo = Archivo({
+const geist = Geist({
   subsets: ["latin"],
-  axes: ["wdth"],
   display: "swap",
-  variable: "--font-archivo",
+  variable: "--font-geist",
 });
 
 export const metadata: Metadata = {
@@ -35,12 +34,12 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es-UY" className={archivo.variable}>
+    <html lang="es-UY" className={geist.variable}>
       <body className="font-sans antialiased">
         {/* Sin JS el revelado al scroll nunca dispara, asi que el contenido
             quedaria invisible. Esto lo devuelve a la vista. */}
         <noscript>
-          <style>{`.reveal{opacity:1 !important;transform:none !important}`}</style>
+          <style>{`.reveal{opacity:1 !important;transform:none !important}.entra{animation:none !important}`}</style>
         </noscript>
         {children}
       </body>

@@ -1,0 +1,33 @@
+import Image from "next/image";
+
+/** Las 11 fotos que eligio el cliente, corriendo sin fin. Van DOS veces y la
+ *  animacion desplaza exactamente la mitad, asi el ciclo cierra sin salto.
+ *  Se frena al pasar el mouse, para poder mirar una. */
+const FOTOS = Array.from({ length: 11 }, (_, i) =>
+  `/strip/${String(i + 1).padStart(2, "0")}.jpg`,
+);
+
+export function Tira() {
+  const dobles = [...FOTOS, ...FOTOS];
+
+  return (
+    <section aria-hidden className="overflow-hidden py-2">
+      <div className="tira">
+        {dobles.map((src, i) => (
+          <div
+            key={i}
+            className="relative aspect-[4/3] w-[62vw] shrink-0 overflow-hidden rounded-foto bg-humo sm:w-[38vw] lg:w-[24vw]"
+          >
+            <Image
+              src={src}
+              alt=""
+              fill
+              sizes="(max-width: 640px) 62vw, (max-width: 1024px) 38vw, 24vw"
+              className="object-cover"
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}

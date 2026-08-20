@@ -15,7 +15,7 @@ export function AddToCart({
 
   if (siguiendoStock && !producto.in_stock) {
     return (
-      <span className="inline-flex items-center rounded-brand border border-tinta/15 px-3 py-1.5 text-xs font-medium text-tinta-media">
+      <span className="inline-flex items-center rounded-pill border border-linea px-3 py-1.5 text-xs font-medium text-tinta-media">
         Sin stock
       </span>
     );
@@ -25,7 +25,7 @@ export function AddToCart({
     <button
       onClick={() => agregar(producto, siguiendoStock)}
       aria-label={`Agregar ${producto.name} al pedido`}
-      className="inline-flex items-center gap-1.5 rounded-brand bg-verde px-3 py-1.5 text-xs font-semibold text-hueso transition-all hover:bg-verde-vivo active:scale-[0.97]"
+      className="inline-flex items-center gap-1.5 rounded-pill bg-verde px-3 py-1.5 text-xs font-semibold text-papel transition-all hover:bg-verde-vivo active:scale-[0.97]"
     >
       <Plus size={13} weight="bold" />
       Agregar

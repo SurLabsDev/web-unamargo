@@ -25,18 +25,18 @@ function Ficha({
         role="dialog"
         aria-modal="true"
         aria-label={producto.name}
-        className="relative flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-brand bg-papel sm:max-h-[86dvh] sm:rounded-brand"
+        className="relative flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-foto bg-papel sm:max-h-[86dvh] sm:rounded-foto"
       >
         <button
           onClick={onCerrar}
           aria-label="Cerrar"
-          className="absolute right-3 top-3 z-10 rounded-brand bg-papel/90 p-2 text-tinta-media backdrop-blur transition-colors hover:text-tinta"
+          className="absolute right-3 top-3 z-10 rounded-pill bg-papel/90 p-2 text-tinta-media backdrop-blur transition-colors hover:text-tinta"
         >
           <X size={19} weight="bold" />
         </button>
 
         <div className="grid overflow-y-auto sm:grid-cols-2">
-          <div className="relative aspect-square bg-white">
+          <div className="relative aspect-square bg-humo">
             {fotos[i] && (
               <Image
                 src={fotos[i]}
@@ -51,14 +51,14 @@ function Ficha({
                 <button
                   onClick={() => setI((v) => (v - 1 + fotos.length) % fotos.length)}
                   aria-label="Foto anterior"
-                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-brand bg-papel/85 p-2 backdrop-blur transition-colors hover:bg-papel"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-pill bg-papel/85 p-2 backdrop-blur transition-colors hover:bg-papel"
                 >
                   <CaretLeft size={16} weight="bold" />
                 </button>
                 <button
                   onClick={() => setI((v) => (v + 1) % fotos.length)}
                   aria-label="Foto siguiente"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-brand bg-papel/85 p-2 backdrop-blur transition-colors hover:bg-papel"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-pill bg-papel/85 p-2 backdrop-blur transition-colors hover:bg-papel"
                 >
                   <CaretRight size={16} weight="bold" />
                 </button>
@@ -116,7 +116,7 @@ function Tarjeta({
       <button
         onClick={onAbrir}
         aria-label={`Ver ${producto.name}`}
-        className="relative aspect-square w-full overflow-hidden rounded-brand bg-white"
+        className="relative aspect-square w-full overflow-hidden rounded-foto bg-humo"
       >
         {producto.images[0] && (
           <Image
@@ -128,7 +128,7 @@ function Tarjeta({
           />
         )}
         {producto.discount && (
-          <span className="absolute left-2 top-2 rounded-brand bg-verde px-2 py-1 text-[11px] font-bold text-hueso">
+          <span className="absolute left-2 top-2 rounded-pill bg-verde px-2 py-1 text-[11px] font-bold text-papel">
             {producto.discount.percentage}% off
           </span>
         )}
@@ -167,18 +167,20 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
   );
 
   return (
-    <section id="tienda" className="scroll-mt-20 bg-papel py-20 lg:py-28">
-      <div className="mx-auto max-w-[1400px] px-5 lg:px-8">
-        <h2 className="type-display text-[clamp(2rem,5vw,3.5rem)] font-semibold">
-          La tienda
-        </h2>
-        <p className="type-body mt-4 max-w-[58ch] text-tinta-media">
-          Todo lo que ves está disponible hoy. Agregas lo que quieras y cerramos
-          el pedido por WhatsApp.
-        </p>
+    <section id="tienda" className="scroll-mt-24 px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
+      <div className="mx-auto max-w-[1400px]">
+        <div className="reveal">
+          <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-tinta-suave">
+            Colección
+          </p>
+          <h2 className="type-display text-[clamp(2.5rem,6vw,4.5rem)]">La tienda</h2>
+          <p className="type-body mt-5 text-tinta-suave">
+            {catalogo.productos.length} productos · precios en pesos uruguayos
+          </p>
+        </div>
 
         {catalogo.caido ? (
-          <div className="mt-10 rounded-brand border border-tinta/10 bg-papel-hondo px-6 py-14 text-center">
+          <div className="mt-10 rounded-pill border border-linea bg-humo px-6 py-14 text-center">
             <p className="type-body text-tinta-media">
               No pudimos cargar el catálogo en este momento. Escribinos por
               WhatsApp y te contamos qué hay disponible.
@@ -190,10 +192,10 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
               <button
                 onClick={() => setFiltro(null)}
                 aria-pressed={filtro === null}
-                className={`rounded-brand px-3.5 py-2 text-sm font-medium transition-colors ${
+                className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors duration-200 ${
                   filtro === null
-                    ? "bg-verde text-hueso"
-                    : "bg-papel-hondo text-tinta-media hover:text-tinta"
+                    ? "border-tinta bg-tinta text-papel"
+                    : "border-linea text-tinta-media hover:border-tinta hover:text-tinta"
                 }`}
               >
                 Todo{" "}
@@ -206,10 +208,10 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
                   key={c.slug}
                   onClick={() => setFiltro(c.slug)}
                   aria-pressed={filtro === c.slug}
-                  className={`rounded-brand px-3.5 py-2 text-sm font-medium transition-colors ${
+                  className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors duration-200 ${
                     filtro === c.slug
-                      ? "bg-verde text-hueso"
-                      : "bg-papel-hondo text-tinta-media hover:text-tinta"
+                      ? "border-tinta bg-tinta text-papel"
+                      : "border-linea text-tinta-media hover:border-tinta hover:text-tinta"
                   }`}
                 >
                   {c.name}{" "}

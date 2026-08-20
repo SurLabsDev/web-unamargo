@@ -61,20 +61,39 @@ que se traga el bloqueador es un pedido perdido.
 
 ## Diseño
 
-- **La paleta es la del cliente.** Su verde claro (`#128A64`) da 3.95:1 contra
-  texto claro y no pasa WCAG AA, asi que el acento operativo es su verde oscuro
-  (`#0E6E50`), que da 5.69:1. El claro queda solo como hover, donde aclarar sube
-  el contraste en vez de bajarlo.
-- **Un solo cambio de tema en toda la pagina**: el hero y el pie en verde
-  profundo sostienen los extremos, y todo lo del medio respira en claro para que
-  comprar sea comodo. No agregar una tercera franja oscura.
-- **Un solo radio** (`--radius-brand`, 4px) para botones, tarjetas, inputs e
-  imagenes. Los circulos estan exentos porque son circulos.
-- **Archivo con su eje de ancho.** El caracter de los titulos sale de condensar,
-  no de engordar.
-- Las fotos del catalogo vienen recortadas sobre blanco, por eso las tarjetas de
-  producto son blancas: si no, se ve una caja dentro de otra.
+**El sistema visual es el que armó el cliente en su demo y le gustó.** Está en
+`claude code unamargo/` (fuera del repo, nunca se modifica). Rehacerlo con otro
+lenguaje fue el primer intento y estuvo mal: acá se parte del suyo.
+
+- **Negro sobre blanco.** Titulares enormes, peso 700, interlineado 0.86 y
+  tracking negativo. De ahí sale el carácter de la página.
+- **Todo es pill** (`--radius-pill`, 100px): botones, filtros, campos del
+  formulario. Es su firma. Las fotos usan `--radius-foto` (6px).
+- **El verde es solo funcional.** Aparece únicamente en WhatsApp, en el widget
+  de Spotify y en el aviso de envío gratis. Su verde claro (`#128A64`) da 3.95:1
+  con texto blanco y no pasa WCAG AA, así que el que lleva texto es el oscuro
+  (`#0E6E50`), 5.69:1. El claro queda para el hover, donde aclarar sube el
+  contraste.
+- **Los textos son los de ellos, palabra por palabra.** El hero, "¿Qué hacemos?",
+  "Personalizados", "Trabajo para empresas", las tres zonas de pickup y
+  "Trabajá con nosotros" salen de su demo. No se reescriben.
+- **Sus assets**: el logo, las 11 fotos del marquee y las fotos de sección están
+  en `public/`, copiadas de la demo.
+- **El widget de Spotify no es un adorno.** La playlist la armaron ellos y es de
+  las cosas más propias que tiene la marca.
 - Copia en español rioplatense. Sin emojis y sin rayas largas.
+
+### Animaciones
+
+- **Marquee de fotos**: la tira lleva las 11 imágenes dos veces y se desplaza
+  exactamente la mitad, así el ciclo cierra sin salto. Se frena al pasar el mouse.
+- **Entrada del hero**: no espera al observador, entra sola al cargar, escalonada
+  con `--d`.
+- **Revelado al scroll**: un solo IntersectionObserver que desuscribe cada
+  elemento al entrar. Nunca escuchar `scroll`: corre en cada cuadro y traba el
+  celular.
+- Todo se apaga bajo `prefers-reduced-motion`.
+
 
 ## Nada de datos inventados
 
