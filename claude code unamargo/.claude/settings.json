@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Rename-Item *)",
+      "PowerShell(Start-Process *)",
+      "PowerShell(Add-Type *)",
+      "PowerShell(New-Item *)",
+      "PowerShell(Write-Host *)"
+    ]
+  }
+}
