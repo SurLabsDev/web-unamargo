@@ -4,7 +4,12 @@ export const SITE = {
   nombre: "Un Amargo",
   descripcion:
     "Mates, bombillas y accesorios seleccionados en Montevideo. Grabado láser y trabajos en virola. Coordinamos entrega por WhatsApp.",
-  url: "https://unamargo.uy",
+  /** URL canonica. Hoy es la de Vercel porque todavia no hay dominio propio:
+   *  poner uno que no existe rompe el canonical y las Open Graph, que resolveran
+   *  contra un host que no responde. Cuando se compre el dominio se cambia ACA
+   *  y lo siguen las metadatas, el JSON-LD y el sitemap. Se puede pisar por
+   *  entorno para no tener que redeployar. */
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://web-unamargo.vercel.app",
   whatsapp: "59897022638",
   whatsappLegible: "098 702 638",
   email: "unamargo.info@gmail.com",
