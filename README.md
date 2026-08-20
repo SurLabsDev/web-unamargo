@@ -95,6 +95,27 @@ lenguaje fue el primer intento y estuvo mal: acá se parte del suyo.
 - Todo se apaga bajo `prefers-reduced-motion`.
 
 
+## El mapa de zonas
+
+La sección de logística lleva un mapa de Montevideo por barrios, y no es un
+dibujo: los límites son los oficiales de la Intendencia.
+
+- **Datos**: `github.com/vierja/geojson_montevideo`, generado del catálogo de
+  datos abiertos de la Intendencia, bajo Licencia de Datos Abiertos de Uruguay.
+  63 barrios, proyectados a un viewBox en `src/lib/barrios-montevideo.ts`.
+- **Precios y barrios por zona salen de la demo del cliente**, no se inventa
+  ninguno (`src/lib/zonas.ts`).
+- **Los nombres de uso corriente no siempre son el nombre oficial.** Por eso hay
+  un diccionario: "Parque Batlle" es `PQUE BATLLE VILLA DOLORES`, "Prado" es
+  `PRADO NUEVA SAVONA`, "Colón" son dos polígonos.
+- **Tres barrios que nombra el cliente no tienen polígono** y se declaran en
+  `SIN_POLIGONO` en vez de forzarlos contra un barrio que no es: "Paso Molino" y
+  "Verdisol" no son barrios oficiales, y **"Las Piedras" queda en Canelones, no
+  en Montevideo**. Se siguen listando en las etiquetas, apagados, porque el
+  cliente los ofrece igual; simplemente no pintan nada en el mapa.
+- Pesa 98 KB de trazos, que comprimidos viajan en unos 64 KB junto con toda la
+  página. Si algún día molesta, se simplifica subiendo el umbral del generador.
+
 ## Nada de datos inventados
 
 El telefono, el mail y las zonas de entrega salen de la demo que armo el

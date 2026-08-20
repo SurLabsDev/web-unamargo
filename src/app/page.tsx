@@ -13,7 +13,6 @@ import { Empresas } from "@/components/Empresas";
 import { Envios } from "@/components/Envios";
 import { Contacto } from "@/components/Contacto";
 import { Footer } from "@/components/Footer";
-import { Spotify } from "@/components/Spotify";
 
 /** El catalogo del ERP se revalida cada 5 minutos. Su propio endpoint ya
  *  cachea 60s en CDN con stale-while-revalidate 300, asi que esto no agrega
@@ -64,7 +63,6 @@ export default async function Home() {
       </main>
       <Footer />
       <CartDrawer />
-      <Spotify />
     </CartProvider>
   );
 }

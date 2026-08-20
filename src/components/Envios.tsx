@@ -1,34 +1,24 @@
-import { WhatsappLogo } from "@phosphor-icons/react/dist/ssr";
-import { linkWhatsApp } from "@/lib/site";
+"use client";
 
-/** Las tres modalidades de retiro mas el interior, con la copia del cliente.
- *  El beneficio de envio gratis es un dato real del negocio y va arriba de
- *  todo, porque es lo que mas mueve la decision de comprar. */
-const ZONAS = [
-  {
-    rotulo: "Pickup 01",
-    zona: "Pocitos / Punta Carretas",
-    detalle:
-      "Coordinamos un punto de encuentro en la zona. Sin costo extra, ves el producto en persona antes de pagar.",
-    nota: "Sin costo · Coordinamos horario",
-  },
-  {
-    rotulo: "Pickup 02",
-    zona: "Cordón Sur / Centro",
-    detalle:
-      "Zona céntrica, fácil acceso. Ideal si estás en el microcentro, Palermo o Parque Rodó.",
-    nota: "Sin costo · Coordinamos horario",
-  },
-  {
-    rotulo: "Pickup 03",
-    zona: "Ciudad de la Costa",
-    detalle:
-      "Solymar, Lagomar, El Pinar y zonas aledañas. Coordinamos según agenda semanal.",
-    nota: "Sin costo · Consultar disponibilidad",
-  },
-];
+import { useState } from "react";
+import { WhatsappLogo, MapPin, Truck } from "@phosphor-icons/react/dist/ssr";
+import { linkWhatsApp } from "@/lib/site";
+import { MapaMontevideo } from "./MapaMontevideo";
+import {
+  PICKUPS,
+  ZONAS_ENVIO,
+  SIN_POLIGONO,
+  barriosDeZona,
+  type Zona,
+} from "@/lib/zonas";
+
+const TODAS: Zona[] = [...PICKUPS, ...ZONAS_ENVIO];
 
 export function Envios() {
+  const [activa, setActiva] = useState<string>("zona1");
+  const zona = TODAS.find((z) => z.id === activa) ?? ZONAS_ENVIO[0];
+  const encendidos = barriosDeZona(zona);
+
   return (
     <section
       id="envios"
@@ -43,53 +33,154 @@ export function Envios() {
             Cómo recibís tu pedido
           </h2>
           <p className="type-body mt-6 text-lg leading-relaxed text-papel/65">
-            Trabajamos con tres modalidades para que llegarte sea simple. Todo
-            se coordina por WhatsApp.
+            Retirás sin costo en tres puntos, o te lo llevamos a domicilio.
+            Tocá una zona y mirá hasta dónde llega.
           </p>
         </div>
 
-        <div className="reveal mt-10 inline-flex flex-wrap items-center gap-2 rounded-pill bg-verde px-5 py-2.5 text-sm font-semibold">
+        <div className="reveal mt-8 inline-flex rounded-pill bg-verde px-5 py-2.5 text-sm font-semibold">
           Envío gratis en Montevideo a partir de $3.490
         </div>
 
-        <div className="mt-12 grid gap-px overflow-hidden rounded-foto bg-papel/15 md:grid-cols-3">
-          {ZONAS.map((z, i) => (
-            <div
-              key={z.zona}
-              className="reveal flex flex-col bg-tinta p-7 lg:p-9"
-              style={{ "--d": `${i * 90}ms` } as React.CSSProperties}
-            >
-              <p className="text-xs font-medium uppercase tracking-[0.16em] text-papel/40">
-                {z.rotulo}
-              </p>
-              <h3 className="mt-3 text-xl font-semibold leading-snug">{z.zona}</h3>
-              <p className="type-body mt-3 flex-1 text-sm leading-relaxed text-papel/60">
-                {z.detalle}
-              </p>
-              <p className="mt-6 text-xs text-papel/45">{z.nota}</p>
+        <div className="mt-14 grid items-start gap-12 lg:grid-cols-12 lg:gap-14">
+          {/* --- Selector de zonas ------------------------------------- */}
+          <div className="reveal lg:col-span-5">
+            <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-papel/40">
+              <MapPin size={13} weight="fill" />
+              Retiro sin costo
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {PICKUPS.map((z) => (
+                <BotonZona
+                  key={z.id}
+                  zona={z}
+                  activa={z.id === activa}
+                  onSelect={() => setActiva(z.id)}
+                />
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className="reveal mt-10 flex flex-col items-start justify-between gap-6 border-t border-papel/15 pt-10 sm:flex-row sm:items-center">
-          <div className="max-w-[46ch]">
-            <h3 className="text-xl font-semibold">Resto del país</h3>
-            <p className="type-body mt-2 leading-relaxed text-papel/60">
-              Correo Uruguayo o encomienda. El costo varía según destino y peso
-              del pedido.
+            <p className="mt-8 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-papel/40">
+              <Truck size={13} weight="fill" />
+              Cadetería a domicilio
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {ZONAS_ENVIO.map((z) => (
+                <BotonZona
+                  key={z.id}
+                  zona={z}
+                  activa={z.id === activa}
+                  onSelect={() => setActiva(z.id)}
+                />
+              ))}
+            </div>
+
+            {/* --- Detalle de la zona elegida ------------------------- */}
+            <div className="mt-10 border-t border-papel/15 pt-8">
+              <div className="flex items-start justify-between gap-6">
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-papel/40">
+                    {zona.rotulo}
+                  </p>
+                  <h3 className="mt-2 text-2xl font-semibold sm:text-3xl">
+                    {zona.titulo}
+                  </h3>
+                </div>
+                <p className="shrink-0 text-right">
+                  <span className="type-display text-4xl sm:text-5xl">
+                    {zona.precio ?? "Gratis"}
+                  </span>
+                  {zona.precio && (
+                    <span className="ml-1 text-xs text-papel/45">UYU</span>
+                  )}
+                </p>
+              </div>
+
+              <p className="type-body mt-4 max-w-[52ch] leading-relaxed text-papel/60">
+                {zona.detalle}
+              </p>
+
+              {zona.barrios.length > 0 && (
+                <>
+                  <p className="mt-7 text-[11px] font-medium uppercase tracking-[0.16em] text-papel/40">
+                    Barrios incluidos
+                  </p>
+                  <ul className="mt-3 flex flex-wrap gap-1.5">
+                    {zona.barrios.map((b) => (
+                      <li
+                        key={b}
+                        className={`rounded-pill border px-3 py-1.5 text-[13px] ${
+                          SIN_POLIGONO.includes(b)
+                            ? "border-papel/15 text-papel/45"
+                            : "border-papel/25 text-papel/80"
+                        }`}
+                      >
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* --- El mapa ---------------------------------------------- */}
+          <div className="reveal lg:col-span-7 lg:sticky lg:top-28">
+            <MapaMontevideo
+              encendidos={encendidos}
+              etiqueta={`Montevideo con ${zona.titulo} resaltado`}
+            />
+            <p className="mt-5 max-w-[60ch] text-xs leading-relaxed text-papel/40">
+              Ciudad de la Costa queda fuera de Montevideo, en Canelones, y se
+              coordina aparte. Al interior enviamos por Correo Uruguayo o
+              encomienda: el costo varía según destino y peso.
             </p>
           </div>
+        </div>
+
+        <div className="reveal mt-12">
           <a
-            href={linkWhatsApp("Hola! Quiero consultar el costo de envío al interior.")}
+            href={linkWhatsApp("Hola! Quiero consultar por el envío.")}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex shrink-0 items-center gap-2 rounded-pill bg-verde px-6 py-3 text-sm font-semibold transition-colors duration-300 hover:bg-verde-vivo"
+            className="inline-flex items-center gap-2 rounded-pill bg-verde px-6 py-3 text-sm font-semibold transition-colors duration-300 hover:bg-verde-vivo"
           >
             <WhatsappLogo size={16} weight="fill" />
-            Consultar por WhatsApp
+            ¿No ves tu barrio? Escribinos
           </a>
         </div>
       </div>
     </section>
+  );
+}
+
+function BotonZona({
+  zona,
+  activa,
+  onSelect,
+}: {
+  zona: Zona;
+  activa: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      onMouseEnter={onSelect}
+      onFocus={onSelect}
+      aria-pressed={activa}
+      className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+        activa
+          ? "border-verde-vivo bg-verde-vivo text-papel"
+          : "border-papel/25 text-papel/65 hover:border-papel/60 hover:text-papel"
+      }`}
+    >
+      {zona.rotulo}
+      {zona.precio && (
+        <span className={activa ? "ml-1.5 text-papel/75" : "ml-1.5 text-papel/40"}>
+          {zona.precio}
+        </span>
+      )}
+    </button>
   );
 }

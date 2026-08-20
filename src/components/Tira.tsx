@@ -1,9 +1,14 @@
 import Image from "next/image";
 
-/** Las 11 fotos que eligio el cliente, corriendo sin fin. Van DOS veces y la
+/** Las fotos de marca del cliente, corriendo sin fin. Van DOS veces y la
  *  animacion desplaza exactamente la mitad, asi el ciclo cierra sin salto.
- *  Se frena al pasar el mouse, para poder mirar una. */
-const FOTOS = Array.from({ length: 11 }, (_, i) =>
+ *  Se frena al pasar el mouse, para poder mirar una.
+ *
+ *  Son seis y no once a proposito: las cinco que faltan son piezas graficas con
+ *  texto encima ("MATE CAMIONERO", "ME / YOU", "YERBA MATE"...). En una tira que
+ *  corre, un texto que pasa de largo no se llega a leer y ensucia. Quedan solo
+ *  las fotograficas. */
+const FOTOS = Array.from({ length: 6 }, (_, i) =>
   `/strip/${String(i + 1).padStart(2, "0")}.jpg`,
 );
 
