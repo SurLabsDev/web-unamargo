@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Bag, List, X } from "@phosphor-icons/react/dist/ssr";
 import { useCarrito } from "./cart/CartProvider";
+import { Logo } from "./Logo";
 
 const NAV = [
   { href: "#tienda", label: "Tienda" },
@@ -42,8 +43,13 @@ export function Header() {
         }`}
       >
         <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-6 px-5 sm:px-8 md:h-[72px] lg:px-12">
-          <a href="#top" className="shrink-0 text-lg font-semibold tracking-tight">
-            Un Amargo
+          <a
+            href="#top"
+            aria-label="Un Amargo, ir al inicio"
+            className="flex shrink-0 items-center gap-2.5 transition-opacity duration-200 hover:opacity-70"
+          >
+            <Logo className="h-7 w-auto sm:h-8" />
+            <span className="text-lg font-semibold tracking-tight">Un Amargo</span>
           </a>
 
           <nav className="hidden items-center gap-7 lg:flex">

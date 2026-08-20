@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { WhatsappLogo, EnvelopeSimple, InstagramLogo, SpotifyLogo } from "@phosphor-icons/react/dist/ssr";
 import { SITE, linkWhatsApp } from "@/lib/site";
+import { Logo } from "./Logo";
 
 export function Footer() {
   return (
@@ -8,13 +8,7 @@ export function Footer() {
       <div className="mx-auto max-w-[1400px]">
         <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
           <div>
-            <Image
-              src="/marca/logo.png"
-              alt="Un Amargo"
-              width={512}
-              height={488}
-              className="h-12 w-auto"
-            />
+            <Logo className="h-12 w-auto" />
             <p className="type-body mt-5 max-w-[34ch] text-papel/55">
               Mates, bombillas y accesorios en {SITE.ciudad}, {SITE.pais}.
             </p>

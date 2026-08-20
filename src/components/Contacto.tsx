@@ -39,8 +39,12 @@ export function Contacto() {
     if (!w || w.closed) setBloqueado(true);
   }
 
+  /* Los campos son los de la demo: rectangulares, compactos y rellenos, no
+     pills. Un pill de 56px de alto con una etiqueta chiquita arriba se lee
+     vacio; asi el formulario queda denso y prolijo. */
   const campo =
-    "w-full rounded-pill border border-linea bg-papel px-5 py-3 text-tinta outline-none transition-colors duration-200 placeholder:text-tinta-suave focus:border-tinta";
+    "w-full rounded-[8px] border border-linea bg-campo px-3.5 py-2.5 text-[0.9375rem] text-tinta outline-none transition-colors duration-200 placeholder:text-tinta-suave focus:border-tinta focus:bg-papel";
+  const rotulo = "text-[10px] font-medium uppercase tracking-[0.09em] text-tinta-suave";
 
   return (
     <section id="contacto" className="scroll-mt-24 px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
@@ -86,50 +90,55 @@ export function Contacto() {
 
         <form
           onSubmit={enviar}
-          className="reveal flex flex-col gap-4 lg:col-span-6 lg:col-start-7"
+          className="reveal flex flex-col gap-3.5 rounded-[14px] border border-linea bg-papel p-6 sm:p-8 lg:col-span-6 lg:col-start-7"
           style={{ "--d": "120ms" } as React.CSSProperties}
         >
-          <p className="text-sm font-semibold">Formulario de contacto / pedido</p>
+          <div className="mb-1 flex items-baseline justify-between gap-4 border-b border-linea pb-4">
+            <p className="text-sm font-semibold">Formulario de contacto</p>
+            <p className="text-xs text-tinta-suave">Te contestamos por WhatsApp</p>
+          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label htmlFor="nombre" className="text-sm text-tinta-media">Nombre</label>
-              <input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} required className={campo} />
+          <div className="grid gap-3.5 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="nombre" className={rotulo}>Nombre</label>
+              <input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} required autoComplete="name" className={campo} />
             </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="celular" className="text-sm text-tinta-media">Celular</label>
-              <input id="celular" type="tel" value={celular} onChange={(e) => setCelular(e.target.value)} className={campo} />
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="celular" className={rotulo}>Celular</label>
+              <input id="celular" type="tel" inputMode="tel" value={celular} onChange={(e) => setCelular(e.target.value)} autoComplete="tel" placeholder="099 123 456" className={campo} />
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label htmlFor="email" className="text-sm text-tinta-media">Email</label>
-            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={campo} />
+          <div className="grid gap-3.5 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="email" className={rotulo}>Email</label>
+              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="vos@correo.com" className={campo} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="motivo" className={rotulo}>Motivo</label>
+              <select id="motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} className={campo}>
+                {MOTIVOS.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label htmlFor="motivo" className="text-sm text-tinta-media">Motivo</label>
-            <select id="motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} className={campo}>
-              {MOTIVOS.map((m) => <option key={m} value={m}>{m}</option>)}
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="detalle" className="text-sm text-tinta-media">Contanos</label>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="detalle" className={rotulo}>Contanos</label>
             <textarea
               id="detalle"
               value={detalle}
               onChange={(e) => setDetalle(e.target.value)}
               rows={4}
-              className="w-full resize-none rounded-[20px] border border-linea bg-papel px-5 py-3.5 text-tinta outline-none transition-colors duration-200 focus:border-tinta"
+              placeholder="Qué mate te gustó, para cuándo lo necesitás, si va de regalo..."
+              className={`${campo} min-h-[104px] resize-y leading-relaxed`}
             />
           </div>
 
           <button
             type="submit"
-            className="mt-1 inline-flex items-center justify-center gap-2 rounded-pill bg-verde px-7 py-3.5 text-sm font-semibold text-papel transition-all duration-300 hover:bg-verde-vivo active:scale-[0.99]"
+            className="mt-2 inline-flex items-center justify-center gap-2.5 rounded-pill bg-tinta px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.07em] text-papel transition-transform duration-300 hover:scale-[1.02] active:scale-[0.99]"
           >
-            <WhatsappLogo size={17} weight="fill" />
+            <WhatsappLogo size={16} weight="fill" />
             Seguir por WhatsApp
           </button>
 

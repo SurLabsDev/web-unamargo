@@ -10,6 +10,7 @@
   --color-linea: #e8e8e8;        /* hairlines y bordes de pill */
   --color-humo: #f2f2f2;         /* superficie hundida */
   --color-papel: #ffffff;
+  --color-campo: #fafafa;   /* relleno de los campos, como en la demo */
 
   /* Verde de WhatsApp. El claro del cliente no pasa AA con texto blanco
      (3.95:1), asi que el que lleva texto es el oscuro (5.69:1) y el claro
