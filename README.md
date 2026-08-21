@@ -95,6 +95,25 @@ lenguaje fue el primer intento y estuvo mal: acá se parte del suyo.
 - Todo se apaga bajo `prefers-reduced-motion`.
 
 
+## Cómo se entera la web de un cambio
+
+La página se regenera sola cada 5 minutos, y además **el ERP le avisa cuando
+cambia el catálogo** (`POST /api/revalidar`, con un secreto compartido en
+`REVALIDATE_SECRET`).
+
+El aviso existe porque el revalidado por tiempo solo no alcanza: cuando la
+página vence, la **primera** visita todavía sirve la versión vieja mientras
+regenera por detrás. O sea que el cliente edita un precio, refresca, ve el
+viejo y concluye que el ERP no guardó. Pasó, y por eso está esto.
+
+El revalidado por tiempo se queda igual, como red: si un aviso se pierde
+-un deploy en curso, la red caída-, la página se pone al día sola más tarde.
+
+**El sello de `?v=` en el pedido al ERP no es opcional.** El endpoint del ERP
+cachea 60s en su CDN; sin el sello, la regeneración disparada por el aviso
+podría recibir una respuesta de hasta 59 segundos antes y guardarla otros 5
+minutos, dejando el aviso sin efecto.
+
 ## El mapa de zonas
 
 La sección de logística lleva un mapa de Montevideo por barrios, y no es un

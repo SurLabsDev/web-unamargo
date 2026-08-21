@@ -43,10 +43,21 @@ const CATALOGO_VACIO: Catalogo = {
 
 export async function getCatalogo(): Promise<Catalogo> {
   try {
-    // El propio endpoint cachea 60s en su CDN con stale-while-revalidate 300,
-    // asi que revalidar cada 5 min no agrega desfasaje real y evita pegarle
-    // en cada visita.
-    const res = await fetch(ERP_API, { next: { revalidate: 300 } });
+    // La URL lleva un sello que cambia cada 5 segundos.
+    //
+    // No es paranoia: el endpoint del ERP cachea 60s en su CDN. Cuando el ERP
+    // avisa que hubo un cambio y esta pagina se regenera al instante, sin este
+    // sello el pedido podria recibir una respuesta de hasta 59 segundos antes
+    // -o sea el precio viejo- y guardarla otros 5 minutos. El aviso no serviria
+    // de nada.
+    //
+    // Cambiar la URL tambien anula la cache de datos de Next, asi que cada
+    // regeneracion hace un pedido de verdad. Es lo que se quiere: la pagina se
+    // regenera pocas veces, no en cada visita.
+    const sello = Math.floor(Date.now() / 5000);
+    const res = await fetch(`${ERP_API}?v=${sello}`, {
+      next: { revalidate: 300 },
+    });
     if (!res.ok) return CATALOGO_VACIO;
 
     const data: unknown = await res.json();
