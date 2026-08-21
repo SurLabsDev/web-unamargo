@@ -36,7 +36,7 @@ function Ficha({
         </button>
 
         <div className="grid overflow-y-auto sm:grid-cols-2">
-          <div className="relative aspect-square bg-humo">
+          <div className="relative aspect-square border border-linea bg-papel">
             {fotos[i] && (
               <Image
                 src={fotos[i]}
@@ -116,7 +116,7 @@ function Tarjeta({
       <button
         onClick={onAbrir}
         aria-label={`Ver ${producto.name}`}
-        className="relative aspect-square w-full overflow-hidden rounded-foto bg-humo"
+        className="relative aspect-square w-full overflow-hidden rounded-foto border border-linea bg-papel"
       >
         {producto.images[0] && (
           <Image

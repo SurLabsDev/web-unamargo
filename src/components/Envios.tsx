@@ -8,6 +8,14 @@ import { PICKUPS, ZONAS_ENVIO, SIN_POLIGONO, barriosDeZona, type Zona } from "@/
 
 const TODAS: Zona[] = [...PICKUPS, ...ZONAS_ENVIO];
 
+/** Alturas de la pista, en vh. `ENTRADA` es el aire antes de que la primera
+ *  zona tome el control y `SALIDA` el de despues de la ultima: sin ellos, la
+ *  primera se pasa apenas entras y la ultima se va antes de leerla. `PASO` es
+ *  cuanto dura cada zona. */
+const ENTRADA = 55;
+const PASO = 62;
+const SALIDA = 45;
+
 /** El scroll recorre las zonas. Se entra a la seccion, queda fija, y al bajar
  *  va cambiando de zona hasta que se acaban; ahi la pagina sigue de largo.
  *
@@ -71,7 +79,11 @@ export function Envios() {
       </div>
 
       {/* La pista: alta, con la vista fija adentro y un centinela por zona. */}
-      <div ref={pista} className="relative mt-10" style={{ height: `${TODAS.length * 58}vh` }}>
+      <div
+        ref={pista}
+        className="relative mt-10"
+        style={{ height: `${ENTRADA + TODAS.length * PASO + SALIDA}vh` }}
+      >
         {TODAS.map((_, n) => (
           <div
             key={n}
@@ -80,7 +92,7 @@ export function Envios() {
               centinelas.current[n] = el;
             }}
             className="absolute w-px"
-            style={{ top: `${n * 58}vh`, height: "58vh" }}
+            style={{ top: `${ENTRADA + n * PASO}vh`, height: `${PASO}vh` }}
             aria-hidden
           />
         ))}
@@ -89,41 +101,75 @@ export function Envios() {
           <div className="mx-auto grid w-full max-w-[1400px] items-center gap-10 lg:grid-cols-12 lg:gap-14">
             <div className="lg:col-span-5">
               {/* Los pasos, como una barra de progreso que se puede tocar. */}
-              <div className="mb-8 flex flex-wrap items-center gap-1.5">
-                {TODAS.map((z, n) => (
-                  <button
-                    key={z.id}
-                    onClick={() => irA(n)}
-                    aria-label={`Ir a ${z.titulo}`}
-                    aria-current={n === i}
-                    className={`h-1 rounded-pill transition-all duration-500 ${
-                      n === i ? "w-10 bg-verde-vivo" : "w-5 bg-papel/25 hover:bg-papel/50"
-                    }`}
-                  />
-                ))}
-                <span className="ml-3 text-[11px] uppercase tracking-[0.16em] text-papel/40">
-                  {i + 1} / {TODAS.length}
+              <div className="mb-8 flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  {PICKUPS.map((z, n) => (
+                    <button
+                      key={z.id}
+                      onClick={() => irA(n)}
+                      aria-label={`Ir a ${z.titulo}`}
+                      aria-current={n === i}
+                      className={`h-1.5 rounded-pill transition-all duration-500 ${
+                        n === i ? "w-10 bg-verde" : "w-5 bg-verde/35 hover:bg-verde/60"
+                      }`}
+                    />
+                  ))}
+                  <span className="ml-1 text-[10px] uppercase tracking-[0.14em] text-papel/35">
+                    Retiro
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {ZONAS_ENVIO.map((z, k) => {
+                    const n = PICKUPS.length + k;
+                    return (
+                      <button
+                        key={z.id}
+                        onClick={() => irA(n)}
+                        aria-label={`Ir a ${z.titulo}`}
+                        aria-current={n === i}
+                        className={`h-1.5 rounded-pill transition-all duration-500 ${
+                          n === i ? "w-10 bg-papel" : "w-5 bg-papel/25 hover:bg-papel/50"
+                        }`}
+                      />
+                    );
+                  })}
+                  <span className="ml-1 text-[10px] uppercase tracking-[0.14em] text-papel/35">
+                    Domicilio
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`inline-flex items-center gap-2 rounded-pill px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] transition-colors duration-500 ${
+                    esPickup
+                      ? "bg-verde text-papel"
+                      : "border border-papel/35 text-papel"
+                  }`}
+                >
+                  {esPickup ? <MapPin size={15} weight="fill" /> : <Truck size={15} weight="fill" />}
+                  {esPickup ? "Retiro sin costo" : "Cadetería a domicilio"}
+                </span>
+                <span className="rounded-pill border border-papel/20 px-3 py-2 text-xs font-medium uppercase tracking-[0.1em] text-papel/55">
+                  {zona.rotulo}
                 </span>
               </div>
 
-              <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-papel/45">
-                {esPickup ? <MapPin size={13} weight="fill" /> : <Truck size={13} weight="fill" />}
-                {esPickup ? "Retiro sin costo" : "Cadetería a domicilio"}
-                <span className="text-papel/30">·</span>
-                {zona.rotulo}
+              <h3 className="type-display mt-4 text-[clamp(1.9rem,4.5vw,3.25rem)]">
+                {zona.titulo}
+              </h3>
+              <p className="mt-3 flex items-baseline gap-1.5">
+                <span
+                  className={`type-display text-3xl sm:text-4xl ${
+                    esPickup ? "text-verde-vivo" : "text-papel"
+                  }`}
+                >
+                  {zona.precio ?? "Sin costo"}
+                </span>
+                <span className="text-xs text-papel/45">
+                  {zona.precio ? "UYU" : "para vos"}
+                </span>
               </p>
-
-              <div className="mt-3 flex items-start justify-between gap-6">
-                <h3 className="type-display text-[clamp(1.9rem,4.5vw,3.25rem)]">
-                  {zona.titulo}
-                </h3>
-                <p className="shrink-0 pt-1 text-right">
-                  <span className="type-display text-3xl sm:text-4xl">
-                    {zona.precio ?? "Gratis"}
-                  </span>
-                  {zona.precio && <span className="ml-1 text-xs text-papel/45">UYU</span>}
-                </p>
-              </div>
 
               <p className="type-body mt-4 max-w-[50ch] leading-relaxed text-papel/60">
                 {zona.detalle}
