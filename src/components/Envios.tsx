@@ -18,11 +18,12 @@ export function Envios() {
   const [activa, setActiva] = useState<string>("zona1");
   const zona = TODAS.find((z) => z.id === activa) ?? ZONAS_ENVIO[0];
   const encendidos = barriosDeZona(zona);
+  const faltantes = zona.barrios.filter((b) => SIN_POLIGONO.includes(b));
 
   return (
     <section
       id="envios"
-      className="scroll-mt-24 bg-tinta px-5 py-24 text-papel sm:px-8 lg:px-12 lg:py-32"
+      className="scroll-mt-24 bg-tinta px-5 py-20 text-papel sm:px-8 lg:px-12 lg:py-28"
     >
       <div className="mx-auto max-w-[1400px]">
         <div className="reveal max-w-[36ch]">
@@ -42,7 +43,7 @@ export function Envios() {
           Envío gratis en Montevideo a partir de $3.490
         </div>
 
-        <div className="mt-14 grid items-start gap-12 lg:grid-cols-12 lg:gap-14">
+        <div className="mt-10 grid items-start gap-8 lg:mt-14 lg:grid-cols-12 lg:gap-14">
           {/* --- Selector de zonas ------------------------------------- */}
           <div className="reveal lg:col-span-5">
             <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-papel/40">
@@ -76,7 +77,7 @@ export function Envios() {
             </div>
 
             {/* --- Detalle de la zona elegida ------------------------- */}
-            <div className="mt-10 border-t border-papel/15 pt-8">
+            <div className="mt-8 border-t border-papel/15 pt-7">
               <div className="flex items-start justify-between gap-6">
                 <div>
                   <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-papel/40">
@@ -109,11 +110,7 @@ export function Envios() {
                     {zona.barrios.map((b) => (
                       <li
                         key={b}
-                        className={`rounded-pill border px-3 py-1.5 text-[13px] ${
-                          SIN_POLIGONO.includes(b)
-                            ? "border-papel/15 text-papel/45"
-                            : "border-papel/25 text-papel/80"
-                        }`}
+                        className="rounded-pill border border-papel/25 px-3 py-1.5 text-[13px] text-papel/80"
                       >
                         {b}
                       </li>
@@ -130,15 +127,26 @@ export function Envios() {
               encendidos={encendidos}
               etiqueta={`Montevideo con ${zona.titulo} resaltado`}
             />
-            <p className="mt-5 max-w-[60ch] text-xs leading-relaxed text-papel/40">
-              Ciudad de la Costa queda fuera de Montevideo, en Canelones, y se
-              coordina aparte. Al interior enviamos por Correo Uruguayo o
-              encomienda: el costo varía según destino y peso.
-            </p>
+            <div className="mt-5 max-w-[60ch] space-y-2 text-xs leading-relaxed text-papel/40">
+              {faltantes.length > 0 && (
+                <p>
+                  {faltantes.join(" y ")}{" "}
+                  {faltantes.length === 1 ? "entra" : "entran"} en la zona, pero
+                  no {faltantes.length === 1 ? "figura" : "figuran"} como barrio
+                  oficial de Montevideo, así que el mapa no{" "}
+                  {faltantes.length === 1 ? "lo" : "los"} pinta.
+                </p>
+              )}
+              <p>
+                Ciudad de la Costa queda fuera de Montevideo, en Canelones, y se
+                coordina aparte. Al interior enviamos por Correo Uruguayo o
+                encomienda: el costo varía según destino y peso.
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="reveal mt-12">
+        <div className="reveal mt-10">
           <a
             href={linkWhatsApp("Hola! Quiero consultar por el envío.")}
             target="_blank"

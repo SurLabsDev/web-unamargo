@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react/dist/ssr";
+import { WhatsappLogo, EnvelopeSimple, CaretDown } from "@phosphor-icons/react/dist/ssr";
 import { SITE, linkWhatsApp } from "@/lib/site";
 
 /** Los campos y su orden son los del formulario del cliente. No postea a
@@ -43,7 +43,7 @@ export function Contacto() {
      pills. Un pill de 56px de alto con una etiqueta chiquita arriba se lee
      vacio; asi el formulario queda denso y prolijo. */
   const campo =
-    "w-full rounded-[8px] border border-linea bg-campo px-3.5 py-2.5 text-[0.9375rem] text-tinta outline-none transition-colors duration-200 placeholder:text-tinta-suave focus:border-tinta focus:bg-papel";
+    "h-11 w-full rounded-[8px] border border-linea bg-campo px-3.5 text-[0.9375rem] text-tinta outline-none transition-colors duration-200 placeholder:text-tinta-suave focus:border-tinta focus:bg-papel";
   const rotulo = "text-[10px] font-medium uppercase tracking-[0.09em] text-tinta-suave";
 
   return (
@@ -116,9 +116,21 @@ export function Contacto() {
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="motivo" className={rotulo}>Motivo</label>
-              <select id="motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} className={campo}>
-                {MOTIVOS.map((m) => <option key={m} value={m}>{m}</option>)}
-              </select>
+              <div className="relative">
+                <select
+                  id="motivo"
+                  value={motivo}
+                  onChange={(e) => setMotivo(e.target.value)}
+                  className={`${campo} cursor-pointer appearance-none pr-10`}
+                >
+                  {MOTIVOS.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+                <CaretDown
+                  size={14}
+                  weight="bold"
+                  className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-tinta-suave"
+                />
+              </div>
             </div>
           </div>
 
@@ -130,7 +142,7 @@ export function Contacto() {
               onChange={(e) => setDetalle(e.target.value)}
               rows={4}
               placeholder="Qué mate te gustó, para cuándo lo necesitás, si va de regalo..."
-              className={`${campo} min-h-[104px] resize-y leading-relaxed`}
+              className={`${campo} h-auto min-h-[104px] resize-y py-2.5 leading-relaxed`}
             />
           </div>
 
