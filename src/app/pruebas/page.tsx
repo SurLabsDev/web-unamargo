@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function Pruebas() {
   const catalogo = await getCatalogo();
   return (
-    <main className="min-h-[100dvh] bg-papel">
+    <main className="min-h-[100svh] bg-papel">
       <Selector catalogo={catalogo} />
     </main>
   );

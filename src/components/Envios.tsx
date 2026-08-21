@@ -8,10 +8,16 @@ import { PICKUPS, ZONAS_ENVIO, SIN_POLIGONO, barriosDeZona, type Zona } from "@/
 
 const TODAS: Zona[] = [...PICKUPS, ...ZONAS_ENVIO];
 
-/** Alturas de la pista, en vh. `ENTRADA` es el aire antes de que la primera
- *  zona tome el control y `SALIDA` el de despues de la ultima: sin ellos, la
- *  primera se pasa apenas entras y la ultima se va antes de leerla. `PASO` es
- *  cuanto dura cada zona. */
+/** Alturas de la pista, en **svh** y no en vh ni dvh, a proposito.
+ *
+ *  En el celular la barra del navegador se encoge y se estira al scrollear, y
+ *  eso cambia la altura del viewport. `dvh` sigue ese cambio, asi que la pista
+ *  se acorta y se alarga sola: los centinelas se corren debajo del dedo y al
+ *  subir despues de bajar mucho la pagina pega saltos. `svh` esta clavado al
+ *  viewport chico (barra desplegada) y no se mueve nunca.
+ *
+ *  `ENTRADA` es el aire antes de que la primera zona tome el control y `SALIDA`
+ *  el de despues de la ultima. `PASO` es cuanto dura cada zona. */
 const ENTRADA = 55;
 const PASO = 62;
 const SALIDA = 45;
@@ -40,9 +46,11 @@ export function Envios() {
           setI((prev) => (prev === n ? prev : n));
         }
       },
-      // Una franja fina en el medio de la pantalla: la zona activa es la que
-      // esta pasando por ahi.
-      { rootMargin: "-50% 0px -50% 0px", threshold: 0 },
+      // Una franja de 20% de alto en el medio de la pantalla. Con los
+      // centinelas separados 62svh no puede haber dos adentro a la vez, y es
+      // lo bastante alta como para que un scroll rapido no la saltee. Una
+      // franja de altura cero se puede pasar de largo entre dos cuadros.
+      { rootMargin: "-40% 0px -40% 0px", threshold: 0 },
     );
     centinelas.current.forEach((c) => c && obs.observe(c));
     return () => obs.disconnect();
@@ -82,7 +90,7 @@ export function Envios() {
       <div
         ref={pista}
         className="relative mt-10"
-        style={{ height: `${ENTRADA + TODAS.length * PASO + SALIDA}vh` }}
+        style={{ height: `${ENTRADA + TODAS.length * PASO + SALIDA}svh` }}
       >
         {TODAS.map((_, n) => (
           <div
@@ -91,13 +99,13 @@ export function Envios() {
             ref={(el) => {
               centinelas.current[n] = el;
             }}
-            className="absolute w-px"
-            style={{ top: `${ENTRADA + n * PASO}vh`, height: `${PASO}vh` }}
+            className="absolute h-px w-px"
+            style={{ top: `${ENTRADA + n * PASO + PASO / 2}svh` }}
             aria-hidden
           />
         ))}
 
-        <div className="sticky top-0 flex min-h-[100dvh] items-center px-5 py-10 sm:px-8 lg:px-12">
+        <div className="sticky top-0 flex min-h-[100svh] items-center px-5 py-10 sm:px-8 lg:px-12">
           <div className="mx-auto grid w-full max-w-[1400px] items-center gap-10 lg:grid-cols-12 lg:gap-14">
             <div className="lg:col-span-5">
               {/* Los pasos, como una barra de progreso que se puede tocar. */}
@@ -231,7 +239,7 @@ export function Envios() {
       <div className="mx-auto max-w-[1400px] px-5 pb-4 sm:px-8 lg:hidden">
         <h3 className="type-display text-2xl">Barrios por zona</h3>
         <dl className="mt-6">
-          {TODAS.filter((z) => z.barrios.length > 0).map((z) => {
+          {TODAS.map((z) => {
             const pickup = PICKUPS.some((x) => x.id === z.id);
             return (
               <div key={z.id} className="border-t border-papel/15 py-5">
@@ -247,7 +255,7 @@ export function Envios() {
                   <span className="font-semibold">{z.titulo}</span>
                 </dt>
                 <dd className="mt-2.5 text-sm leading-relaxed text-papel/60">
-                  {z.barrios.join(" · ")}
+                  {z.barrios.length > 0 ? z.barrios.join(" · ") : z.detalle}
                 </dd>
               </div>
             );

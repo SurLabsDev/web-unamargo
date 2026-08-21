@@ -7,7 +7,7 @@ export function Hero() {
   return (
     <section
       id="top"
-      className="flex min-h-[100dvh] flex-col justify-center px-5 pb-10 pt-28 sm:px-8 lg:px-12"
+      className="flex min-h-[100svh] flex-col justify-center px-5 pb-10 pt-28 sm:px-8 lg:px-12"
     >
       <div className="mx-auto w-full max-w-[1400px]">
         <h1
