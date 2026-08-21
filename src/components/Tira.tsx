@@ -1,6 +1,10 @@
 import Image from "next/image";
 
-/** Las fotos de marca del cliente, corriendo sin fin. Van DOS veces y la
+/** Las fotos de marca del cliente, corriendo sin fin.
+ *
+ *  Ojo con el nombre de los archivos: cambiarles el CONTENIDO dejando la misma
+ *  ruta no alcanza, porque el optimizador de imagenes de Next cachea por URL y
+ *  sigue sirviendo las viejas. Si se cambian las fotos, se cambia el nombre. Van DOS veces y la
  *  animacion desplaza exactamente la mitad, asi el ciclo cierra sin salto.
  *  Se frena al pasar el mouse, para poder mirar una.
  *
@@ -9,7 +13,7 @@ import Image from "next/image";
  *  corre, un texto que pasa de largo no se llega a leer y ensucia. Quedan solo
  *  las fotograficas. */
 const FOTOS = Array.from({ length: 6 }, (_, i) =>
-  `/strip/${String(i + 1).padStart(2, "0")}.jpg`,
+  `/marquee/foto-${String(i + 1).padStart(2, "0")}.jpg`,
 );
 
 export function Tira() {

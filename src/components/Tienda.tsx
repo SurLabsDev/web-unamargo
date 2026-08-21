@@ -1,108 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
-import { X, CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
+import { CaretLeft, CaretRight, Plus } from "@phosphor-icons/react/dist/ssr";
 import { precio, type Catalogo, type Producto } from "@/lib/catalog";
-import { AddToCart } from "./cart/AddToCart";
+import { FichaProducto } from "./FichaProducto";
+import { useCarrito } from "./cart/CartProvider";
 
-function Ficha({
-  producto,
-  siguiendoStock,
-  onCerrar,
-}: {
-  producto: Producto;
-  siguiendoStock: boolean;
-  onCerrar: () => void;
-}) {
-  const [i, setI] = useState(0);
-  const fotos = producto.images;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <div className="absolute inset-0 bg-tinta/50" onClick={onCerrar} />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={producto.name}
-        className="relative flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-foto bg-papel sm:max-h-[86dvh] sm:rounded-foto"
-      >
-        <button
-          onClick={onCerrar}
-          aria-label="Cerrar"
-          className="absolute right-3 top-3 z-10 rounded-pill bg-papel/90 p-2 text-tinta-media backdrop-blur transition-colors hover:text-tinta"
-        >
-          <X size={19} weight="bold" />
-        </button>
-
-        <div className="grid overflow-y-auto sm:grid-cols-2">
-          <div className="relative aspect-square border border-linea bg-papel">
-            {fotos[i] && (
-              <Image
-                src={fotos[i]}
-                alt={producto.name}
-                fill
-                sizes="(max-width: 640px) 100vw, 384px"
-                className="object-contain p-4"
-              />
-            )}
-            {fotos.length > 1 && (
-              <>
-                <button
-                  onClick={() => setI((v) => (v - 1 + fotos.length) % fotos.length)}
-                  aria-label="Foto anterior"
-                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-pill bg-papel/85 p-2 backdrop-blur transition-colors hover:bg-papel"
-                >
-                  <CaretLeft size={16} weight="bold" />
-                </button>
-                <button
-                  onClick={() => setI((v) => (v + 1) % fotos.length)}
-                  aria-label="Foto siguiente"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-pill bg-papel/85 p-2 backdrop-blur transition-colors hover:bg-papel"
-                >
-                  <CaretRight size={16} weight="bold" />
-                </button>
-              </>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-4 p-6">
-            <div>
-              {producto.subtype && (
-                <p className="mb-1.5 text-xs font-medium text-verde">
-                  {producto.subtype.name}
-                </p>
-              )}
-              <h3 className="text-2xl font-semibold leading-tight tracking-tight">
-                {producto.name}
-              </h3>
-            </div>
-            {producto.description && (
-              <p className="type-body text-sm leading-relaxed text-tinta-media">
-                {producto.description}
-              </p>
-            )}
-            <div className="mt-auto flex items-center justify-between gap-4 pt-2">
-              <div>
-                {producto.discount && (
-                  <span className="mr-2 text-sm text-tinta-media line-through">
-                    {precio(producto.price)}
-                  </span>
-                )}
-                <span className="text-2xl font-semibold tabular-nums tracking-tight">
-                  {precio(producto.price_final)}
-                </span>
-              </div>
-              <AddToCart producto={producto} siguiendoStock={siguiendoStock} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Tarjeta({
+/** ESTANTES. Una fila por rubro, que se recorre de costado. Es el patron de
+ *  Mercado Libre, Netflix y Apple: cualquiera que compre en Uruguay ya sabe
+ *  usarlo y en el celular se pasa con el dedo.
+ *
+ *  No es un carrusel de portada -esos rinden mal y por eso cayeron de 52% a 32%
+ *  de los sitios grandes-: aca no rota solo ni esconde nada, es una estanteria
+ *  que se empuja. La pieza siguiente siempre asoma, y ese asomo es lo que avisa
+ *  que hay mas para el costado. */
+function Pieza({
   producto,
   siguiendoStock,
   onAbrir,
@@ -111,65 +24,138 @@ function Tarjeta({
   siguiendoStock: boolean;
   onAbrir: () => void;
 }) {
+  const { agregar } = useCarrito();
+  const agotado = siguiendoStock && !producto.in_stock;
+
   return (
-    <article className="reveal group flex flex-col">
+    <article className="group w-[62vw] shrink-0 snap-start sm:w-[36vw] lg:w-[23vw] xl:w-[19vw]">
       <button
         onClick={onAbrir}
         aria-label={`Ver ${producto.name}`}
-        className="relative aspect-square w-full overflow-hidden rounded-foto border border-linea bg-papel"
+        className="relative block aspect-square w-full"
       >
         {producto.images[0] && (
           <Image
             src={producto.images[0]}
             alt={producto.name}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-contain p-2 transition-transform duration-500 group-hover:scale-[1.04]"
+            sizes="(max-width: 640px) 62vw, (max-width: 1024px) 36vw, 20vw"
+            className="foto-fundida object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-[1.06]"
           />
         )}
         {producto.discount && (
-          <span className="absolute left-2 top-2 rounded-pill bg-verde px-2 py-1 text-[11px] font-bold text-papel">
+          <span className="absolute left-1 top-1 rounded-pill bg-verde px-2.5 py-1 text-[11px] font-bold text-papel">
             {producto.discount.percentage}% off
           </span>
         )}
       </button>
 
-      <div className="flex flex-1 flex-col pt-3">
-        {producto.subtype && (
-          <p className="text-xs text-tinta-media">{producto.subtype.name}</p>
-        )}
-        <h3 className="mt-0.5 text-sm font-medium leading-snug">
-          <button onClick={onAbrir} className="text-left hover:underline">
-            {producto.name}
+      <div className="mt-2 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <button onClick={onAbrir} className="block w-full text-left">
+            <p className="truncate text-sm font-medium group-hover:underline">
+              {producto.name}
+            </p>
           </button>
-        </h3>
-        <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-          <span className="font-semibold tabular-nums tracking-tight">
+          <p className="mt-0.5 text-sm font-semibold tabular-nums">
             {precio(producto.price_final)}
-          </span>
-          <AddToCart producto={producto} siguiendoStock={siguiendoStock} />
+          </p>
         </div>
+
+        {agotado ? (
+          <span className="shrink-0 rounded-pill border border-linea px-2.5 py-1 text-[11px] text-tinta-suave">
+            Sin stock
+          </span>
+        ) : (
+          <button
+            onClick={() => agregar(producto, siguiendoStock)}
+            aria-label={`Agregar ${producto.name} al pedido`}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill border border-linea transition-colors duration-200 hover:border-tinta hover:bg-tinta hover:text-papel"
+          >
+            <Plus size={13} weight="bold" />
+          </button>
+        )}
       </div>
     </article>
   );
 }
 
+function Estante({
+  titulo,
+  items,
+  siguiendoStock,
+  onAbrir,
+}: {
+  titulo: string;
+  items: Producto[];
+  siguiendoStock: boolean;
+  onAbrir: (p: Producto) => void;
+}) {
+  const pista = useRef<HTMLDivElement>(null);
+
+  function correr(dir: 1 | -1) {
+    const el = pista.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: "smooth" });
+  }
+
+  return (
+    <section className="reveal mb-14 last:mb-0">
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <h3 className="type-display text-[clamp(1.6rem,3.5vw,2.5rem)]">
+          {titulo}
+          <span className="ml-3 align-middle text-sm font-normal text-tinta-suave">
+            {items.length}
+          </span>
+        </h3>
+        <div className="hidden gap-2 md:flex">
+          <button
+            onClick={() => correr(-1)}
+            aria-label={`Ver ${titulo} anteriores`}
+            className="flex h-9 w-9 items-center justify-center rounded-pill border border-linea transition-colors hover:border-tinta"
+          >
+            <CaretLeft size={14} weight="bold" />
+          </button>
+          <button
+            onClick={() => correr(1)}
+            aria-label={`Ver más ${titulo}`}
+            className="flex h-9 w-9 items-center justify-center rounded-pill border border-linea transition-colors hover:border-tinta"
+          >
+            <CaretRight size={14} weight="bold" />
+          </button>
+        </div>
+      </div>
+
+      <div
+        ref={pista}
+        className="sin-barra flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1"
+      >
+        {items.map((p) => (
+          <Pieza
+            key={p.sku}
+            producto={p}
+            siguiendoStock={siguiendoStock}
+            onAbrir={() => onAbrir(p)}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function Tienda({ catalogo }: { catalogo: Catalogo }) {
-  const [filtro, setFiltro] = useState<string | null>(null);
   const [abierto, setAbierto] = useState<Producto | null>(null);
 
-  const visibles = useMemo(
-    () =>
-      filtro
-        ? catalogo.productos.filter((p) => p.category?.slug === filtro)
-        : catalogo.productos,
-    [catalogo.productos, filtro],
-  );
+  const porRubro = new Map<string, Producto[]>();
+  for (const p of catalogo.productos) {
+    const c = p.category?.name ?? "Otros";
+    porRubro.set(c, [...(porRubro.get(c) ?? []), p]);
+  }
 
   return (
     <section id="tienda" className="scroll-mt-24 px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
       <div className="mx-auto max-w-[1400px]">
-        <div className="reveal">
+        <div className="reveal mb-12">
           <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-tinta-suave">
             Colección
           </p>
@@ -180,62 +166,27 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
         </div>
 
         {catalogo.caido ? (
-          <div className="mt-10 rounded-pill border border-linea bg-humo px-6 py-14 text-center">
+          <div className="rounded-foto border border-linea bg-humo px-6 py-14 text-center">
             <p className="type-body text-tinta-media">
               No pudimos cargar el catálogo en este momento. Escribinos por
               WhatsApp y te contamos qué hay disponible.
             </p>
           </div>
         ) : (
-          <>
-            <div className="mt-8 flex flex-wrap gap-2">
-              <button
-                onClick={() => setFiltro(null)}
-                aria-pressed={filtro === null}
-                className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                  filtro === null
-                    ? "border-tinta bg-tinta text-papel"
-                    : "border-linea text-tinta-media hover:border-tinta hover:text-tinta"
-                }`}
-              >
-                Todo{" "}
-                <span className="tabular-nums opacity-70">
-                  {catalogo.productos.length}
-                </span>
-              </button>
-              {catalogo.categorias.map((c) => (
-                <button
-                  key={c.slug}
-                  onClick={() => setFiltro(c.slug)}
-                  aria-pressed={filtro === c.slug}
-                  className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                    filtro === c.slug
-                      ? "border-tinta bg-tinta text-papel"
-                      : "border-linea text-tinta-media hover:border-tinta hover:text-tinta"
-                  }`}
-                >
-                  {c.name}{" "}
-                  <span className="tabular-nums opacity-70">{c.cantidad}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-10 grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
-              {visibles.map((p) => (
-                <Tarjeta
-                  key={p.sku}
-                  producto={p}
-                  siguiendoStock={catalogo.siguiendoStock}
-                  onAbrir={() => setAbierto(p)}
-                />
-              ))}
-            </div>
-          </>
+          [...porRubro.entries()].map(([rubro, items]) => (
+            <Estante
+              key={rubro}
+              titulo={rubro}
+              items={items}
+              siguiendoStock={catalogo.siguiendoStock}
+              onAbrir={setAbierto}
+            />
+          ))
         )}
       </div>
 
       {abierto && (
-        <Ficha
+        <FichaProducto
           producto={abierto}
           siguiendoStock={catalogo.siguiendoStock}
           onCerrar={() => setAbierto(null)}
