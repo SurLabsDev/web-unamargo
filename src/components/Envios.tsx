@@ -176,7 +176,7 @@ export function Envios() {
               </p>
 
               {zona.barrios.length > 0 && (
-                <ul className="mt-6 flex flex-wrap gap-1.5">
+                <ul className="mt-6 hidden flex-wrap gap-1.5 lg:flex">
                   {zona.barrios.map((b) => (
                     <li
                       key={b}
@@ -189,7 +189,7 @@ export function Envios() {
               )}
 
               {faltantes.length > 0 && (
-                <p className="mt-4 max-w-[52ch] text-xs leading-relaxed text-papel/40">
+                <p className="mt-4 hidden max-w-[52ch] text-xs leading-relaxed text-papel/40 lg:block">
                   {faltantes.join(" y ")}{" "}
                   {faltantes.length === 1 ? "entra" : "entran"} en la zona, pero no{" "}
                   {faltantes.length === 1 ? "figura" : "figuran"} como barrio oficial
@@ -227,7 +227,39 @@ export function Envios() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1400px] px-5 pb-24 sm:px-8 lg:px-12">
+      {/* Solo en celular: el detalle de barrios, fuera de la pantalla fija. */}
+      <div className="mx-auto max-w-[1400px] px-5 pb-4 sm:px-8 lg:hidden">
+        <h3 className="type-display text-2xl">Barrios por zona</h3>
+        <dl className="mt-6">
+          {TODAS.filter((z) => z.barrios.length > 0).map((z) => {
+            const pickup = PICKUPS.some((x) => x.id === z.id);
+            return (
+              <div key={z.id} className="border-t border-papel/15 py-5">
+                <dt className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-pill px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] ${
+                      pickup ? "bg-verde text-papel" : "border border-papel/35 text-papel"
+                    }`}
+                  >
+                    {pickup ? <MapPin size={12} weight="fill" /> : <Truck size={12} weight="fill" />}
+                    {pickup ? "Retiro" : z.precio}
+                  </span>
+                  <span className="font-semibold">{z.titulo}</span>
+                </dt>
+                <dd className="mt-2.5 text-sm leading-relaxed text-papel/60">
+                  {z.barrios.join(" · ")}
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+        <p className="mt-2 text-xs leading-relaxed text-papel/40">
+          Paso Molino y Verdisol entran igual, pero no figuran como barrio
+          oficial de Montevideo, así que el mapa no los pinta.
+        </p>
+      </div>
+
+      <div className="mx-auto max-w-[1400px] px-5 pb-24 pt-10 sm:px-8 lg:px-12 lg:pt-0">
         <p className="max-w-[62ch] text-xs leading-relaxed text-papel/40">
           Ciudad de la Costa queda fuera de Montevideo, en Canelones, y se
           coordina aparte. Al interior enviamos por Correo Uruguayo o encomienda:
