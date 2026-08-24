@@ -95,24 +95,44 @@ lenguaje fue el primer intento y estuvo mal: acá se parte del suyo.
 - Todo se apaga bajo `prefers-reduced-motion`.
 
 
-## Dominios
+## Dominios: comprados y probados, todavía apagados
 
-| host | va a | |
+`unamargo.com` está registrado en Cloudflare y **ya se configuró y se verificó
+entera una vez**, pero se dio de baja a pedido: todavía no se sale a producción.
+Hoy todo vive en los `.vercel.app`, que son el ambiente de prueba.
+
+Cuando se prenda, esto es lo que hay que hacer, y está probado de punta a punta:
+
+| host | proyecto | |
 |---|---|---|
-| `unamargo.com` | esta web | **el canónico** |
-| `www.unamargo.com` | -> `unamargo.com` | redirect 308 |
-| `erp.unamargo.com` | el ERP | proyecto `erp-unamargo` |
+| `unamargo.com` | `web-unamargo` | **el canónico** |
+| `www.unamargo.com` | `web-unamargo` | redirect 308 al apex |
+| `erp.unamargo.com` | `erp-unamargo` | |
 
-El dominio está registrado en Cloudflare y con los nameservers ahí, así que el
-DNS se maneja por su API. Los tres registros son `CNAME -> cname.vercel-dns.com`
-**con la nube gris (DNS only)**: proxear Vercel por detrás de Cloudflare encadena
-dos CDN y rompe la emisión y la renovación del certificado.
+1. Agregar los tres a su proyecto (`POST /v10/projects/{proyecto}/domains`).
+2. En Cloudflare, tres `CNAME -> cname.vercel-dns.com` **con la nube gris**.
+3. `PATCH /v9/projects/web-unamargo/domains/www.unamargo.com` con
+   `{"redirect":"unamargo.com","redirectStatusCode":308}`.
+4. Cambiar `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_ERP_API` (acá) y
+   `WEB_REVALIDATE_URL` (en el ERP) a los hosts nuevos, y **redeployar los dos**:
+   las `NEXT_PUBLIC_*` se incrustan en el build.
 
-El redirect de `www` es **308 y no 307** a propósito. El temporal deja los dos
-hosts vivos para el buscador y parte las señales entre ellos; el permanente las
-consolida en el apex.
+Cuatro cosas que ya costaron una vez y no hace falta volver a descubrir:
 
-Los `.vercel.app` siguen respondiendo, Vercel no los da de baja.
+- **La nube gris no es opcional.** Proxear Vercel por detrás de Cloudflare
+  encadena dos CDN y rompe la emisión y la renovación del certificado.
+- **En el apex va un CNAME, no un registro A.** Cloudflare aplana el CNAME de
+  raíz solo, y así si Vercel cambia de IP el registro la sigue en vez de quedar
+  apuntando a una IP muerta.
+- **El redirect de `www` es 308, no 307.** El temporal deja los dos hosts vivos
+  para el buscador y parte las señales; el permanente las consolida en el apex.
+- **El orden importa para apagarlo.** Las variables se devuelven ANTES de bajar
+  el dominio: si el ERP queda avisando a un host muerto, la actualización de
+  precios en vivo se rompe sin que nada lo diga.
+
+Las credenciales de Cloudflare están en `~/.config/surlabs/unamargo-cloudflare.env`.
+Ese token es **de cuenta** (prefijo `cfat_`): `GET /user/tokens/verify` le contesta
+"Invalid API Token" por diseño y eso no significa que esté mal.
 
 ## Cómo se entera la web de un cambio
 
