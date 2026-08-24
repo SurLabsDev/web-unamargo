@@ -75,7 +75,16 @@ export function CartDrawer() {
         role="dialog"
         aria-modal="true"
         aria-label="Tu pedido"
-        className={`absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-papel shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        /* `w-[min(28rem,100%)]` y no `w-full max-w-md`: con los dos el ancho se
+           resuelve en dos pasos y hay un cuadro en el que el panel ocupa la
+           pantalla entera, asi que su contenido -que va centrado- aparece un
+           instante en el medio antes de que el panel se acomode a la derecha.
+           Con un solo ancho calculado no hay paso intermedio.
+
+           `will-change-transform` le pide al navegador la capa ANTES de que
+           arranque el gesto: sin eso el primer cuadro del deslizamiento se
+           pinta en la posicion vieja. */
+        className={`absolute right-0 top-0 flex h-full w-[min(28rem,100%)] flex-col bg-papel shadow-2xl will-change-transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           abierto ? "translate-x-0" : "translate-x-full"
         }`}
       >
