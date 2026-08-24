@@ -95,6 +95,25 @@ lenguaje fue el primer intento y estuvo mal: acá se parte del suyo.
 - Todo se apaga bajo `prefers-reduced-motion`.
 
 
+## Dominios
+
+| host | va a | |
+|---|---|---|
+| `unamargo.com` | esta web | **el canónico** |
+| `www.unamargo.com` | -> `unamargo.com` | redirect 308 |
+| `erp.unamargo.com` | el ERP | proyecto `erp-unamargo` |
+
+El dominio está registrado en Cloudflare y con los nameservers ahí, así que el
+DNS se maneja por su API. Los tres registros son `CNAME -> cname.vercel-dns.com`
+**con la nube gris (DNS only)**: proxear Vercel por detrás de Cloudflare encadena
+dos CDN y rompe la emisión y la renovación del certificado.
+
+El redirect de `www` es **308 y no 307** a propósito. El temporal deja los dos
+hosts vivos para el buscador y parte las señales entre ellos; el permanente las
+consolida en el apex.
+
+Los `.vercel.app` siguen respondiendo, Vercel no los da de baja.
+
 ## Cómo se entera la web de un cambio
 
 La página se regenera sola cada 5 minutos, y además **el ERP le avisa cuando

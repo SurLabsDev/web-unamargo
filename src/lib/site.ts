@@ -9,7 +9,7 @@ export const SITE = {
    *  contra un host que no responde. Cuando se compre el dominio se cambia ACA
    *  y lo siguen las metadatas, el JSON-LD y el sitemap. Se puede pisar por
    *  entorno para no tener que redeployar. */
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://web-unamargo.vercel.app",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://unamargo.com",
   whatsapp: "59897022638",
   whatsappLegible: "098 702 638",
   email: "unamargo.info@gmail.com",
@@ -27,7 +27,7 @@ export const SITE = {
  *  apuntar a una instancia distinta sin tocar codigo. */
 export const ERP_API =
   process.env.NEXT_PUBLIC_ERP_API ??
-  "https://erp-unamargo.vercel.app/api/public/v1/stock";
+  "https://erp.unamargo.com/api/public/v1/stock";
 
 export function linkWhatsApp(mensaje: string): string {
   return `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(mensaje)}`;
