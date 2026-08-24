@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
-import { SITE } from "@/lib/site";
+import { SE_INDEXA, SITE } from "@/lib/site";
 import "./globals.css";
 
 /* Una sola familia, con el eje de ancho pedido: el caracter de los titulos
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     title: `${SITE.nombre} | Mates y accesorios en Montevideo`,
     description: SITE.descripcion,
   },
-  robots: { index: true, follow: true },
+  robots: { index: SE_INDEXA, follow: SE_INDEXA },
 };
 
 export default function RootLayout({

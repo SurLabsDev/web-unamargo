@@ -32,3 +32,24 @@ export const ERP_API =
 export function linkWhatsApp(mensaje: string): string {
   return `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(mensaje)}`;
 }
+
+/** Los unicos hosts que Google puede indexar: el dominio real y nada mas.
+ *
+ *  Se decide por el host y no por una variable aparte a proposito. Cualquier
+ *  otro sitio -los `.vercel.app`, `test.unamargo.com`, un preview de una rama-
+ *  queda fuera del indice solo, sin que nadie se tenga que acordar. Sin esto,
+ *  la tienda de prueba compite en los resultados contra la real y muestra
+ *  precios que no existen.
+ *
+ *  El efecto secundario es el correcto: la web se vuelve indexable justo cuando
+ *  se muda al dominio de verdad, en vez de depender de que alguien se acuerde
+ *  de prender el indexado el dia del lanzamiento. */
+const HOSTS_INDEXABLES = ["unamargo.com", "www.unamargo.com"];
+
+export const SE_INDEXA: boolean = (() => {
+  try {
+    return HOSTS_INDEXABLES.includes(new URL(SITE.url).hostname);
+  } catch {
+    return false;
+  }
+})();
