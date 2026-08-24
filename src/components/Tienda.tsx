@@ -57,8 +57,17 @@ function Pieza({
               {producto.name}
             </p>
           </button>
-          <p className="mt-0.5 text-sm font-semibold tabular-nums">
+          {/* Con descuento se muestran los dos precios: el tachado es lo que
+              hace que el nuevo se lea como una rebaja y no como el precio de
+              siempre. Sin el, el "20% off" de la foto obliga a hacer la cuenta
+              de cabeza para saber cuanto se ahorra. */}
+          <p className="mt-0.5 flex flex-wrap items-baseline gap-x-2 text-sm font-semibold tabular-nums">
             {precio(producto.price_final)}
+            {producto.discount && producto.price !== producto.price_final ? (
+              <span className="text-xs font-normal text-tinta-suave line-through">
+                {precio(producto.price)}
+              </span>
+            ) : null}
           </p>
         </div>
 
