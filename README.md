@@ -134,6 +134,21 @@ Las credenciales de Cloudflare están en `~/.config/surlabs/unamargo-cloudflare.
 Ese token es **de cuenta** (prefijo `cfat_`): `GET /user/tokens/verify` le contesta
 "Invalid API Token" por diseño y eso no significa que esté mal.
 
+## Quién puede indexar esto
+
+Solo el dominio real. `SE_INDEXA` en [site.ts](src/lib/site.ts) compara el host
+contra una lista de dos, y de ahí salen **tanto** el `robots` de las metadatas
+**como** el `robots.txt`, así que no pueden discrepar.
+
+Se decide por el host y no por una variable aparte para que cualquier otro sitio
+-los `.vercel.app`, `test.unamargo.com`, el preview de una rama- quede fuera del
+índice solo. Sin esto, la tienda de prueba compite en Google contra la real y
+muestra precios que no existen.
+
+El efecto secundario es el que se quiere: la web se vuelve indexable justo
+cuando se muda al dominio de verdad, en vez de depender de que alguien se
+acuerde de prender el indexado el día del lanzamiento.
+
 ## Cómo se entera la web de un cambio
 
 La página se regenera sola cada 5 minutos, y además **el ERP le avisa cuando
