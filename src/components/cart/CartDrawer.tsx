@@ -54,11 +54,40 @@ export function CartDrawer() {
   useEffect(() => {
     const d = dialogoRef.current;
     if (!d) return;
+
     if (abierto && !d.open) {
+      d.removeAttribute("data-cerrando");
       d.showModal();
       cerrarRef.current?.focus();
-    } else if (!abierto && d.open) {
-      d.close();
+      return;
+    }
+
+    if (!abierto && d.open) {
+      // Al cerrar NO se llama a `close()` de una: eso lo saca de la capa
+      // superior en el primer fotograma y la salida no se ve. Se marca
+      // `data-cerrando`, que en el CSS lo devuelve a la derecha, y recien
+      // cuando termina la transicion se cierra de verdad.
+      //
+      // Chrome resuelve esto solo con `allow-discrete` en `display`. Safari
+      // todavia no, y ahi la salida cortaba seco. Esto anda en los dos.
+      d.setAttribute("data-cerrando", "");
+      let cerrado = false;
+      const terminar = () => {
+        if (cerrado) return;
+        cerrado = true;
+        d.removeAttribute("data-cerrando");
+        if (d.open) d.close();
+      };
+      d.addEventListener("transitionend", terminar, { once: true });
+      // Red por si la transicion no dispara (movimiento reducido, o un
+      // navegador que no anima): sin esto el cajon quedaria abierto para
+      // siempre.
+      const t = setTimeout(terminar, 400);
+      return () => {
+        clearTimeout(t);
+        d.removeEventListener("transitionend", terminar);
+        terminar();
+      };
     }
   }, [abierto]);
 

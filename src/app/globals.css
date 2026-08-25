@@ -103,6 +103,11 @@ html { scroll-behavior: smooth; }
     transform: translateX(100%);
   }
 }
+/* Mientras se esta yendo. Va DESPUES de `[open]` para ganarle sin subir la
+   especificidad con trucos. */
+.cajon-pedido[open][data-cerrando] {
+  transform: translateX(100%);
+}
 
 .cajon-pedido::backdrop {
   background: rgb(10 10 10 / 0);
@@ -118,6 +123,9 @@ html { scroll-behavior: smooth; }
   .cajon-pedido[open]::backdrop {
     background: rgb(10 10 10 / 0);
   }
+}
+.cajon-pedido[open][data-cerrando]::backdrop {
+  background: rgb(10 10 10 / 0);
 }
 
 @media (prefers-reduced-motion: reduce) {
