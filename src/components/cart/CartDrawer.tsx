@@ -84,9 +84,21 @@ export function CartDrawer() {
            `will-change-transform` le pide al navegador la capa ANTES de que
            arranque el gesto: sin eso el primer cuadro del deslizamiento se
            pinta en la posicion vieja. */
-        className={`absolute right-0 top-0 flex h-full w-[min(28rem,100%)] flex-col bg-papel shadow-2xl will-change-transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          abierto ? "translate-x-0" : "translate-x-full"
-        }`}
+        /* Se desliza con `transform` escrito a mano y NO con `translate-x-*`.
+           Tailwind 4 emite la propiedad `translate`, que es mas nueva y que en
+           Safari dejaba el panel corrido exactamente su propio ancho: quedaba
+           flotando en el medio de la pantalla en vez de pegado a la derecha. En
+           Chrome se veia perfecto en todos los anchos, asi que el bug solo
+           aparecia mirando el navegador del cliente.
+
+           `transform: translateX()` tiene veinte años de soporte parejo y no
+           pasa por las variables CSS que Tailwind usa para componer `translate`.
+
+           `w-[min(28rem,100%)]` es un solo ancho calculado, no `w-full` mas un
+           maximo: con dos reglas hay un cuadro en el que el panel ocupa la
+           pantalla entera antes de acomodarse. */
+        style={{ transform: abierto ? "translateX(0)" : "translateX(100%)" }}
+        className="absolute right-0 top-0 flex h-full w-[min(28rem,100%)] flex-col bg-papel shadow-2xl will-change-transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
       >
         <header className="flex items-center justify-between border-b border-linea px-5 py-4">
           <h2 className="text-lg font-semibold tracking-tight">
