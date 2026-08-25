@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { X, Minus, Plus, WhatsappLogo, Bag } from "@phosphor-icons/react/dist/ssr";
 import { useCarrito } from "./CartProvider";
@@ -49,6 +50,26 @@ export function CartDrawer() {
     };
   }, [abierto, setAbierto]);
 
+  // El cajon se monta en <body> y NO donde vive el componente.
+  //
+  // Un `position: fixed` no se posiciona respecto a la ventana si algun
+  // ancestro tiene `transform`, `filter`, `backdrop-filter`, `will-change` o
+  // `contain`: en ese caso se ancla a ESE ancestro. Safari aplica la regla en
+  // casos donde Chrome no, y por eso el panel aparecia flotando en el medio en
+  // Safari y perfecto en Chrome, con el mismo codigo.
+  //
+  // Buscar cual era el ancestro culpable arregla el sintoma de hoy y deja el
+  // problema armado para la proxima vez que alguien agregue una sombra o un
+  // blur en cualquier lado. Sacandolo del arbol, ninguno puede capturarlo.
+  // Devuelve false en el servidor y true en el navegador, sin llamar a
+  // `setState` dentro de un efecto (que dispara un render en cascada). El
+  // portal necesita el DOM, que en el servidor no existe.
+  const montado = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+
   const mensaje = armarMensaje(items, total);
   const href = linkWhatsApp(mensaje);
 
@@ -60,7 +81,9 @@ export function CartDrawer() {
     if (!w || w.closed) setBloqueado(true);
   }
 
-  return (
+  if (!montado) return null;
+
+  return createPortal(
     <div
       aria-hidden={!abierto}
       className={`fixed inset-0 z-50 overflow-hidden ${abierto ? "" : "pointer-events-none"}`}
@@ -98,7 +121,7 @@ export function CartDrawer() {
            maximo: con dos reglas hay un cuadro en el que el panel ocupa la
            pantalla entera antes de acomodarse. */
         style={{ transform: abierto ? "translateX(0)" : "translateX(100%)" }}
-        className="absolute right-0 top-0 flex h-full w-[min(28rem,100%)] flex-col bg-papel shadow-2xl will-change-transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        className="absolute right-0 top-0 flex h-full w-[min(28rem,100%)] flex-col bg-papel shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
       >
         <header className="flex items-center justify-between border-b border-linea px-5 py-4">
           <h2 className="text-lg font-semibold tracking-tight">
@@ -227,6 +250,7 @@ export function CartDrawer() {
           </>
         )}
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 }
