@@ -14,9 +14,12 @@ export function Hero() {
           className="type-display entra max-w-[15ch] text-[clamp(3.25rem,10vw,7.5rem)]"
           style={{ "--d": "60ms" } as React.CSSProperties}
         >
-          Un amargo,
+          {/* El salto de linea es visual. Sin el espacio explicito, el texto
+              que extraen los buscadores y los lectores de pantalla sale pegado:
+              "Un amargo,sin vueltas,sin azucar.". */}
+          Un amargo,{" "}
           <br />
-          sin vueltas,
+          sin vueltas,{" "}
           <br />
           sin azúcar.
         </h1>

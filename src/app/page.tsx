@@ -1,5 +1,6 @@
 import { getCatalogo } from "@/lib/catalog";
-import { SITE } from "@/lib/site";
+import { construirSchema } from "@/lib/schema";
+import { FAQ } from "@/lib/faq";
 import { CartProvider } from "@/components/cart/CartProvider";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { ScrollReveal } from "@/components/ScrollReveal";
@@ -11,6 +12,7 @@ import { Nosotros } from "@/components/Nosotros";
 import { Personalizados } from "@/components/Personalizados";
 import { Empresas } from "@/components/Empresas";
 import { Envios } from "@/components/Envios";
+import { Preguntas } from "@/components/Preguntas";
 import { Contacto } from "@/components/Contacto";
 import { Footer } from "@/components/Footer";
 
@@ -23,25 +25,7 @@ export const revalidate = 300;
 export default async function Home() {
   const catalogo = await getCatalogo();
 
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "Store",
-    "@id": `${SITE.url}/#tienda`,
-    name: SITE.nombre,
-    description: SITE.descripcion,
-    url: SITE.url,
-    telephone: `+${SITE.whatsapp}`,
-    email: SITE.email,
-    // Sin direccion inventada: el negocio coordina puntos de encuentro, no
-    // tiene local a la calle.
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: SITE.ciudad,
-      addressCountry: "UY",
-    },
-    areaServed: SITE.pais,
-    currenciesAccepted: "UYU",
-  };
+  const schema = construirSchema(catalogo, FAQ);
 
   return (
     <CartProvider>
@@ -59,6 +43,7 @@ export default async function Home() {
         <Personalizados />
         <Empresas />
         <Envios />
+        <Preguntas />
         <Contacto />
       </main>
       <Footer />

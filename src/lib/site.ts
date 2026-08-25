@@ -2,8 +2,11 @@
  *  esta inventado: el numero, el mail y las zonas son los suyos. */
 export const SITE = {
   nombre: "Un Amargo",
+  /** ~155 caracteres, que es lo que entra en un resultado de busqueda. La
+   *  version anterior usaba 128 y dejaba afuera "envio" y "retiro sin costo",
+   *  que es lo que la gente escribe cuando busca. */
   descripcion:
-    "Mates, bombillas y accesorios seleccionados en Montevideo. Grabado láser y trabajos en virola. Coordinamos entrega por WhatsApp.",
+    "Mates, bombillas y accesorios en Montevideo. Grabado láser y trabajos en virola. Envíos en todo Montevideo y retiro sin costo. Pedidos por WhatsApp.",
   /** URL canonica. Hoy es la de Vercel porque todavia no hay dominio propio:
    *  poner uno que no existe rompe el canonical y las Open Graph, que resolveran
    *  contra un host que no responde. Cuando se compre el dominio se cambia ACA

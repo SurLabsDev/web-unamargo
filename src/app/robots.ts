@@ -9,7 +9,28 @@ export default function robots(): MetadataRoute.Robots {
     return { rules: [{ userAgent: "*", disallow: "/" }] };
   }
   return {
-    rules: [{ userAgent: "*", allow: "/" }],
+    rules: [
+      { userAgent: "*", allow: "/" },
+      // Los rastreadores de IA se nombran explicitamente, aunque `*` ya los
+      // cubra: dejarlo escrito evita que alguien "endurezca" el robots mas
+      // adelante y los bloquee sin darse cuenta. Un asistente que no puede
+      // leer la pagina no la puede citar, y para un negocio que vive de que lo
+      // recomienden, aparecer cuando alguien pregunta "donde compro un mate en
+      // Montevideo" vale mas que la visita que cuesta.
+      {
+        userAgent: [
+          "GPTBot",
+          "ChatGPT-User",
+          "OAI-SearchBot",
+          "PerplexityBot",
+          "ClaudeBot",
+          "anthropic-ai",
+          "Google-Extended",
+        ],
+        allow: "/",
+      },
+    ],
+    sitemap: `${SITE.url}/sitemap.xml`,
     host: SITE.url,
   };
 }
