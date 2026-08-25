@@ -33,22 +33,45 @@ export function CartDrawer() {
     useCarrito();
   const [bloqueado, setBloqueado] = useState(false);
   const cerrarRef = useRef<HTMLButtonElement>(null);
+  const dialogoRef = useRef<HTMLDialogElement>(null);
 
-  // Escape cierra, y el foco entra al panel: sin esto el teclado queda atras.
+  /**
+   * Se abre con `showModal()` del <dialog> nativo, no con CSS.
+   *
+   * Un `position: fixed` deja de medirse contra la ventana si CUALQUIER
+   * ancestro tiene `transform`, `filter`, `backdrop-filter`, `will-change` o
+   * `contain`. En Safari eso dejaba el cajon corrido y el fondo oscurecido sin
+   * llegar al borde. Se probo mover el panel, cambiar `translate` por
+   * `transform` y sacarlo a un portal en <body>: los tres arreglaron Chrome,
+   * que nunca estuvo roto, y ninguno arreglo Safari.
+   *
+   * `showModal()` pone el elemento en la CAPA SUPERIOR del navegador, fuera del
+   * arbol de layout. Ningun ancestro puede alcanzarlo, porque a efectos de
+   * posicionamiento ya no tiene ancestros. Ademas trae gratis lo que estabamos
+   * haciendo a mano: Escape cierra, el foco queda atrapado adentro y el resto
+   * de la pagina queda inerte para lectores de pantalla.
+   */
+  useEffect(() => {
+    const d = dialogoRef.current;
+    if (!d) return;
+    if (abierto && !d.open) {
+      d.showModal();
+      cerrarRef.current?.focus();
+    } else if (!abierto && d.open) {
+      d.close();
+    }
+  }, [abierto]);
+
+  // El scroll del fondo se bloquea aparte: `showModal` lo hace en algunos
+  // navegadores y en otros no.
   useEffect(() => {
     if (!abierto) return;
-    cerrarRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setAbierto(false);
-    };
-    document.addEventListener("keydown", onKey);
-    const overflow = document.body.style.overflow;
+    const previo = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = overflow;
+      document.body.style.overflow = previo;
     };
-  }, [abierto, setAbierto]);
+  }, [abierto]);
 
   // El cajon se monta en <body> y NO donde vive el componente.
   //
@@ -84,44 +107,24 @@ export function CartDrawer() {
   if (!montado) return null;
 
   return createPortal(
-    <div
-      aria-hidden={!abierto}
-      className={`fixed inset-0 z-50 overflow-hidden ${abierto ? "" : "pointer-events-none"}`}
+    <dialog
+      ref={dialogoRef}
+      aria-label="Tu pedido"
+      onCancel={(e) => {
+        e.preventDefault();
+        setAbierto(false);
+      }}
+      /* Un clic en el fondo cierra. El <dialog> ocupa toda la pantalla y el
+         panel vive adentro, asi que se compara contra el panel: si el clic no
+         cayo dentro de el, cayo en el fondo. */
+      onClick={(e) => {
+        if (e.target === dialogoRef.current) setAbierto(false);
+      }}
+      className="cajon-pedido"
     >
       <div
-        onClick={() => setAbierto(false)}
-        className={`absolute inset-0 bg-tinta/50 transition-opacity duration-300 ${
-          abierto ? "opacity-100" : "opacity-0"
-        }`}
-      />
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-label="Tu pedido"
-        /* `w-[min(28rem,100%)]` y no `w-full max-w-md`: con los dos el ancho se
-           resuelve en dos pasos y hay un cuadro en el que el panel ocupa la
-           pantalla entera, asi que su contenido -que va centrado- aparece un
-           instante en el medio antes de que el panel se acomode a la derecha.
-           Con un solo ancho calculado no hay paso intermedio.
-
-           `will-change-transform` le pide al navegador la capa ANTES de que
-           arranque el gesto: sin eso el primer cuadro del deslizamiento se
-           pinta en la posicion vieja. */
-        /* Se desliza con `transform` escrito a mano y NO con `translate-x-*`.
-           Tailwind 4 emite la propiedad `translate`, que es mas nueva y que en
-           Safari dejaba el panel corrido exactamente su propio ancho: quedaba
-           flotando en el medio de la pantalla en vez de pegado a la derecha. En
-           Chrome se veia perfecto en todos los anchos, asi que el bug solo
-           aparecia mirando el navegador del cliente.
-
-           `transform: translateX()` tiene veinte años de soporte parejo y no
-           pasa por las variables CSS que Tailwind usa para componer `translate`.
-
-           `w-[min(28rem,100%)]` es un solo ancho calculado, no `w-full` mas un
-           maximo: con dos reglas hay un cuadro en el que el panel ocupa la
-           pantalla entera antes de acomodarse. */
+        className="flex h-full w-full flex-col bg-papel"
         style={{ transform: abierto ? "translateX(0)" : "translateX(100%)" }}
-        className="absolute right-0 top-0 flex h-full w-[min(28rem,100%)] flex-col bg-papel shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
       >
         <header className="flex items-center justify-between border-b border-linea px-5 py-4">
           <h2 className="text-lg font-semibold tracking-tight">
@@ -249,8 +252,8 @@ export function CartDrawer() {
             </footer>
           </>
         )}
-      </aside>
-    </div>,
+      </div>
+    </dialog>,
     document.body,
   );
 }

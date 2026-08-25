@@ -56,6 +56,39 @@ html { scroll-behavior: smooth; }
 }
 .reveal.in-view { opacity: 1; transform: none; }
 
+/* --- Cajon del pedido ---------------------------------------------------- */
+/* El <dialog> abierto con `showModal()` vive en la capa superior del
+   navegador, o sea fuera del arbol de layout. Por eso estas medidas no dependen
+   de ningun ancestro: no los tiene. Es lo que finalmente arreglo el cajon en
+   Safari, donde quedaba corrido porque algo mas arriba le hacia de bloque
+   contenedor.
+
+   Los estilos van aca y no en clases de Tailwind porque `::backdrop` es un
+   pseudo-elemento que Tailwind no alcanza. */
+.cajon-pedido {
+  position: fixed;
+  inset: 0 0 0 auto;          /* pegado a la derecha, de arriba a abajo */
+  width: min(28rem, 100%);
+  max-width: 100%;
+  max-height: 100%;
+  height: 100%;
+  margin: 0;                  /* el default del navegador lo centra */
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+  box-shadow: -12px 0 40px rgb(10 10 10 / 0.18);
+}
+.cajon-pedido > div {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cajon-pedido::backdrop {
+  background: rgb(10 10 10 / 0.5);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cajon-pedido > div { transition: none; }
+}
+
 /* --- Marquee de fotos --------------------------------------------------- */
 /* La tira lleva las 11 fotos DOS veces y se desplaza exactamente la mitad:
    al llegar al final, la segunda copia esta donde arrancó la primera y el
