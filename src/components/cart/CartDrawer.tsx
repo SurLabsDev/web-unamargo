@@ -122,10 +122,7 @@ export function CartDrawer() {
       }}
       className="cajon-pedido"
     >
-      <div
-        className="flex h-full w-full flex-col bg-papel"
-        style={{ transform: abierto ? "translateX(0)" : "translateX(100%)" }}
-      >
+      <div className="flex h-full w-full flex-col bg-papel">
         <header className="flex items-center justify-between border-b border-linea px-5 py-4">
           <h2 className="text-lg font-semibold tracking-tight">
             Tu pedido
