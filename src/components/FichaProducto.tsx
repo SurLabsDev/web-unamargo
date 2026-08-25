@@ -158,7 +158,11 @@ export function FichaProducto({
                   </p>
                 )}
               </div>
-              <AddToCart producto={producto} siguiendoStock={siguiendoStock} />
+              <AddToCart
+                producto={producto}
+                siguiendoStock={siguiendoStock}
+                alAgregar={onCerrar}
+              />
             </div>
           </div>
         </div>
