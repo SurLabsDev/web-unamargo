@@ -152,14 +152,14 @@ function Estante({
   );
 }
 
-/** El orden de los estantes lo decide el negocio, no el alfabeto: los mates son
- *  lo que la gente viene a buscar y los accesorios lo que se suma al final.
+/** El orden de los estantes lo decide el ERP, no esta lista.
  *
- *  Un rubro que no este en esta lista igual aparece, al final: si mañana el
- *  cliente crea uno nuevo en el ERP no se pierde. Si algun dia quieren manejar
- *  el orden desde el ERP, la categoria ya tiene `sort_order` ahi y alcanza con
- *  exponerlo en la API, que es un cambio aditivo. */
-const ORDEN_RUBROS = ["Mates", "Bombillas", "Combos", "Accesorios"];
+ *  Antes estaba escrito aca, asi que cambiar en que orden se muestran los
+ *  rubros pedia un deploy de la web. Ahora sale de `sort_order` de la categoria,
+ *  que el cliente edita desde Configuracion.
+ *
+ *  El desempate por nombre queda para dos rubros con el mismo numero, que es lo
+ *  que pasa cuando alguien crea uno nuevo y todavia no lo acomodo. */
 
 export function Tienda({ catalogo }: { catalogo: Catalogo }) {
   const [abierto, setAbierto] = useState<Producto | null>(null);
@@ -170,14 +170,15 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
     porRubro.set(c, [...(porRubro.get(c) ?? []), p]);
   }
 
+  const ordenDe = new Map<string, number>();
+  for (const p of catalogo.productos) {
+    const c = p.category;
+    if (c && !ordenDe.has(c.name)) ordenDe.set(c.name, c.sort ?? 0);
+  }
   const rubros = [...porRubro.entries()].sort(([a], [b]) => {
-    const ia = ORDEN_RUBROS.indexOf(a);
-    const ib = ORDEN_RUBROS.indexOf(b);
-    // Los que no estan declarados van al final, entre ellos por nombre.
-    if (ia === -1 && ib === -1) return a.localeCompare(b, "es");
-    if (ia === -1) return 1;
-    if (ib === -1) return -1;
-    return ia - ib;
+    const oa = ordenDe.get(a) ?? Number.MAX_SAFE_INTEGER;
+    const ob = ordenDe.get(b) ?? Number.MAX_SAFE_INTEGER;
+    return oa !== ob ? oa - ob : a.localeCompare(b, "es");
   });
 
   return (

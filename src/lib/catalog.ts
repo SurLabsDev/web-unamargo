@@ -14,7 +14,7 @@ export type Producto = {
   price_final: string | null;
   discount: { percentage: number; campaign: string } | null;
   description: string | null;
-  category: { name: string; slug: string } | null;
+  category: { name: string; slug: string; sort?: number } | null;
   subtype: { name: string; slug: string } | null;
   images: string[];
 };
