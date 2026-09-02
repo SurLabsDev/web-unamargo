@@ -10,7 +10,6 @@
   --color-linea: #e8e8e8;        /* hairlines y bordes de pill */
   --color-humo: #f2f2f2;         /* superficie hundida */
   --color-papel: #ffffff;
-  --color-campo: #fafafa;   /* relleno de los campos, como en la demo */
 
   /* Verde de WhatsApp. El claro del cliente no pasa AA con texto blanco
      (3.95:1), asi que el que lleva texto es el oscuro (5.69:1) y el claro
@@ -136,9 +135,48 @@ html { scroll-behavior: smooth; }
 }
 
 /* --- Marquee de fotos --------------------------------------------------- */
-/* La tira lleva las 11 fotos DOS veces y se desplaza exactamente la mitad:
-   al llegar al final, la segunda copia esta donde arrancó la primera y el
-   salto es invisible. */
+/* La tira lleva las seis fotos DOS veces y se desplaza exactamente la mitad:
+   al llegar al final, la segunda copia esta donde arranco la primera y el
+   salto es invisible.
+
+   NO SE FRENA CON EL CURSOR ENCIMA. Hubo una regla `.tira:hover` que la
+   pausaba para poder mirar una foto; el cliente ya habia sacado esa pausa en
+   su propia version y la pidio de vuelta corriendo siempre.
+
+   LA DURACION NO SE ELIGE A OJO, SE CALCULA. Lo que el ojo compara con el
+   original del cliente no son los segundos sino la velocidad lineal, y las
+   fotos no miden lo mismo de los dos lados: alla eran once con alto fijo,
+   aca son seis medidas en vw. Copiar los 20s del original copiaria el
+   numero, no la velocidad.
+
+   El original (`claude code unamargo/index.html`, `.img-strip-track`): once
+   fotos de 420px de alto y ancho automatico. Los archivos son 960x1200, o
+   sea 4:5 vertical, asi que cada una se dibuja de 336px de ancho; la ultima
+   ("imagen para horizontal.jpg") es 797x1200 y da 279px.
+
+   Como la tira lleva el juego dos veces y viaja -50%, un ciclo recorre medio
+   track, o sea un juego de fotos mas la mitad de los gaps que quedan entre
+   las dos copias: (10 x 336 + 279) + 10.5 x 10 = 3744px en 20s.
+   ~187 px/s: ESA es la velocidad a igualar, no los 20s.
+
+   Nuestra tira: seis fotos por juego, el mismo `gap: 10px`, ancho 62vw /
+   38vw (sm) / 24vw (lg). Un ciclo recorre 6 x ancho + 5.5 x 10, y la
+   duracion es esa distancia dividida 187.
+     - movil (62vw sobre 390px):  6 x 241.8 + 55 = 1506px -> 8s
+     - sm    (38vw sobre 768px):  6 x 291.8 + 55 = 1806px -> 9.6s
+     - lg    (24vw sobre 1440px): 6 x 345.6 + 55 = 2129px -> 11.4s
+   Los cortes son los de Tailwind (sm 40rem, lg 64rem), que son justo donde
+   cambia el ancho de las fotos en Tira.tsx.
+
+   Ojo con una cosa: el ancho esta en vw y la duracion en segundos, asi que
+   la velocidad da clavada en esos tres anchos de referencia y se corre
+   dentro de cada tramo (a 1024px queda ~134 px/s, a 1920px ~247). El
+   original no tenia ese problema porque media en px fijos. Se banca porque
+   son los anchos donde de verdad esta la gente; si molesta, la salida es
+   partir el tramo con otro corte de Tailwind, no manotear los segundos.
+
+   Si cambia el ancho de las fotos, la cantidad o el gap, se rehace esta
+   cuenta contra los 187 px/s. No se estima a ojo. */
 @keyframes correrTira {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
@@ -147,9 +185,11 @@ html { scroll-behavior: smooth; }
   display: flex;
   width: max-content;
   gap: 10px;
-  animation: correrTira 46s linear infinite;
+  --dur-tira: 8s;
+  animation: correrTira var(--dur-tira) linear infinite;
 }
-.tira:hover { animation-play-state: paused; }
+@media (min-width: 40rem) { .tira { --dur-tira: 9.6s; } }
+@media (min-width: 64rem) { .tira { --dur-tira: 11.4s; } }
 
 /* --- Entrada del hero --------------------------------------------------- */
 /* La primera pantalla no espera al observador: entra sola al cargar. */

@@ -1,12 +1,53 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { WhatsappLogo, MapPin, Truck, ArrowDown } from "@phosphor-icons/react/dist/ssr";
-import { linkWhatsApp } from "@/lib/site";
+import { MapPin, Truck, ArrowDown } from "@phosphor-icons/react/dist/ssr";
+import { SITE } from "@/lib/site";
+import { Instagram } from "./Sociales";
 import { MapaMontevideo } from "./MapaMontevideo";
 import { PICKUPS, ZONAS_ENVIO, SIN_POLIGONO, barriosDeZona, type Zona } from "@/lib/zonas";
 
 const TODAS: Zona[] = [...PICKUPS, ...ZONAS_ENVIO];
+
+/** Los barrios de `SIN_POLIGONO` que de verdad figuran en alguna zona. Se cruza
+ *  contra las listas en vez de usar la constante tal cual: si alguno queda ahi
+ *  sin estar en ninguna zona, no se nombra en ningun lado de la pagina y
+ *  aclarar por que no se pinta seria hablar de un barrio que no ofrecemos. */
+const SIN_PINTAR = SIN_POLIGONO.filter((b) =>
+  TODAS.some((z) => z.barrios.includes(b)),
+);
+
+/** La aclaracion de los barrios que el mapa no pinta, armada en UN solo lugar.
+ *
+ *  Estaba escrita dos veces y ya habian divergido: escritorio la derivaba de la
+ *  zona en pantalla y celular la tenia a mano, asi que celular nombraba dos
+ *  barrios ("Paso Molino y Verdisol") mientras `SIN_POLIGONO` tiene tres y
+ *  escritorio, parado en la zona 3, decia otros dos ("Las Piedras y Verdisol").
+ *  Dos redacciones del mismo dato es como se llega a eso; ahora hay una.
+ *
+ *  Dice "en su zona" y no "en la zona" a proposito: escritorio le pasa los
+ *  barrios de UNA zona y celular los de todas, y esa forma es cierta en los
+ *  dos casos.
+ *
+ *  El separador es ", " menos el ultimo, que va con "y". Con `join(" y ")`,
+ *  tres barrios salian "a y b y c"; hoy ninguna zona llega a tres, pero el
+ *  bloque de celular ya los junta todos. */
+function notaSinPintar(barrios: string[]): string | null {
+  if (barrios.length === 0) return null;
+  const uno = barrios.length === 1;
+  const lista = uno
+    ? barrios[0]
+    : `${barrios.slice(0, -1).join(", ")} y ${barrios[barrios.length - 1]}`;
+  return `${lista} ${uno ? "entra" : "entran"} en su zona, pero no ${
+    uno ? "figura" : "figuran"
+  } como barrio oficial de Montevideo, así que el mapa no ${
+    uno ? "lo" : "los"
+  } pinta.`;
+}
+
+/** La nota del bloque de celular, que junta todas las zonas. Es constante, asi
+ *  que se arma una vez a nivel de modulo y no en cada render. */
+const NOTA_TODAS = notaSinPintar(SIN_PINTAR);
 
 /** Alturas de la pista, en **svh** y no en vh ni dvh, a proposito.
  *
@@ -22,13 +63,108 @@ const ENTRADA = 55;
 const PASO = 62;
 const SALIDA = 45;
 
+/** Un grupo de la barra de pasos: las pildoras de retiro o las de domicilio.
+ *
+ *  CON UNA SOLA ZONA NO DIBUJA BARRA. Una barra de progreso de un paso no
+ *  tiene de donde a donde ir: ocupa el mismo lugar que una de verdad y se lee
+ *  como un control roto. Mirado en el navegador con los datos de hoy y parado
+ *  en una zona de domicilio, el grupo de retiro quedaba en una unica raya de
+ *  20x6px, verde apagada, suelta al lado de la palabra RETIRO.
+ *
+ *  Con una sola zona la etiqueta pasa a ser el boton: mismo destino, se lee
+ *  como una chapa que se enciende y no como una barra a la que le faltan
+ *  pasos, y de paso el area de toque pasa de esos 20x6px a 69x25px medidos,
+ *  que es lo que se puede acertar con el dedo.
+ *
+ *  La condicion mira `zonas.length`, no cuantos pickups hay hoy: los retiros
+ *  ya fueron tres y pueden volver a serlo, y ese dia la barra vuelve sola.
+ *
+ *  Los dos grupos comparten este componente porque antes eran dos bloques
+ *  copiados que solo cambiaban de color, que es como el de celular y el de
+ *  escritorio de la nota de barrios terminaron diciendo cosas distintas. */
+function GrupoPasos({
+  zonas,
+  desde,
+  activa,
+  etiqueta,
+  verde,
+  irA,
+}: {
+  zonas: Zona[];
+  /** Indice de la primera zona del grupo dentro de `TODAS`. */
+  desde: number;
+  /** Indice de la zona en pantalla, en el mismo espacio que `desde`. */
+  activa: number;
+  etiqueta: string;
+  /** El retiro va en verde, el domicilio en el papel de la marca. */
+  verde: boolean;
+  irA: (n: number) => void;
+}) {
+  if (zonas.length === 0) return null;
+
+  const rotulo = "text-[10px] uppercase tracking-[0.14em]";
+
+  if (zonas.length === 1) {
+    const encendida = desde === activa;
+    return (
+      <button
+        onClick={() => irA(desde)}
+        /* El nombre accesible arranca con el texto que se ve ("Retiro") y
+           despues agrega el destino. Si fuera solo `Ir a Cordón Sur / Centro`,
+           quien maneja la pagina por voz diria "Retiro" y no habria nada que
+           responda a esa palabra. */
+        aria-label={`${etiqueta}: ${zonas[0].titulo}`}
+        aria-current={encendida}
+        className={`rounded-pill border px-3 py-1 transition-colors duration-500 ${rotulo} ${
+          encendida
+            ? verde
+              ? "border-verde-vivo text-verde-vivo"
+              : "border-papel text-papel"
+            : "border-papel/20 text-papel/35 hover:border-papel/45 hover:text-papel/70"
+        }`}
+      >
+        {etiqueta}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {zonas.map((z, k) => {
+        const n = desde + k;
+        const encendida = n === activa;
+        return (
+          <button
+            key={z.id}
+            onClick={() => irA(n)}
+            aria-label={`Ir a ${z.titulo}`}
+            aria-current={encendida}
+            className={`h-1.5 rounded-pill transition-all duration-500 ${
+              encendida ? "w-10" : "w-5"
+            } ${
+              encendida
+                ? verde
+                  ? "bg-verde"
+                  : "bg-papel"
+                : verde
+                  ? "bg-verde/35 hover:bg-verde/60"
+                  : "bg-papel/25 hover:bg-papel/50"
+            }`}
+          />
+        );
+      })}
+      <span className={`ml-1 ${rotulo} text-papel/35`}>{etiqueta}</span>
+    </div>
+  );
+}
+
 /** El scroll recorre las zonas. Se entra a la seccion, queda fija, y al bajar
  *  va cambiando de zona hasta que se acaban; ahi la pagina sigue de largo.
  *
  *  El progreso NO se mide escuchando "scroll": eso corre en cada cuadro y traba
  *  el celular. Se ponen centinelas invisibles, uno por zona, y un
  *  IntersectionObserver avisa cual esta cruzando el medio de la pantalla. El
- *  estado cambia como mucho seis veces en toda la seccion. */
+ *  estado cambia una vez por zona y nada mas en toda la seccion. */
 export function Envios() {
   const [i, setI] = useState(0);
   const pista = useRef<HTMLDivElement>(null);
@@ -62,7 +198,9 @@ export function Envios() {
 
   const zona = TODAS[i];
   const encendidos = barriosDeZona(zona);
-  const faltantes = zona.barrios.filter((b) => SIN_POLIGONO.includes(b));
+  const notaFaltantes = notaSinPintar(
+    zona.barrios.filter((b) => SIN_POLIGONO.includes(b)),
+  );
   const esPickup = PICKUPS.some((p) => p.id === zona.id);
 
   return (
@@ -76,9 +214,11 @@ export function Envios() {
           <h2 className="type-display text-[clamp(2.5rem,6vw,4.5rem)]">
             Cómo recibís tu pedido
           </h2>
+          {/* Sin numero a proposito: decia "seis" y paso a mentir apenas los
+              retiros bajaron de tres a uno. La lista manda, el texto no cuenta. */}
           <p className="type-body mt-6 text-lg leading-relaxed text-papel/65">
-            Seis formas de recibirlo. Segui bajando y las vas viendo una por una
-            en el mapa.
+            Retiro sin costo o cadetería a tu casa. Segui bajando y vas viendo
+            cada zona en el mapa.
           </p>
         </div>
         <div className="reveal mt-8 inline-flex rounded-pill bg-verde px-5 py-2.5 text-sm font-semibold">
@@ -105,46 +245,40 @@ export function Envios() {
           />
         ))}
 
-        <div className="sticky top-0 flex min-h-[100svh] items-center px-5 py-10 sm:px-8 lg:px-12">
-          <div className="mx-auto grid w-full max-w-[1400px] items-center gap-10 lg:grid-cols-12 lg:gap-14">
+        {/* Pegado DEBAJO del header, no arriba de todo. El header es `fixed` con
+            fondo opaco, asi que con `top-0` el panel arrancaba tapado: medido,
+            la fila de pastillas quedaba escondida en el 25% de las posiciones de
+            scroll a 390px y en el 84% a 320px, y ahi ni siquiera recibia el toque
+            (`elementFromPoint` devolvia el logo del header).
+
+            Y `safe center` en vez de `center` a secas: centrar reparte el aire
+            sobrante, pero cuando el contenido es MAS ALTO que el hueco -pasa en
+            celulares cortos, donde el bloque mide 626px y el hueco 554- centrar
+            recorta por arriba Y por abajo, y lo que se pierde arriba son
+            justamente las pastillas. `safe` cae en `start` cuando no hay aire,
+            asi que lo que se corta es siempre el final del mapa y nunca el
+            control. */}
+        <div className="sticky top-16 flex min-h-[calc(100svh-4rem)] [align-items:safe_center] px-5 py-6 sm:px-8 sm:py-10 md:top-[73px] md:min-h-[calc(100svh-73px)] lg:px-12">
+          <div className="mx-auto grid w-full max-w-[1400px] items-center gap-6 sm:gap-10 lg:grid-cols-12 lg:gap-14">
             <div className="lg:col-span-5">
               {/* Los pasos, como una barra de progreso que se puede tocar. */}
               <div className="mb-8 flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  {PICKUPS.map((z, n) => (
-                    <button
-                      key={z.id}
-                      onClick={() => irA(n)}
-                      aria-label={`Ir a ${z.titulo}`}
-                      aria-current={n === i}
-                      className={`h-1.5 rounded-pill transition-all duration-500 ${
-                        n === i ? "w-10 bg-verde" : "w-5 bg-verde/35 hover:bg-verde/60"
-                      }`}
-                    />
-                  ))}
-                  <span className="ml-1 text-[10px] uppercase tracking-[0.14em] text-papel/35">
-                    Retiro
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {ZONAS_ENVIO.map((z, k) => {
-                    const n = PICKUPS.length + k;
-                    return (
-                      <button
-                        key={z.id}
-                        onClick={() => irA(n)}
-                        aria-label={`Ir a ${z.titulo}`}
-                        aria-current={n === i}
-                        className={`h-1.5 rounded-pill transition-all duration-500 ${
-                          n === i ? "w-10 bg-papel" : "w-5 bg-papel/25 hover:bg-papel/50"
-                        }`}
-                      />
-                    );
-                  })}
-                  <span className="ml-1 text-[10px] uppercase tracking-[0.14em] text-papel/35">
-                    Domicilio
-                  </span>
-                </div>
+                <GrupoPasos
+                  zonas={PICKUPS}
+                  desde={0}
+                  activa={i}
+                  etiqueta="Retiro"
+                  verde
+                  irA={irA}
+                />
+                <GrupoPasos
+                  zonas={ZONAS_ENVIO}
+                  desde={PICKUPS.length}
+                  activa={i}
+                  etiqueta="Domicilio"
+                  verde={false}
+                  irA={irA}
+                />
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -158,9 +292,16 @@ export function Envios() {
                   {esPickup ? <MapPin size={15} weight="fill" /> : <Truck size={15} weight="fill" />}
                   {esPickup ? "Retiro sin costo" : "Cadetería a domicilio"}
                 </span>
-                <span className="rounded-pill border border-papel/20 px-3 py-2 text-xs font-medium uppercase tracking-[0.1em] text-papel/55">
-                  {zona.rotulo}
-                </span>
+                {/* El rotulo es un indice dentro de su grupo ("Zona 1" de 3).
+                    El retiro es uno solo, asi que ahi no numera nada y ademas
+                    repetiria la chapa de al lado: por eso no tiene rotulo y el
+                    campo es opcional. Se pregunta por el dato y no por el grupo
+                    para que el render siga a los datos, no a una suposicion. */}
+                {zona.rotulo && (
+                  <span className="rounded-pill border border-papel/20 px-3 py-2 text-xs font-medium uppercase tracking-[0.1em] text-papel/55">
+                    {zona.rotulo}
+                  </span>
+                )}
               </div>
 
               <h3 className="type-display mt-4 text-[clamp(1.9rem,4.5vw,3.25rem)]">
@@ -183,7 +324,12 @@ export function Envios() {
                 {zona.detalle}
               </p>
 
-              {zona.barrios.length > 0 && (
+              {/* Mismo criterio que en el bloque de celular de mas abajo: en
+                  el retiro los barrios son la zona que se pinta en el mapa, no
+                  una lista de direcciones donde se pueda ir a buscar. Estaba
+                  aplicado en un solo lado y las chapas aparecian en escritorio
+                  y no en celular. */}
+              {!esPickup && zona.barrios.length > 0 && (
                 <ul className="mt-6 hidden flex-wrap gap-1.5 lg:flex">
                   {zona.barrios.map((b) => (
                     <li
@@ -196,25 +342,29 @@ export function Envios() {
                 </ul>
               )}
 
-              {faltantes.length > 0 && (
+              {notaFaltantes && (
                 <p className="mt-4 hidden max-w-[52ch] text-xs leading-relaxed text-papel/40 lg:block">
-                  {faltantes.join(" y ")}{" "}
-                  {faltantes.length === 1 ? "entra" : "entran"} en la zona, pero no{" "}
-                  {faltantes.length === 1 ? "figura" : "figuran"} como barrio oficial
-                  de Montevideo, así que el mapa no{" "}
-                  {faltantes.length === 1 ? "lo" : "los"} pinta.
+                  {notaFaltantes}
                 </p>
               )}
 
+              {/* Este boton abria WhatsApp, y en verde porque ese verde es el
+                  de WhatsApp. Preguntar si un barrio entra es una duda previa
+                  al pedido, y WhatsApp quedo solo para el pedido ya armado que
+                  sale del carrito: la duda va por Instagram. Como ya no es de
+                  WhatsApp tampoco puede seguir verde (el verde esta reservado
+                  para WhatsApp y Spotify), asi que lleva el papel de la marca,
+                  que es el negro invertido de los botones de las secciones
+                  claras. */}
               {i === TODAS.length - 1 && (
                 <a
-                  href={linkWhatsApp("Hola! Quiero consultar por el envío.")}
+                  href={SITE.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-7 inline-flex items-center gap-2 rounded-pill bg-verde px-6 py-3 text-sm font-semibold transition-colors duration-300 hover:bg-verde-vivo"
+                  className="mt-7 inline-flex items-center gap-2 rounded-pill bg-papel px-6 py-3 text-sm font-semibold text-tinta transition-transform duration-300 hover:scale-[1.03]"
                 >
-                  <WhatsappLogo size={16} weight="fill" />
-                  ¿No ves tu barrio? Escribinos
+                  <Instagram className="h-3.5 w-3.5" />
+                  ¿No ves tu barrio? Escribinos por Instagram
                 </a>
               )}
             </div>
@@ -254,24 +404,34 @@ export function Envios() {
                   </span>
                   <span className="font-semibold">{z.titulo}</span>
                 </dt>
+                {/* En el retiro los barrios son la zona que se pinta en el
+                    mapa, no una lista de direcciones donde se pueda ir a
+                    buscar: lo que sirve leer ahi es como se coordina. */}
                 <dd className="mt-2.5 text-sm leading-relaxed text-papel/60">
-                  {z.barrios.length > 0 ? z.barrios.join(" · ") : z.detalle}
+                  {pickup || z.barrios.length === 0
+                    ? z.detalle
+                    : z.barrios.join(" · ")}
                 </dd>
               </div>
             );
           })}
         </dl>
-        <p className="mt-2 text-xs leading-relaxed text-papel/40">
-          Paso Molino y Verdisol entran igual, pero no figuran como barrio
-          oficial de Montevideo, así que el mapa no los pinta.
-        </p>
+        {/* La misma nota que en escritorio, con los barrios de todas las
+            zonas: aca el listado no se recorre zona por zona, se ve entero. */}
+        {NOTA_TODAS && (
+          <p className="mt-2 text-xs leading-relaxed text-papel/40">
+            {NOTA_TODAS}
+          </p>
+        )}
       </div>
 
       <div className="mx-auto max-w-[1400px] px-5 pb-24 pt-10 sm:px-8 lg:px-12 lg:pt-0">
+        {/* Esta nota estaba para aclarar el pickup de Ciudad de la Costa. Ese
+            punto ya no existe y no hay dato nuevo sobre esa zona, asi que queda
+            solo lo que si esta confirmado. */}
         <p className="max-w-[62ch] text-xs leading-relaxed text-papel/40">
-          Ciudad de la Costa queda fuera de Montevideo, en Canelones, y se
-          coordina aparte. Al interior enviamos por Correo Uruguayo o encomienda:
-          el costo varía según destino y peso.
+          Fuera de Montevideo enviamos por Correo Uruguayo o encomienda: el
+          costo varía según destino y peso.
         </p>
       </div>
     </section>

@@ -3,10 +3,34 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
-import { X, Minus, Plus, WhatsappLogo, Bag } from "@phosphor-icons/react/dist/ssr";
+import { X, Minus, Plus, Bag } from "@phosphor-icons/react/dist/ssr";
+import { Whatsapp } from "../Sociales";
 import { useCarrito } from "./CartProvider";
 import { precio } from "@/lib/catalog";
 import { SITE, linkWhatsApp } from "@/lib/site";
+import { PICKUPS } from "@/lib/zonas";
+
+/** La nota de entrega se DERIVA de `PICKUPS`, no se escribe a mano.
+ *
+ *  Escrita a mano decia "los retiros en Pocitos, Centro y Ciudad de la Costa":
+ *  cuando los tres puntos se bajaron a uno, el texto sobrevivio nombrando dos
+ *  que ya no existen y omitiendo el unico que si. Y esta es la ultima pantalla
+ *  que se lee antes de mandar el pedido, con lo cual mentia en el peor momento
+ *  posible. Derivandola de la lista no puede volver a pasar: si manana vuelve a
+ *  haber mas de un punto, la frase se rearma sola. */
+const nombresRetiro = PICKUPS.map((p) => p.titulo);
+const NOTA_ENTREGA = [
+  "El envío se coordina por WhatsApp.",
+  nombresRetiro.length === 1
+    ? `El retiro en ${nombresRetiro[0]} no tiene costo.`
+    : nombresRetiro.length > 1
+      ? `Los retiros en ${nombresRetiro.slice(0, -1).join(", ")} y ${
+          nombresRetiro[nombresRetiro.length - 1]
+        } no tienen costo.`
+      : "",
+]
+  .filter(Boolean)
+  .join(" ");
 
 /** El pedido se cierra por WhatsApp, no hay pasarela de pago. Es lo que hace
  *  hoy el negocio y lo que espera quien compra en Montevideo. */
@@ -250,15 +274,14 @@ export function CartDrawer() {
                 </span>
               </div>
               <p className="type-body mb-3 text-xs text-tinta-media">
-                El envío se coordina por WhatsApp. Los retiros en Pocitos,
-                Centro y Ciudad de la Costa no tienen costo.
+                {NOTA_ENTREGA}
               </p>
               <a
                 href={href}
                 onClick={enviar}
                 className="flex w-full items-center justify-center gap-2 rounded-pill bg-verde px-5 py-3.5 font-semibold text-papel transition-colors hover:bg-verde-vivo"
               >
-                <WhatsappLogo size={19} weight="fill" />
+                <Whatsapp className="h-4 w-4" />
                 Enviar el pedido
               </a>
               {bloqueado && (

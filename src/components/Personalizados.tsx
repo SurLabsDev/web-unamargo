@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { WhatsappLogo } from "@phosphor-icons/react/dist/ssr";
-import { linkWhatsApp } from "@/lib/site";
+import { SITE } from "@/lib/site";
+import { Instagram } from "./Sociales";
 
 /** Las dos fotos de grabado son las que mando el cliente. Van desfasadas en
  *  vertical para que el bloque no se lea como dos cuadros pegados. */
@@ -36,7 +36,14 @@ export function Personalizados() {
           <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-tinta-suave">
             Servicio
           </p>
-          <h2 className="type-display text-[clamp(2.5rem,6vw,4.5rem)]">
+          {/* 4.6vw y no 6vw como el resto de los titulos: "Personalizados" es
+              una sola palabra de catorce letras y no puede cortar, asi que a 6vw
+              se salia de su columna de cinco doceavos y le metia scroll
+              horizontal a TODA la pagina. Medido: 33px de desborde a 1024,
+              34px a 1100 y 13px a 1250; de 1300 para arriba la columna ya da.
+              El desborde horizontal es el peor sintoma posible porque no se ve
+              de donde viene. */}
+          <h2 className="type-display text-[clamp(2.5rem,4.6vw,4.5rem)]">
             Personalizados
           </h2>
           <p className="type-body mt-6 text-lg leading-relaxed text-tinta-media">
@@ -45,17 +52,21 @@ export function Personalizados() {
             quieras. Ideal para regalar o para hacer tuyo algo que ya usás.
           </p>
           <p className="type-body mt-5 leading-relaxed text-tinta-media">
-            Trabajamos con tiempo y cuidado. Coordinamos por WhatsApp para
+            Trabajamos con tiempo y cuidado. Coordinamos por Instagram para
             entender bien qué buscás antes de arrancar.
           </p>
+          {/* Antes abria WhatsApp, y en verde porque ese verde es el de
+              WhatsApp. Un personalizado se define charlando antes de que haya
+              pedido que armar, asi que ahora va por Instagram, y con el negro
+              de la marca: el verde sigue reservado para WhatsApp y Spotify. */}
           <a
-            href={linkWhatsApp("Hola! Quiero consultar por un mate personalizado.")}
+            href={SITE.instagram}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-9 inline-flex items-center gap-2 rounded-pill bg-verde px-7 py-3.5 text-sm font-semibold text-papel transition-colors duration-300 hover:bg-verde-vivo"
+            className="mt-9 inline-flex items-center gap-2 rounded-pill bg-tinta px-7 py-3.5 text-sm font-semibold text-papel transition-transform duration-300 hover:scale-[1.03]"
           >
-            <WhatsappLogo size={17} weight="fill" />
-            Consultar por WhatsApp
+            <Instagram className="h-3.5 w-3.5" />
+            Consultar por Instagram
           </a>
         </div>
       </div>

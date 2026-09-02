@@ -3,7 +3,12 @@
 
 export type Zona = {
   id: string;
-  rotulo: string;
+  /** Opcional a proposito: es el indice de la zona dentro de su grupo
+   *  ("Zona 1" de 3) y el retiro, que es uno solo, no numera nada. Lo tenia
+   *  puesto y no se dibujaba en ningun lado, asi que el proximo que agregara
+   *  un pickup iba a inventar un valor creyendo que se ve. Ahora el tipo dice
+   *  la verdad: si esta, se pinta; si no esta, no hay chapa. */
+  rotulo?: string;
   titulo: string;
   precio: string | null;
   detalle: string;
@@ -11,37 +16,28 @@ export type Zona = {
   barrios: string[];
 };
 
-/** Los tres retiros sin costo. */
+/** El unico punto de retiro. Eran tres (Pocitos, Cordon y Ciudad de la Costa)
+ *  y el cliente los bajo a uno: la venta va hacia el e-commerce, y ofrecer tres
+ *  pickups tiraba justo para el otro lado. Sigue siendo una lista porque la
+ *  seccion y las FAQ la recorren igual, pero el texto de la pagina ya no cuenta
+ *  cuantos hay: si vuelve a haber mas de uno hay que releer esas dos redacciones.
+ *
+ *  El horario no se declara en ningun lado a proposito: todavia no esta
+ *  definido. Lo que se promete es como se coordina, nunca cuando.
+ *
+ *  Y se coordina AL CONFIRMAR EL PEDIDO, no antes. El texto decia "escribinos
+ *  con anticipacion por WhatsApp", que es justo la consulta suelta previa al
+ *  pedido que el cliente pidio sacar: WhatsApp queda solo para el pedido ya
+ *  armado que sale del carrito. Por eso tampoco aparece el numero. */
 export const PICKUPS: Zona[] = [
   {
-    id: "pickup1",
-    rotulo: "Pickup 01",
-    titulo: "Pocitos / Punta Carretas",
-    precio: null,
-    detalle:
-      "Coordinamos un punto de encuentro en la zona. Sin costo extra, ves el producto en persona antes de pagar.",
-    nota: "Sin costo · Coordinamos horario",
-    barrios: ["Pocitos", "Punta Carretas"],
-  },
-  {
-    id: "pickup2",
-    rotulo: "Pickup 02",
+    id: "retiro",
     titulo: "Cordón Sur / Centro",
     precio: null,
     detalle:
-      "Zona céntrica, fácil acceso. Ideal si estás en el microcentro, Palermo o Parque Rodó.",
-    nota: "Sin costo · Coordinamos horario",
+      "El punto exacto y el horario los arreglamos al confirmar el pedido, en el mismo chat en el que lo mandás. Zona céntrica, cómoda si estás por el microcentro, Palermo o Parque Rodó.",
+    nota: "Sin costo · Se coordina al confirmar el pedido",
     barrios: ["Cordón", "Centro", "Palermo", "Parque Rodó"],
-  },
-  {
-    id: "pickup3",
-    rotulo: "Pickup 03",
-    titulo: "Ciudad de la Costa",
-    precio: null,
-    detalle:
-      "Solymar, Lagomar, El Pinar y zonas aledañas. Coordinamos según agenda semanal.",
-    nota: "Sin costo · Consultar disponibilidad",
-    barrios: [],
   },
 ];
 

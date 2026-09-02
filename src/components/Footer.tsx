@@ -1,5 +1,6 @@
-import { WhatsappLogo, EnvelopeSimple, InstagramLogo, SpotifyLogo } from "@phosphor-icons/react/dist/ssr";
-import { SITE, linkWhatsApp } from "@/lib/site";
+import { EnvelopeSimple } from "@phosphor-icons/react/dist/ssr";
+import { SITE } from "@/lib/site";
+import { Instagram, Spotify, Pinterest } from "./Sociales";
 import { Logo } from "./Logo";
 
 export function Footer() {
@@ -14,21 +15,25 @@ export function Footer() {
             </p>
           </div>
 
+          {/* Aca habia un enlace a WhatsApp con el numero. El WhatsApp quedo
+              reservado para los pedidos ya armados, que salen del cajon del
+              carrito, asi que el pie deja el mail y las redes. El numero
+              tampoco va como texto suelto: escrito invita a la consulta suelta
+              igual que un enlace. */}
           <div className="flex flex-col gap-3 md:items-end">
-            <a href={linkWhatsApp("Hola! Tengo una consulta.")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-papel/60 transition-colors hover:text-papel">
-              <WhatsappLogo size={16} weight="fill" />
-              {SITE.whatsappLegible}
-            </a>
             <a href={`mailto:${SITE.email}`} className="inline-flex items-center gap-2 text-papel/60 transition-colors hover:text-papel">
               <EnvelopeSimple size={16} />
               {SITE.email}
             </a>
             <div className="mt-2 flex gap-2.5">
               <a href={SITE.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-pill bg-papel/10 transition-colors hover:bg-papel/20">
-                <InstagramLogo size={16} weight="fill" />
+                <Instagram className="h-3.5 w-3.5" />
               </a>
               <a href={SITE.spotify} target="_blank" rel="noopener noreferrer" aria-label="Playlist en Spotify" className="flex h-9 w-9 items-center justify-center rounded-pill bg-papel/10 transition-colors hover:bg-papel/20">
-                <SpotifyLogo size={16} weight="fill" />
+                <Spotify className="h-3.5 w-3.5" />
+              </a>
+              <a href={SITE.pinterest} target="_blank" rel="noopener noreferrer" aria-label="Pinterest" className="flex h-9 w-9 items-center justify-center rounded-pill bg-papel/10 transition-colors hover:bg-papel/20">
+                <Pinterest className="h-3.5 w-3.5" />
               </a>
             </div>
           </div>

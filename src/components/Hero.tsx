@@ -1,5 +1,6 @@
-import { ArrowDown, InstagramLogo, SpotifyLogo } from "@phosphor-icons/react/dist/ssr";
+import { ArrowDown } from "@phosphor-icons/react/dist/ssr";
 import { SITE } from "@/lib/site";
+import { Instagram, Spotify, Pinterest } from "./Sociales";
 
 /** El hero es el del cliente, palabra por palabra: tres lineas, su parrafo y
  *  sus redes. La entrada se escalona con --d, sin JS. */
@@ -49,6 +50,8 @@ export function Hero() {
             />
           </a>
 
+          {/* Las tres redes del archivo del cliente, en su orden. Pinterest
+              estaba en el original y se habia caido de esta version. */}
           <div className="flex items-center gap-2.5">
             <a
               href={SITE.instagram}
@@ -57,7 +60,7 @@ export function Hero() {
               aria-label={`Instagram ${SITE.instagramUsuario}`}
               className="flex h-9 w-9 items-center justify-center rounded-pill bg-tinta text-papel transition-transform duration-300 hover:scale-110"
             >
-              <InstagramLogo size={17} weight="fill" />
+              <Instagram className="h-3.5 w-3.5" />
             </a>
             <a
               href={SITE.spotify}
@@ -66,7 +69,16 @@ export function Hero() {
               aria-label="Nuestra playlist en Spotify"
               className="flex h-9 w-9 items-center justify-center rounded-pill bg-tinta text-papel transition-transform duration-300 hover:scale-110"
             >
-              <SpotifyLogo size={17} weight="fill" />
+              <Spotify className="h-3.5 w-3.5" />
+            </a>
+            <a
+              href={SITE.pinterest}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Nuestro Pinterest"
+              className="flex h-9 w-9 items-center justify-center rounded-pill bg-tinta text-papel transition-transform duration-300 hover:scale-110"
+            >
+              <Pinterest className="h-3.5 w-3.5" />
             </a>
             <span className="ml-1 hidden text-sm text-tinta-suave sm:inline">
               {SITE.instagramUsuario}

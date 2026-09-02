@@ -3,9 +3,10 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { CaretLeft, CaretRight, Plus } from "@phosphor-icons/react/dist/ssr";
-import { precio, type Catalogo, type Producto } from "@/lib/catalog";
-import { FichaProducto } from "./FichaProducto";
+import { precio, videoDe, type Catalogo, type Producto } from "@/lib/catalog";
+import { FichaProducto, VideoProducto } from "./FichaProducto";
 import { useCarrito } from "./cart/CartProvider";
+import { SITE } from "@/lib/site";
 
 /** ESTANTES. Una fila por rubro, que se recorre de costado. Es el patron de
  *  Mercado Libre, Netflix y Apple: cualquiera que compre en Uruguay ya sabe
@@ -25,7 +26,11 @@ function Pieza({
   onAbrir: () => void;
 }) {
   const { agregar } = useCarrito();
+  /* Ver `VideoProducto`: el video no tapa la foto, hay que apagarla cuando
+     arranca. */
+  const [videoAndando, setVideoAndando] = useState(false);
   const agotado = siguiendoStock && !producto.in_stock;
+  const video = videoDe(producto);
 
   return (
     <article className="group w-[62vw] shrink-0 snap-start sm:w-[36vw] lg:w-[23vw] xl:w-[19vw]">
@@ -34,13 +39,50 @@ function Pieza({
         aria-label={`Ver ${producto.name}`}
         className="relative block aspect-square w-full"
       >
+        {/* LA FOTO SIEMPRE VA POR `next/image`, Y EL VIDEO SE MONTA ENCIMA.
+            El marco lo pone el boton (`aspect-square`), asi que la fila sigue
+            midiendo lo mismo aunque una pieza traiga video. Antes el video
+            llevaba `poster` con la URL cruda del Storage del ERP: eso no pasa
+            por `next/image`, asi que bajaba el original de 960x1200 para
+            pintarlo del tamano de una tarjeta, y lo bajaba al renderizar la
+            pagina en vez de al entrar en pantalla. Ahora hasta que el video
+            arranca se ve la foto optimizada de abajo, y con
+            `prefers-reduced-motion` el video no se pide nunca.
+
+            Y CUANDO ARRANCA, LA FOTO SE APAGA. El video es vertical y la foto
+            es 4:5: apoyado sobre el mismo marco con `object-contain` el video
+            se pinta mas angosto, y sin apagarla quedaba la foto quieta
+            asomando por los dos costados del video que corre. El aviso lo da
+            el evento `playing`, que llega con el video ya en `readyState` 4:
+            la foto se va recien cuando hay cuadro que poner en su lugar. */}
         {producto.images[0] && (
-          <Image
-            src={producto.images[0]}
-            alt={producto.name}
-            fill
-            sizes="(max-width: 640px) 62vw, (max-width: 1024px) 36vw, 20vw"
-            className="foto-fundida object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-[1.06]"
+          /* El <span> esta nada mas que para que el desvanecido tenga su propia
+             duracion: el zoom del hover vive en la <Image> con sus 500ms, y las
+             dos cosas no entran en una sola declaracion de transicion. */
+          <span
+            className={`absolute inset-0 transition-opacity duration-300 ${
+              videoAndando ? "opacity-0" : "opacity-100"
+            }`}
+          >
+            <Image
+              src={producto.images[0]}
+              alt={producto.name}
+              fill
+              sizes="(max-width: 640px) 62vw, (max-width: 1024px) 36vw, 20vw"
+              className="foto-fundida object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-[1.06]"
+            />
+          </span>
+        )}
+        {video && (
+          /* Sin `.foto-fundida`: esa mascara desvanece el borde de la caja del
+             elemento, y la caja del video es el marco entero mientras que el
+             video pinta una franja mas angosta en el medio, asi que el
+             degradado le caia casi todo al vacio de los costados. Los numeros
+             de la medicion estan en `VideoProducto`. */
+          <VideoProducto
+            src={video}
+            alArrancar={() => setVideoAndando(true)}
+            className="absolute inset-0 h-full w-full object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-[1.06]"
           />
         )}
         {producto.discount && (
@@ -196,9 +238,19 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
 
         {catalogo.caido ? (
           <div className="rounded-foto border border-linea bg-humo px-6 py-14 text-center">
+            {/* Manda a Instagram y no a WhatsApp: el WhatsApp quedo reservado
+                para pedidos ya armados, y aca todavia no hay ninguno. */}
             <p className="type-body text-tinta-media">
-              No pudimos cargar el catálogo en este momento. Escribinos por
-              WhatsApp y te contamos qué hay disponible.
+              No pudimos cargar el catálogo en este momento. Escribinos por{" "}
+              <a
+                href={SITE.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-4 transition-colors hover:text-tinta"
+              >
+                Instagram
+              </a>{" "}
+              y te contamos qué hay disponible.
             </p>
           </div>
         ) : (

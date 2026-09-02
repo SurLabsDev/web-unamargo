@@ -1,5 +1,6 @@
-import { ArrowRight, WhatsappLogo } from "@phosphor-icons/react/dist/ssr";
-import { linkWhatsApp } from "@/lib/site";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
+import { SITE } from "@/lib/site";
+import { Instagram } from "./Sociales";
 
 /** Copia textual del cliente. Los rotulos chicos sobre el titular son parte de
  *  su diseño y los quiso asi. */
@@ -35,14 +36,17 @@ export function Nosotros() {
               Ver colección
               <ArrowRight size={14} weight="bold" className="transition-transform duration-300 group-hover:translate-x-0.5" />
             </a>
+            {/* Este boton abria WhatsApp. WhatsApp quedo solo para los pedidos
+                ya armados, que se mandan desde el cajon del carrito, asi que las
+                dudas sueltas van por Instagram. */}
             <a
-              href={linkWhatsApp("Hola! Tengo una consulta.")}
+              href={SITE.instagram}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-pill border border-linea px-6 py-3 text-sm font-semibold transition-colors duration-300 hover:border-tinta"
             >
-              <WhatsappLogo size={16} weight="fill" />
-              Escribinos
+              <Instagram className="h-3.5 w-3.5" />
+              Escribinos por Instagram
             </a>
           </div>
         </div>

@@ -23,6 +23,14 @@ export const SITE = {
    *  marca y no puede faltar. */
   spotify:
     "https://open.spotify.com/playlist/2e3Gb1Cfnrop9ZJS6OBLrE?si=tofpgyjRQU-NrKYnMN-ySg",
+  /** Copiada del archivo del cliente, del <a aria-label="Pinterest"> de su
+   *  index.html, igual que el resto de los datos de aca.
+   *
+   *  Vivia suelta en Sociales.tsx, que es un archivo de dibujos: un dato del
+   *  negocio en el medio de los SVG es un lugar donde nadie lo va a buscar el
+   *  dia que la cuenta cambie, y ademas dejaba a este archivo mintiendo cuando
+   *  dice ser la unica fuente. */
+  pinterest: "https://www.pinterest.com/unamargo/",
   pais: "Uruguay",
 } as const;
 

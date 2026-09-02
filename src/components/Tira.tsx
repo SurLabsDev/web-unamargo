@@ -6,7 +6,14 @@ import Image from "next/image";
  *  ruta no alcanza, porque el optimizador de imagenes de Next cachea por URL y
  *  sigue sirviendo las viejas. Si se cambian las fotos, se cambia el nombre. Van DOS veces y la
  *  animacion desplaza exactamente la mitad, asi el ciclo cierra sin salto.
- *  Se frena al pasar el mouse, para poder mirar una.
+ *  NO se frena al pasar el mouse: llegamos a pausarla para poder mirar una,
+ *  pero el cliente ya habia sacado esa pausa en su version y la quiere
+ *  corriendo siempre, haya cursor encima o no.
+ *
+ *  Los anchos en vw de aca abajo son la entrada de la cuenta que fija la
+ *  velocidad en globals.css (`--dur-tira`): la duracion se calcula para que la
+ *  tira corra a los mismos px/s que el original del cliente. Tocar estos vw
+ *  sin rehacer esa cuenta cambia la velocidad sin querer.
  *
  *  Son seis y no once a proposito: las cinco que faltan son piezas graficas con
  *  texto encima ("MATE CAMIONERO", "ME / YOU", "YERBA MATE"...). En una tira que

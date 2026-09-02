@@ -19,6 +19,13 @@ import { SITE } from "@/lib/site";
  * REGLA QUE NO SE PUEDE ROMPER: todo lo que se marca aca tiene que estar
  * VISIBLE en la pagina. Marcar respuestas que el visitante no puede leer es
  * motivo de penalizacion manual, y ademas es mentirle a quien busca.
+ *
+ * La regla no se cumple sola: se rompio con `telephone` cuando el numero
+ * salio de la pagina y nadie volvio a mirar este archivo. Cada vez que se
+ * saca algo de la vista hay que pasar por aca. Repasado tras borrar el
+ * formulario de Contacto: ningun nodo lo referenciaba (no hay
+ * `potentialAction` ni `ContactPoint` en el grafo) y la seccion conserva su
+ * ancla `#contacto`, asi que no quedo nada apuntando al vacio.
  */
 
 /** Un producto del catalogo, como lo entiende un buscador. */
@@ -63,7 +70,27 @@ export function construirSchema(catalogo: Catalogo, faq: { pregunta: string; res
         name: SITE.nombre,
         description: SITE.descripcion,
         url: SITE.url,
-        telephone: `+${SITE.whatsapp}`,
+        // ACA NO VA `telephone`, y son dos razones distintas.
+        //
+        // 1. Todo este trabajo saco el numero de las superficies visibles
+        //    porque el cliente pidio que a WhatsApp se llegue con el pedido
+        //    ya armado, nunca antes. Un `telephone` en el JSON-LD es la
+        //    forma mas indexable que existe de publicarlo: Google lo puede
+        //    levantar al panel de conocimiento con boton de llamar, o sea
+        //    que deshacia la decision desde afuera de la pagina, donde
+        //    nadie la iba a ver deshecha.
+        // 2. Rompia la regla de arriba. Medido en el navegador sobre la
+        //    pagina recien cargada: `document.body.innerText` no contiene
+        //    "098 702 638" en ningun lado, y las dos unicas apariciones del
+        //    numero en el HTML servido eran este campo (el <script> de
+        //    JSON-LD y su copia en el payload de React). Se estaba marcando
+        //    un canal de contacto que la pagina no ofrece.
+        //
+        // El numero sigue en `site.ts`, que es de donde sale el link `wa.me`
+        // que arma el carrito: ese es el unico camino que quedo.
+        //
+        // `email` si se queda: el mail se lee entero en la seccion de
+        // contacto y en el pie (verificado en `document.body.innerText`).
         email: SITE.email,
         address: {
           "@type": "PostalAddress",
@@ -73,10 +100,17 @@ export function construirSchema(catalogo: Catalogo, faq: { pregunta: string; res
         areaServed: { "@type": "AdministrativeArea", name: "Uruguay" },
         currenciesAccepted: "UYU",
         paymentAccepted: "Efectivo, transferencia",
-        // Instagram es la cuenta real del negocio y es la señal de entidad mas
-        // barata que hay: le dice al buscador que este sitio y esa cuenta son
-        // el mismo negocio.
-        sameAs: [SITE.instagram],
+        // Instagram y Pinterest son las cuentas reales del negocio y son la
+        // señal de entidad mas barata que hay: le dicen al buscador que este
+        // sitio y esas cuentas son el mismo negocio, y no tres marcas distintas
+        // que casualmente se llaman igual.
+        //
+        // El Spotify queda afuera aunque sea publico y de la marca: la URL es
+        // de una playlist (`/playlist/...`), no de un perfil. `sameAs` es para
+        // paginas que IDENTIFICAN a la entidad, y una lista de temas no
+        // identifica a nadie; declararla ensucia la señal en vez de reforzarla.
+        // Si algun dia abren un perfil de artista o de usuario, ese si va aca.
+        sameAs: [SITE.instagram, SITE.pinterest],
       },
       {
         "@type": "ItemList",

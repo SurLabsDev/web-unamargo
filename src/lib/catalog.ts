@@ -17,6 +17,10 @@ export type Producto = {
   category: { name: string; slug: string; sort?: number } | null;
   subtype: { name: string; slug: string } | null;
   images: string[];
+  /** Todavia no lo manda: el ERP no tiene donde guardar un video. Va declarado
+   *  igual porque el contrato es aditivo, asi que el dia que lo mande entra
+   *  solo, sin tocar nada mas que borrar el mapa de abajo. */
+  video?: string | null;
 };
 
 export type Catalogo = {
@@ -103,4 +107,28 @@ export function precio(valor: string | null): string | null {
     currency: "UYU",
     maximumFractionDigits: 0,
   }).format(n);
+}
+
+/** Los dos videos de producto que existen, por SKU.
+ *
+ *  Estan en `public/videos/` y no en el ERP porque el ERP no tiene campo para
+ *  video: hasta que lo tenga, esta es la unica forma de que el visitante los
+ *  vea. La clave es el SKU y no el nombre ni el slug porque el SKU es lo unico
+ *  que no cambia cuando el cliente le edita el titulo o el precio al producto.
+ *
+ *  Se borra entero el dia que el ERP mande `video`: la precedencia de
+ *  `videoDe` ya esta puesta para eso y no hay nada mas que tocar. */
+const VIDEOS_LOCALES: Record<string, string> = {
+  "ACC-BASE-REPOSAMATE": "/videos/base-reposamate.mp4",
+  "ACC-SECADOR-MATE-BOMBILLA": "/videos/secamate.mp4",
+};
+
+/** El video de un producto, o null si no tiene.
+ *
+ *  Es la unica funcion que decide esto, para que no haya dos lugares que
+ *  contesten distinto. La precedencia es: primero lo que diga el ERP, despues
+ *  el mapa local. En ese orden y no al reves, asi cargar el video en el ERP
+ *  alcanza para reemplazar al local sin esperar un deploy de la web. */
+export function videoDe(producto: Producto): string | null {
+  return producto.video ?? VIDEOS_LOCALES[producto.sku] ?? null;
 }
