@@ -103,6 +103,16 @@ horizontales de combo).
 
 ## 2. La tienda: que se entienda sin entrar al producto
 
+> **FUERA DE ALCANCE POR AHORA (26/08).** Decisión nuestra: la sección "La tienda"
+> queda como está, gusta así. Todo este bloque -agotados visibles, badge "Nuevo",
+> más vendidos y filtros- no se toca en esta tanda. Se deja escrito porque el
+> cliente lo pidió y va a volver.
+>
+> Lo único de este bloque que sigue en pie es el **eje de clasificación en el
+> ERP** (ver 2.5): se hace igual, para clasificar mejor por dentro, aunque la
+> tienda todavía no lo use.
+
+
 ### 2.1 Agotados visibles en la grilla
 
 Hoy el agotado se marca con una pastillita gris "Sin stock" donde va el botón
@@ -168,6 +178,30 @@ Propongo:
 Los estantes por rubro pueden convivir con los filtros: sin filtro activo se
 ven los estantes, con filtro activo se muestra una grilla del resultado.
 
+### 2.5 El eje de clasificación, genérico
+
+Se hace, aunque la tienda no lo use todavía.
+
+La condición es que **no sea una columna `material`**: este ERP se va a reusar
+con otros clientes y "material" solo le sirve a una materia. Lo que se agrega es
+un **tercer eje de clasificación cuyo nombre elige cada instancia**:
+
+| Instancia | Cómo se llama el eje | Valores |
+|---|---|---|
+| Un Amargo | Material | Madera · Calabaza · Combinado |
+| Una tienda de ropa | Talle | S · M · L |
+| Una de comida | Sabor | … |
+
+O sea: una tabla de valores que el cliente administra desde Configuración, más
+la **etiqueta del eje** guardada en los settings de la instancia. Un valor por
+producto: el original resolvía lo mixto con "Combinado", así que no hace falta
+muchos a muchos.
+
+Sale en la API pública como campo nuevo (el contrato es aditivo) junto con su
+etiqueta, porque sin la etiqueta el que consume no sabe cómo titular el filtro.
+
+Los productos los clasifica el cliente: son sus datos.
+
 ---
 
 ## 3. WhatsApp solo con el pedido armado
@@ -186,9 +220,12 @@ Hoy hay accesos directos en cinco lugares:
 | `Tienda.tsx` | mensaje de "no cargó el catálogo" | apunta a Instagram |
 | `cart/CartDrawer.tsx` | enviar pedido | **queda, es el único** |
 
-La sección Contacto necesita una decisión del cliente, porque hoy es un
-formulario que arma un mensaje de WhatsApp. Si WhatsApp es solo para pedidos,
-la sección o se saca, o se convierte en "escribinos por Instagram / mail".
+**Decidido (26/08):** la sección Contacto conserva su lugar y su diseño pero
+deja de ser un formulario. Pasa a ser "dónde encontrar respuesta": las preguntas
+frecuentes que ya están en la página, Instagram y el mail. Es exactamente lo que
+dijo el cliente ("el resto de las dudas deberían estar respondidas en la web o
+aclararse previamente por Instagram"), y es fácil de revertir si al verlo no les
+cierra.
 
 ---
 
@@ -249,10 +286,10 @@ WhatsApp solo en el carrito · pickup único · días y horarios.
 1. **Cargar el stock en el ERP.** Sin eso no hay agotados. Es lo más
    importante de esta lista.
 2. Días de envío, días en que se toman pedidos y horario de retiro.
-3. ¿La sección de Contacto se saca, o queda apuntando a Instagram y mail?
-4. ¿"Nuevo" lo marcan ellos producto por producto, o lo calculamos por fecha?
-5. La tira, ¿con las 6 fotos actuales o con las 11 originales, incluidas las
+3. La tira, ¿con las 6 fotos actuales o con las 11 originales, incluidas las
    que llevan texto encima?
-6. Los videos, ¿son solo esos dos o van a subir más? (decide si va al ERP o
-   queda fijo en la web)
-7. Filtro por material: ¿lo quieren? Implica clasificar los 34 productos.
+4. Los videos, ¿son solo esos dos o van a subir más? De la respuesta depende si
+   el video se guarda en el ERP o queda fijo en la web.
+5. Los valores del eje de clasificación (para ellos, "Material"): ¿cuáles son, y
+   quién clasifica los 34 productos?
+6. Ver la sección Contacto sin formulario y confirmar que les cierra.
