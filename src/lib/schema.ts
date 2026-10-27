@@ -1,4 +1,5 @@
 import type { Catalogo, Producto } from "@/lib/catalog";
+import { FORMAS_PAGO } from "@/lib/pedido";
 import { SITE } from "@/lib/site";
 
 /**
@@ -99,7 +100,8 @@ export function construirSchema(catalogo: Catalogo, faq: { pregunta: string; res
         },
         areaServed: { "@type": "AdministrativeArea", name: "Uruguay" },
         currenciesAccepted: "UYU",
-        paymentAccepted: "Efectivo, transferencia",
+        // Las mismas que ofrece el checkout, de la misma lista.
+        paymentAccepted: FORMAS_PAGO.map((f) => f.etiqueta).join(", "),
         // Instagram y Pinterest son las cuentas reales del negocio y son la
         // señal de entidad mas barata que hay: le dicen al buscador que este
         // sitio y esas cuentas son el mismo negocio, y no tres marcas distintas

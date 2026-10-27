@@ -10,11 +10,22 @@ export type Zona = {
    *  la verdad: si esta, se pinta; si no esta, no hay chapa. */
   rotulo?: string;
   titulo: string;
+  /** Lo que cuesta llegar a esta zona, en pesos, como string decimal: la plata
+   *  nunca viaja como float (ver `centavos.ts`). null en el retiro, que no
+   *  tiene costo. El checkout lo suma al total del pedido. */
+  costo: string | null;
+  /** `costo` listo para mostrar. NO se escribe: lo arma `zona()` a partir de
+   *  `costo`, asi el precio de la seccion Envios, el de las preguntas
+   *  frecuentes y el que se suma en el carrito no pueden contradecirse. */
   precio: string | null;
   detalle: string;
   nota: string;
   barrios: string[];
 };
+
+function zona(z: Omit<Zona, "precio">): Zona {
+  return { ...z, precio: z.costo === null ? null : `$${z.costo}` };
+}
 
 /** El unico punto de retiro. Eran tres (Pocitos, Cordon y Ciudad de la Costa)
  *  y el cliente los bajo a uno: la venta va hacia el e-commerce, y ofrecer tres
@@ -30,48 +41,48 @@ export type Zona = {
  *  pedido que el cliente pidio sacar: WhatsApp queda solo para el pedido ya
  *  armado que sale del carrito. Por eso tampoco aparece el numero. */
 export const PICKUPS: Zona[] = [
-  {
+  zona({
     id: "retiro",
     titulo: "Cordón Sur / Centro",
-    precio: null,
+    costo: null,
     detalle:
       "El punto exacto y el horario los arreglamos al confirmar el pedido, en el mismo chat en el que lo mandás. Zona céntrica, cómoda si estás por el microcentro, Palermo o Parque Rodó.",
     nota: "Sin costo · Se coordina al confirmar el pedido",
     barrios: ["Cordón", "Centro", "Palermo", "Parque Rodó"],
-  },
+  }),
 ];
 
 /** Cadeteria a domicilio. Precios y barrios exactos de la demo del cliente. */
 export const ZONAS_ENVIO: Zona[] = [
-  {
+  zona({
     id: "zona1",
     rotulo: "Zona 1",
     titulo: "Centro y costa sur",
-    precio: "$195",
+    costo: "195",
     detalle: "La franja céntrica y la costa sur, del Puerto al Buceo.",
     nota: "Cadetería a domicilio",
     barrios: [
       "Centro", "Palermo", "Barrio Sur", "Parque Rodó", "Punta Carretas",
       "Pocitos", "Malvín", "Cordón", "Ciudad Vieja", "Parque Batlle", "Buceo",
     ],
-  },
-  {
+  }),
+  zona({
     id: "zona2",
     rotulo: "Zona 2",
     titulo: "Centro norte y costa este",
-    precio: "$235",
+    costo: "235",
     detalle: "El anillo que rodea al centro y la costa hacia Carrasco.",
     nota: "Cadetería a domicilio",
     barrios: [
       "Unión", "Jacinto Vera", "La Comercial", "Aguada", "Reducto",
       "Paso Molino", "Malvín Norte", "Carrasco", "Carrasco Norte", "Punta Gorda",
     ],
-  },
-  {
+  }),
+  zona({
     id: "zona3",
     rotulo: "Zona 3",
     titulo: "Resto de Montevideo",
-    precio: "$250",
+    costo: "250",
     detalle: "El oeste, el norte y los barrios más alejados del centro.",
     nota: "Cadetería a domicilio",
     barrios: [
@@ -79,7 +90,7 @@ export const ZONAS_ENVIO: Zona[] = [
       "Las Piedras", "Casavalle", "Verdisol", "Nuevo París", "Belvedere",
       "Peñarol", "Cerro", "Paso de la Arena", "Colón",
     ],
-  },
+  }),
 ];
 
 /** El nombre de uso corriente no siempre es el oficial de la Intendencia.

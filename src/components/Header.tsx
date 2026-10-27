@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bag, List, X } from "@phosphor-icons/react/dist/ssr";
+import { Bag } from "@phosphor-icons/react/dist/ssr";
 import { useCarrito } from "./cart/CartProvider";
 import { Logo } from "./Logo";
+import { MenuMovil } from "./MenuMovil";
 
 const NAV = [
   { href: "#tienda", label: "Tienda" },
@@ -31,6 +32,19 @@ export function Header() {
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
+
+  // Desde lg la navegacion esta a la vista y el boton del menu no existe: si
+  // la ventana se agranda con el menu abierto, se cierra en vez de quedar
+  // tapando la pagina sin forma de cerrarlo.
+  useEffect(() => {
+    if (!menu) return;
+    const ancha = window.matchMedia("(min-width: 64rem)");
+    const alCambiar = () => {
+      if (ancha.matches) setMenu(false);
+    };
+    ancha.addEventListener("change", alCambiar);
+    return () => ancha.removeEventListener("change", alCambiar);
+  }, [menu]);
 
   return (
     <>
@@ -78,32 +92,31 @@ export function Header() {
                 </span>
               )}
             </button>
+            {/* Dos rayas y no el icono de tres: son las mismas dos que en el
+                menu abierto se cruzan en una X (ver `MenuMovil`). */}
             <button
-              onClick={() => setMenu((v) => !v)}
-              aria-label={menu ? "Cerrar el menu" : "Abrir el menu"}
+              onClick={() => setMenu(true)}
+              aria-label="Abrir el menú"
               aria-expanded={menu}
-              className="rounded-pill p-2 lg:hidden"
+              aria-haspopup="dialog"
+              className="hamburguesa rounded-pill transition-colors hover:bg-humo lg:hidden"
             >
-              {menu ? <X size={21} weight="bold" /> : <List size={21} weight="bold" />}
+              <span />
+              <span />
             </button>
           </div>
         </div>
-
-        {menu && (
-          <nav className="border-t border-linea bg-papel px-5 py-3 sm:px-8 lg:hidden">
-            {NAV.map((n) => (
-              <a
-                key={n.href}
-                href={n.href}
-                onClick={() => setMenu(false)}
-                className="block py-2.5 text-tinta-media transition-colors hover:text-tinta"
-              >
-                {n.label}
-              </a>
-            ))}
-          </nav>
-        )}
       </header>
+      <MenuMovil
+        abierto={menu}
+        onCerrar={() => setMenu(false)}
+        nav={NAV}
+        unidades={unidades}
+        onPedido={() => {
+          setMenu(false);
+          setAbierto(true);
+        }}
+      />
     </>
   );
 }

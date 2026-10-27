@@ -355,10 +355,13 @@ export function FichaProducto({
                   <dt className="text-tinta-suave">Código</dt>
                   <dd className="font-mono text-xs">{producto.sku}</dd>
                 </div>
+                {/* Hay o no hay, nunca cuantos: el cliente no quiere que se
+                    vea cuantas unidades le quedan. El tope del carrito sigue
+                    respetando el stock real, pero sin decir el numero. */}
                 {siguiendoStock && (
                   <div className="flex justify-between py-1">
                     <dt className="text-tinta-suave">Disponibilidad</dt>
-                    <dd>{producto.in_stock ? `${producto.stock} en stock` : "Sin stock"}</dd>
+                    <dd>{producto.in_stock ? "En stock" : "Sin stock"}</dd>
                   </div>
                 )}
               </dl>

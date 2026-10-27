@@ -33,6 +33,21 @@ body {
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
+/* La manito sobre todo lo que se puede tocar. Tailwind 4 le saco el
+   `cursor: pointer` a los botones (los deja como el navegador, con la flecha),
+   y en esta pagina casi todo lo clickeable es un <button>: la foto y el nombre
+   de cada producto, el + de agregar, las flechas de los estantes. Con la
+   flecha, en desktop no se nota que el producto se abre. Va en `base` para
+   que una clase de Tailwind en un elemento puntual le siga ganando. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  select:not(:disabled),
+  label:has(> input[type="radio"]:not(:disabled)) {
+    cursor: pointer;
+  }
+}
+
 /* Titulares: enormes, peso 700, interlineado por debajo de 1 y tracking
    negativo. De aca sale el caracter de la pagina. */
 .type-display {
@@ -134,6 +149,168 @@ html { scroll-behavior: smooth; }
   }
 }
 
+/* --- Pop-up del ERP ------------------------------------------------------ */
+/* El aviso que arma el cliente. Centrado, como el de su demo: 780px como
+   maximo, esquinas de 12px y el fondo oscurecido al 55%. Sube 20px al entrar.
+   Las mismas tres piezas de animacion que el cajon. */
+.aviso {
+  margin: auto;
+  width: min(48.75rem, calc(100% - 2rem));
+  max-height: calc(100% - 2rem);
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  overflow: auto;
+  background: transparent;
+  box-shadow: 0 8px 48px rgb(10 10 10 / 0.22);
+
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    overlay 0.3s allow-discrete,
+    display 0.3s allow-discrete;
+}
+/* El foco entra al dialogo mismo (ver `PopupAviso`), que no es un control:
+   un aro alrededor de toda la caja no le dice nada a nadie. Los controles de
+   adentro conservan el suyo. */
+.aviso:focus {
+  outline: none;
+}
+/* Sin foto queda una sola columna de texto, y a 780px seria una franja. */
+.aviso:not(:has(img)) {
+  width: min(28rem, calc(100% - 2rem));
+}
+@starting-style {
+  .aviso[open] {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+.aviso[open][data-cerrando] {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.aviso::backdrop {
+  background: rgb(10 10 10 / 0);
+  transition:
+    background 0.3s ease,
+    overlay 0.3s allow-discrete,
+    display 0.3s allow-discrete;
+}
+.aviso[open]::backdrop {
+  background: rgb(10 10 10 / 0.55);
+}
+@starting-style {
+  .aviso[open]::backdrop {
+    background: rgb(10 10 10 / 0);
+  }
+}
+.aviso[open][data-cerrando]::backdrop {
+  background: rgb(10 10 10 / 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aviso,
+  .aviso::backdrop {
+    transition: none;
+  }
+}
+
+/* --- Menu del celular ---------------------------------------------------- */
+/* Una cortina negra que baja desde arriba y tapa la pantalla entera. Es otro
+   <dialog> en la capa superior, con las mismas tres piezas de animacion que
+   el cajon (`@starting-style`, `allow-discrete` y la transicion). Lo que se
+   anima es `clip-path`: el borde de abajo de la cortina baja al abrir y sube
+   al cerrar, y el contenido no se mueve, se destapa. */
+.menu-movil {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-tinta);
+  color: var(--color-papel);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  clip-path: inset(0 0 0 0);
+  transition:
+    clip-path 0.55s cubic-bezier(0.76, 0, 0.24, 1),
+    overlay 0.55s allow-discrete,
+    display 0.55s allow-discrete;
+}
+@starting-style {
+  .menu-movil[open] {
+    clip-path: inset(0 0 100% 0);
+  }
+}
+.menu-movil[open][data-cerrando] {
+  clip-path: inset(0 0 100% 0);
+}
+/* La cortina ya tapa todo: un fondo oscurecido debajo no se veria. */
+.menu-movil::backdrop {
+  background: transparent;
+}
+/* El foco entra al dialogo mismo (ver `MenuMovil`), igual que en el pop-up. */
+.menu-movil:focus {
+  outline: none;
+}
+
+/* Las secciones entran una detras de otra mientras la cortina termina de
+   bajar. Cada una trae su indice en `--i`. */
+@keyframes entrarMenu {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: none; }
+}
+.menu-movil[open] .menu-entra {
+  animation: entrarMenu 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(180ms + var(--i, 0) * 60ms);
+}
+
+/* El boton del menu: dos rayas. En el header estan paralelas; en el menu
+   abierto, el boton de cerrar ocupa el mismo lugar y las mismas dos rayas
+   arrancan paralelas (`@starting-style`) y se cruzan en una X. */
+.hamburguesa {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+.hamburguesa > span {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 50%;
+  height: 1.5px;
+  margin-top: -0.75px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+}
+.hamburguesa > span:first-child { transform: translateY(-3.5px); }
+.hamburguesa > span:last-child  { transform: translateY(3.5px); }
+.menu-movil .hamburguesa > span:first-child { transform: rotate(45deg); }
+.menu-movil .hamburguesa > span:last-child  { transform: rotate(-45deg); }
+@starting-style {
+  .menu-movil[open] .hamburguesa > span:first-child { transform: translateY(-3.5px); }
+  .menu-movil[open] .hamburguesa > span:last-child  { transform: translateY(3.5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-movil,
+  .hamburguesa > span {
+    transition: none;
+  }
+  .menu-movil[open] .menu-entra {
+    animation: none;
+  }
+}
+
 /* --- Marquee de fotos --------------------------------------------------- */
 /* La tira lleva las seis fotos DOS veces y se desplaza exactamente la mitad:
    al llegar al final, la segunda copia esta donde arranco la primera y el
@@ -159,24 +336,24 @@ html { scroll-behavior: smooth; }
    las dos copias: (10 x 336 + 279) + 10.5 x 10 = 3744px en 20s.
    ~187 px/s: ESA es la velocidad a igualar, no los 20s.
 
-   Nuestra tira: seis fotos por juego, el mismo `gap: 10px`, ancho 62vw /
-   38vw (sm) / 24vw (lg). Un ciclo recorre 6 x ancho + 5.5 x 10, y la
-   duracion es esa distancia dividida 187.
-     - movil (62vw sobre 390px):  6 x 241.8 + 55 = 1506px -> 8s
-     - sm    (38vw sobre 768px):  6 x 291.8 + 55 = 1806px -> 9.6s
-     - lg    (24vw sobre 1440px): 6 x 345.6 + 55 = 2129px -> 11.4s
+   Nuestra tira: seis fotos por juego, el mismo `gap: 10px` y, como el
+   original, ALTO FIJO EN PX con el ancho que da la proporcion de cada
+   archivo: cinco 4:5 (ancho = 0.8 x alto) y una de 597x900 (0.663 x alto).
+   Un juego mide 4.663 x alto, un ciclo recorre eso + 5.5 x 10, y la duracion
+   es esa distancia dividida 187.2.
+     - movil (280px de alto): 5 x 224 + 185.7 + 55 = 1360.7px -> 7.27s
+     - sm    (340px de alto): 5 x 272 + 225.5 + 55 = 1640.5px -> 8.76s
+     - lg    (420px de alto): 5 x 336 + 278.6 + 55 = 2013.6px -> 10.76s
    Los cortes son los de Tailwind (sm 40rem, lg 64rem), que son justo donde
-   cambia el ancho de las fotos en Tira.tsx.
+   cambia el alto de las fotos en Tira.tsx. En lg el alto es el mismo del
+   original, 420px.
 
-   Ojo con una cosa: el ancho esta en vw y la duracion en segundos, asi que
-   la velocidad da clavada en esos tres anchos de referencia y se corre
-   dentro de cada tramo (a 1024px queda ~134 px/s, a 1920px ~247). El
-   original no tenia ese problema porque media en px fijos. Se banca porque
-   son los anchos donde de verdad esta la gente; si molesta, la salida es
-   partir el tramo con otro corte de Tailwind, no manotear los segundos.
+   Al ser px fijos, la velocidad da clavada en cualquier ancho de pantalla
+   dentro de cada tramo. Antes las fotos se median en vw y la velocidad se
+   corria de 134 a 247 px/s segun la ventana.
 
-   Si cambia el ancho de las fotos, la cantidad o el gap, se rehace esta
-   cuenta contra los 187 px/s. No se estima a ojo. */
+   Si cambia el alto de las fotos, la cantidad, la proporcion de alguna o el
+   gap, se rehace esta cuenta contra los 187.2 px/s. No se estima a ojo. */
 @keyframes correrTira {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
@@ -185,11 +362,11 @@ html { scroll-behavior: smooth; }
   display: flex;
   width: max-content;
   gap: 10px;
-  --dur-tira: 8s;
+  --dur-tira: 7.27s;
   animation: correrTira var(--dur-tira) linear infinite;
 }
-@media (min-width: 40rem) { .tira { --dur-tira: 9.6s; } }
-@media (min-width: 64rem) { .tira { --dur-tira: 11.4s; } }
+@media (min-width: 40rem) { .tira { --dur-tira: 8.76s; } }
+@media (min-width: 64rem) { .tira { --dur-tira: 10.76s; } }
 
 /* --- Entrada del hero --------------------------------------------------- */
 /* La primera pantalla no espera al observador: entra sola al cargar. */

@@ -1,4 +1,5 @@
 import { getCatalogo } from "@/lib/catalog";
+import { getPopup } from "@/lib/popup";
 import { construirSchema } from "@/lib/schema";
 import { FAQ } from "@/lib/faq";
 import { CartProvider } from "@/components/cart/CartProvider";
@@ -15,6 +16,7 @@ import { Envios } from "@/components/Envios";
 import { Preguntas } from "@/components/Preguntas";
 import { Contacto } from "@/components/Contacto";
 import { Footer } from "@/components/Footer";
+import { PopupAviso } from "@/components/PopupAviso";
 
 /** El catalogo del ERP se revalida cada 5 minutos. Su propio endpoint ya
  *  cachea 60s en CDN con stale-while-revalidate 300, asi que esto no agrega
@@ -23,7 +25,8 @@ export const revalidate = 300;
 
 
 export default async function Home() {
-  const catalogo = await getCatalogo();
+  // En paralelo: son dos pedidos al mismo ERP y ninguno depende del otro.
+  const [catalogo, popup] = await Promise.all([getCatalogo(), getPopup()]);
 
   const schema = construirSchema(catalogo, FAQ);
 
@@ -48,6 +51,7 @@ export default async function Home() {
       </main>
       <Footer />
       <CartDrawer />
+      <PopupAviso popup={popup} />
     </CartProvider>
   );
 }

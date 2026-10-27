@@ -2,8 +2,18 @@ import Image from "next/image";
 import { SITE } from "@/lib/site";
 import { Instagram } from "./Sociales";
 
-/** Las dos fotos de grabado son las que mando el cliente. Van desfasadas en
- *  vertical para que el bloque no se lea como dos cuadros pegados. */
+/** Las dos fotos de grabado son las que mando el cliente.
+ *
+ *  VAN COMO UN SOLO BLOQUE, igual que en su demo: pegadas con 4px de por
+ *  medio, del mismo alto y con las esquinas rectas. Las tuvimos separadas,
+ *  redondeadas y desfasadas en vertical (para que no se leyeran como dos
+ *  cuadros pegados), y el cliente pidio volver a como era: el bloque es la
+ *  idea, no un defecto.
+ *
+ *  En la demo el bloque es 3:4 y en el celular directamente no estaba. Aca en
+ *  el celular se muestra, pero 4:3: a lo ancho de la pantalla, un 3:4 serian
+ *  dos tiras finitas mas altas que la pantalla, con la foto recortada a la
+ *  mitad. */
 export function Personalizados() {
   return (
     <section
@@ -11,22 +21,22 @@ export function Personalizados() {
       className="scroll-mt-24 bg-humo px-5 py-24 sm:px-8 lg:px-12 lg:py-32"
     >
       <div className="mx-auto grid max-w-[1400px] items-center gap-12 lg:grid-cols-12 lg:gap-16">
-        <div className="reveal grid grid-cols-2 gap-4 lg:col-span-6">
-          <div className="relative aspect-[3/4] overflow-hidden rounded-foto bg-papel">
+        <div className="reveal grid aspect-[4/3] grid-cols-2 gap-1 lg:col-span-6 lg:aspect-[3/4]">
+          <div className="relative overflow-hidden bg-papel">
             <Image
               src="/secciones/personalizado-1.jpg"
               alt="Mate con grabado láser"
               fill
-              sizes="(max-width: 1024px) 45vw, 22vw"
+              sizes="(max-width: 1024px) 50vw, 25vw"
               className="object-cover"
             />
           </div>
-          <div className="relative mt-10 aspect-[3/4] overflow-hidden rounded-foto bg-papel">
+          <div className="relative overflow-hidden bg-papel">
             <Image
               src="/secciones/personalizado-2.jpg"
               alt="Virola trabajada a mano"
               fill
-              sizes="(max-width: 1024px) 45vw, 22vw"
+              sizes="(max-width: 1024px) 50vw, 25vw"
               className="object-cover"
             />
           </div>

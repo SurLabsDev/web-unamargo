@@ -1,4 +1,5 @@
 import { PICKUPS, ZONAS_ENVIO } from "@/lib/zonas";
+import { FORMAS_PAGO, enumerar } from "@/lib/pedido";
 
 /**
  * Las preguntas que llegan por WhatsApp, contestadas en la pagina.
@@ -37,11 +38,17 @@ const precios = ZONAS_ENVIO.map((z) => `${z.titulo} ${z.precio}`).join(", ");
  *  hay uno: si vuelven a ser varios hay que reescribirla, no alcanza con
  *  agregar la zona. */
 const retiros = PICKUPS.map((p) => p.titulo).join(", ");
+/** Las mismas que ofrece el checkout: si se agrega una, la respuesta la
+ *  nombra sola. */
+const pagos = enumerar(
+  FORMAS_PAGO.map((f) => f.etiqueta.toLowerCase()),
+  "o",
+);
 
 export const FAQ: Pregunta[] = [
   {
     pregunta: "¿Hacen envíos en Montevideo?",
-    respuesta: `Sí. Un Amargo entrega en todo Montevideo por cadetería, con precio por zona: ${precios}. El pedido se arma en la tienda de esta misma página y la entrega se coordina al confirmarlo, en el chat de WhatsApp que se abre desde el carrito.`,
+    respuesta: `Sí. Un Amargo entrega en todo Montevideo por cadetería, con precio por zona: ${precios}. El pedido se arma en la tienda de esta misma página: en el carrito se elige el barrio y el envío se suma solo al total. El día y la hora se coordinan al confirmarlo, en el chat de WhatsApp que se abre desde el carrito.`,
   },
   {
     pregunta: "¿Se puede retirar sin costo?",
@@ -50,7 +57,7 @@ export const FAQ: Pregunta[] = [
   {
     pregunta: "¿Cómo hago un pedido?",
     respuesta:
-      "Se arma el pedido desde la tienda de la web y se envía por WhatsApp con un toque. No hay pasarela de pago online: el pago y la entrega se coordinan directamente por ese chat.",
+      `Se arma el pedido desde la tienda de la web. En el carrito se elige retiro o envío a domicilio y la forma de pago (${pagos}), y el pedido sale por WhatsApp con un toque, con todos esos datos. No hay pasarela de pago online: el pago se coordina directamente por ese chat.`,
   },
   {
     pregunta: "¿Hacen mates personalizados?",
