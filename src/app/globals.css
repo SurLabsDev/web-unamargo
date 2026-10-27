@@ -88,7 +88,17 @@ html { scroll-behavior: smooth; }
       en el primer fotograma y la animacion de salida no existe.
     - La transicion en si.
    Soportado en Safari 17.4+ y Chrome 117+. En un navegador viejo no anima, pero
-   abre y cierra igual, que es lo que importa. */
+   abre y cierra igual, que es lo que importa.
+
+   Y UNA REGLA QUE VALE PARA LOS TRES DIALOGOS (cajon, menu y pop-up): el
+   estado SIN `[open]` tiene que ser el ESCONDIDO, igual al de `@starting-style`
+   y al de `[data-cerrando]`. Despues de `close()`, Chrome sigue pintando el
+   dialogo lo que dura la salida (eso es `allow-discrete`) y lo anima hacia el
+   estado sin `[open]`. Si ese estado es el visible, el dialogo termina de
+   irse, vuelve a aparecer entero y recien ahi desaparece de golpe. Le paso al
+   menu y al pop-up, que tenian el visible como estado base, y el cliente lo vio
+   como "se cierra, se abre y se cierra de nuevo". Safari no lo muestra porque
+   ahi el dialogo desaparece en el acto. */
 .cajon-pedido {
   position: fixed;
   inset: 0 0 0 auto;          /* pegado a la derecha, de arriba a abajo */
@@ -164,13 +174,18 @@ html { scroll-behavior: smooth; }
   background: transparent;
   box-shadow: 0 8px 48px rgb(10 10 10 / 0.22);
 
-  opacity: 1;
-  transform: none;
+  /* Cerrado = escondido (ver la regla del cajon, mas arriba). */
+  opacity: 0;
+  transform: translateY(20px);
   transition:
     opacity 0.3s ease,
     transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
     overlay 0.3s allow-discrete,
     display 0.3s allow-discrete;
+}
+.aviso[open] {
+  opacity: 1;
+  transform: none;
 }
 /* El foco entra al dialogo mismo (ver `PopupAviso`), que no es un control:
    un aro alrededor de toda la caja no le dice nada a nadie. Los controles de
@@ -239,11 +254,15 @@ html { scroll-behavior: smooth; }
   overflow-y: auto;
   overscroll-behavior: contain;
 
-  clip-path: inset(0 0 0 0);
+  /* Cerrado = escondido (ver la regla del cajon, mas arriba). */
+  clip-path: inset(0 0 100% 0);
   transition:
     clip-path 0.55s cubic-bezier(0.76, 0, 0.24, 1),
     overlay 0.55s allow-discrete,
     display 0.55s allow-discrete;
+}
+.menu-movil[open] {
+  clip-path: inset(0 0 0 0);
 }
 @starting-style {
   .menu-movil[open] {
