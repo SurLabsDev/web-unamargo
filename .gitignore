@@ -43,3 +43,6 @@ next-env.d.ts
 # La demo original del cliente: material de referencia, nunca se modifica
 claude code unamargo/
 .DS_Store
+
+# worktrees temporales de Claude Code
+/.claude/worktrees/

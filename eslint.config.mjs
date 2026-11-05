@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Los worktrees que arma Claude Code para trabajar en paralelo viven
+    // adentro del repo, cada uno con su propio build: sin esto el lint de la
+    // raiz revisa esas copias y da cientos de errores que no son del codigo.
+    ".claude/worktrees/**",
   ]),
 ]);
 
