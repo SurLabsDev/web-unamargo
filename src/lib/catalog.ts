@@ -21,11 +21,33 @@ export type Producto = {
    *  igual porque el contrato es aditivo, asi que el dia que lo mande entra
    *  solo, sin tocar nada mas que borrar el mapa de abajo. */
   video?: string | null;
+  /** El valor del tercer eje de clasificacion, el que cada instancia del ERP
+   *  titula a su manera (ver `etiquetaRasgo`). Para Un Amargo es el material.
+   *  Es opcional porque el ERP de produccion todavia no lo manda: sin el, la
+   *  tienda no ofrece esos filtros y sigue igual que antes. */
+  trait?: { name: string; slug: string } | null;
+  /** "Mas vendido". Es una marca que el cliente le pone a mano a cada producto
+   *  en el ERP, no un ranking calculado: con la poca historia de ventas que hay,
+   *  un ranking seria ruido. El ERP lo esta agregando ahora, asi que puede no
+   *  venir, y si no viene el producto NO es mas vendido. Por eso se pregunta
+   *  siempre `=== true` y nunca por la negativa. */
+  featured?: boolean;
 };
+
+type Conteo = { name: string; slug: string; cantidad: number };
 
 export type Catalogo = {
   productos: Producto[];
-  categorias: { name: string; slug: string; cantidad: number }[];
+  categorias: Conteo[];
+  /** Los valores de `trait` que de verdad tiene algun producto, del que mas
+   *  productos tiene al que menos. De aca salen los filtros por material: uno
+   *  que no aparece en ningun producto no se ofrece. Vacio si el ERP no manda
+   *  `trait`. */
+  rasgos: Conteo[];
+  /** Como titula esta instancia del ERP a ese eje: "Material", "Caracteristica".
+   *  Viene una sola vez, arriba de todo de la respuesta (`trait_label`), porque
+   *  es de la instancia y no de cada producto. null si no lo manda. */
+  etiquetaRasgo: string | null;
   /** Si NINGUN producto tiene stock, el ERP todavia no lo esta llevando: los
    *  productos nacen en cero y solo dejan de estarlo cuando alguien hace el
    *  primer conteo. En ese estado la web no muestra disponibilidad, porque
@@ -41,9 +63,31 @@ export type Catalogo = {
 const CATALOGO_VACIO: Catalogo = {
   productos: [],
   categorias: [],
+  rasgos: [],
+  etiquetaRasgo: null,
   siguiendoStock: false,
   caido: true,
 };
+
+/** Cuantos productos tiene cada valor de un eje (rubro o rasgo), del que mas
+ *  tiene al que menos. A igual cantidad decide el nombre, para que el orden no
+ *  dependa de en que orden manda el ERP los productos. */
+function contarPor(
+  productos: Producto[],
+  eje: (p: Producto) => { name: string; slug: string } | null | undefined,
+): Conteo[] {
+  const cuenta = new Map<string, Conteo>();
+  for (const p of productos) {
+    const valor = eje(p);
+    if (!valor) continue;
+    const previo = cuenta.get(valor.slug);
+    if (previo) previo.cantidad += 1;
+    else cuenta.set(valor.slug, { name: valor.name, slug: valor.slug, cantidad: 1 });
+  }
+  return [...cuenta.values()].sort(
+    (a, b) => b.cantidad - a.cantidad || a.name.localeCompare(b.name, "es"),
+  );
+}
 
 export async function getCatalogo(): Promise<Catalogo> {
   try {
@@ -77,17 +121,14 @@ export async function getCatalogo(): Promise<Catalogo> {
     // Sin categoria no se puede navegar ni filtrar, asi que no se muestran.
     const productos = items.filter((p) => p.category !== null);
 
-    const cuenta = new Map<string, { name: string; slug: string; cantidad: number }>();
-    for (const p of productos) {
-      const c = p.category!;
-      const previo = cuenta.get(c.slug);
-      if (previo) previo.cantidad += 1;
-      else cuenta.set(c.slug, { name: c.name, slug: c.slug, cantidad: 1 });
-    }
+    const etiqueta = (data as { trait_label?: unknown }).trait_label;
 
     return {
       productos,
-      categorias: [...cuenta.values()].sort((a, b) => b.cantidad - a.cantidad),
+      categorias: contarPor(productos, (p) => p.category),
+      rasgos: contarPor(productos, (p) => p.trait),
+      etiquetaRasgo:
+        typeof etiqueta === "string" && etiqueta.trim() ? etiqueta.trim() : null,
       siguiendoStock: productos.some((p) => p.stock > 0),
       caido: false,
     };
