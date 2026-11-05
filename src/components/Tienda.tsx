@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { CaretLeft, CaretRight, Plus } from "@phosphor-icons/react/dist/ssr";
+import { CaretLeft, CaretRight, Plus, X } from "@phosphor-icons/react/dist/ssr";
 import { precio, videoDe, type Catalogo, type Producto } from "@/lib/catalog";
 import { FichaProducto, VideoProducto } from "./FichaProducto";
+import { FiltrosTienda, filtrosDe } from "./FiltrosTienda";
 import { useCarrito } from "./cart/CartProvider";
 import { SITE } from "@/lib/site";
 
@@ -20,10 +21,20 @@ function Pieza({
   producto,
   siguiendoStock,
   onAbrir,
+  enGrilla = false,
 }: {
   producto: Producto;
   siguiendoStock: boolean;
   onAbrir: () => void;
+  /** En la grilla del filtro la tarjeta llena su columna, que en el celular
+   *  es la mitad de la pantalla. Ahi el nombre en un solo renglon se corta
+   *  justo en lo que distingue a un producto de otro: "Mate Camionero (..."
+   *  salia dos veces, Clasico y Pulido, iguales. Por eso en la grilla el
+   *  nombre usa hasta tres renglones. Dos no alcanzan: a 390px "Combo
+   *  Camionero + Posamate..." tambien salia repetido. Con tres entran enteros
+   *  todos los nombres del catalogo, y el tope queda para uno que no entre
+   *  nunca. */
+  enGrilla?: boolean;
 }) {
   const { agregar } = useCarrito();
   /* Ver `VideoProducto`: el video no tapa la foto, hay que apagarla cuando
@@ -31,9 +42,12 @@ function Pieza({
   const [videoAndando, setVideoAndando] = useState(false);
   const agotado = siguiendoStock && !producto.in_stock;
   const video = videoDe(producto);
+  const masVendido = producto.featured === true;
 
   return (
-    <article className="group w-[62vw] shrink-0 snap-start sm:w-[36vw] lg:w-[23vw] xl:w-[19vw]">
+    <article
+      className={`group ${enGrilla ? "" : "w-[62vw] shrink-0 snap-start sm:w-[36vw] lg:w-[23vw] xl:w-[19vw]"}`}
+    >
       <button
         onClick={onAbrir}
         aria-label={`Ver ${producto.name}`}
@@ -64,6 +78,11 @@ function Pieza({
               videoAndando ? "opacity-0" : "opacity-100"
             }`}
           >
+            {/* Los `sizes` son los del estante tambien en la grilla del filtro,
+                donde la tarjeta es un poco mas angosta. Es a proposito: con la
+                misma cuenta el navegador elige el mismo archivo, y la foto que
+                ya se vio en el estante sale de la cache al filtrar en vez de
+                bajarse otra vez en otra medida. */}
             <Image
               src={producto.images[0]}
               alt={producto.name}
@@ -85,9 +104,22 @@ function Pieza({
             className="absolute inset-0 h-full w-full object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-[1.06]"
           />
         )}
-        {producto.discount && (
-          <span className="absolute left-1 top-1 rounded-pill bg-verde px-2.5 py-1 text-[11px] font-bold text-papel">
-            {producto.discount.percentage}% off
+        {/* Las insignias van en fila y se acomodan solas: en la grilla del
+            celular la tarjeta mide la mitad de la pantalla y las dos juntas
+            pueden no entrar en un renglon. "Mas vendido" va primero porque es
+            lo que el cliente pidio que se vea antes que nada. */}
+        {(masVendido || producto.discount) && (
+          <span className="absolute inset-x-1 top-1 flex flex-wrap items-start gap-1">
+            {masVendido && (
+              <span className="rounded-pill bg-tinta px-2.5 py-1 text-[11px] font-bold text-papel">
+                Más vendido
+              </span>
+            )}
+            {producto.discount && (
+              <span className="rounded-pill bg-verde px-2.5 py-1 text-[11px] font-bold text-papel">
+                {producto.discount.percentage}% off
+              </span>
+            )}
           </span>
         )}
       </button>
@@ -95,7 +127,9 @@ function Pieza({
       <div className="mt-2 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <button onClick={onAbrir} className="block w-full text-left">
-            <p className="truncate text-sm font-medium group-hover:underline">
+            <p
+              className={`text-sm font-medium group-hover:underline ${enGrilla ? "line-clamp-3" : "truncate"}`}
+            >
               {producto.name}
             </p>
           </button>
@@ -143,6 +177,20 @@ function Estante({
   onAbrir: (p: Producto) => void;
 }) {
   const pista = useRef<HTMLDivElement>(null);
+  /* Las flechas, solo si hay para donde correr. El estante "Mas vendidos"
+     suele tener dos o tres piezas, que en escritorio entran enteras, y dos
+     flechas que no mueven nada se leen como algo roto. No hace falta medir a
+     mano al montar: el ResizeObserver avisa apenas empieza a mirar, y despues
+     cada vez que cambia el ancho. Arranca en true para que el HTML del
+     servidor sea el de siempre. */
+  const [desborda, setDesborda] = useState(true);
+  useEffect(() => {
+    const el = pista.current;
+    if (!el || !("ResizeObserver" in window)) return;
+    const obs = new ResizeObserver(() => setDesborda(el.scrollWidth > el.clientWidth + 1));
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   function correr(dir: 1 | -1) {
     const el = pista.current;
@@ -153,13 +201,18 @@ function Estante({
   return (
     <section className="reveal mb-14 last:mb-0">
       <div className="mb-4 flex items-end justify-between gap-4">
+        {/* El espacio va escrito: el margen separa a la vista, pero el texto
+            que leen los buscadores y los lectores de pantalla salia pegado,
+            "Mates14". El margen es chico porque el espacio ya ocupa su lugar
+            (medido: 5px en el celular, 7.75px en escritorio), asi el hueco se
+            ve como antes. */}
         <h3 className="type-display text-[clamp(1.6rem,3.5vw,2.5rem)]">
-          {titulo}
-          <span className="ml-3 align-middle text-sm font-normal text-tinta-suave">
+          {titulo}{" "}
+          <span className="ml-1.5 align-middle text-sm font-normal text-tinta-suave">
             {items.length}
           </span>
         </h3>
-        <div className="hidden gap-2 md:flex">
+        <div className={desborda ? "hidden gap-2 md:flex" : "hidden"}>
           <button
             onClick={() => correr(-1)}
             aria-label={`Ver ${titulo} anteriores`}
@@ -194,6 +247,77 @@ function Estante({
   );
 }
 
+const cuantos = (n: number) => `${n} ${n === 1 ? "producto" : "productos"}`;
+
+/** Con un filtro prendido, una grilla con lo que da y nada mas.
+ *
+ *  Grilla y no estante: el estante esconde lo que no entra y pide correrlo, y
+ *  quien filtra quiere ver de un vistazo todo lo que quedo. Arriba dice que se
+ *  filtro y cuanto dio, y al lado esta la salida, que tiene que estar a la
+ *  vista y no solo en el chip "Todo" de mas arriba. */
+function Grilla({
+  titulo,
+  items,
+  siguiendoStock,
+  onAbrir,
+  onQuitar,
+}: {
+  titulo: string;
+  items: Producto[];
+  siguiendoStock: boolean;
+  onAbrir: (p: Producto) => void;
+  onQuitar: () => void;
+}) {
+  return (
+    <section>
+      {/* En el celular el boton va abajo del titulo: al lado no entra, y el
+          titulo se partia en dos renglones ("Con / descuento") para hacerle
+          lugar. Va siempre abajo y no solo cuando no entra, asi no salta de
+          lugar al pasar de un filtro a otro. */}
+      <div className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <h3 className="type-display text-[clamp(1.6rem,3.5vw,2.5rem)]">
+          {/* El espacio escrito, igual que en el titulo del estante. Y
+              `tracking-normal` porque aca va una frase y no un numero solo:
+              con el tracking negativo del titular, "12 productos" se leia
+              pegado. */}
+          {titulo}{" "}
+          <span className="ml-1.5 whitespace-nowrap align-middle text-sm font-normal tracking-normal text-tinta-suave">
+            {cuantos(items.length)}
+          </span>
+        </h3>
+        <button
+          type="button"
+          onClick={onQuitar}
+          className="flex shrink-0 items-center gap-1.5 rounded-pill border border-linea px-4 py-2 text-xs font-medium transition-colors hover:border-tinta"
+        >
+          <X size={12} weight="bold" />
+          Quitar filtro
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {items.map((p) => (
+          <Pieza
+            key={p.sku}
+            producto={p}
+            siguiendoStock={siguiendoStock}
+            onAbrir={() => onAbrir(p)}
+            enGrilla
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** EL MAS VENDIDO VA PRIMERO, EN TODOS LADOS. Es lo unico que el cliente pidio
+ *  como imprescindible: tiene un estante propio arriba de todo, encabeza la
+ *  fila de su rubro y sale antes que el resto en la grilla de cualquier filtro.
+ *  `sort` es estable, asi que lo demas queda en el orden en que lo manda el
+ *  ERP. */
+const primeroElMasVendido = (a: Producto, b: Producto) =>
+  Number(b.featured === true) - Number(a.featured === true);
+
 /** El orden de los estantes lo decide el ERP, no esta lista.
  *
  *  Antes estaba escrito aca, asi que cambiar en que orden se muestran los
@@ -205,6 +329,7 @@ function Estante({
 
 export function Tienda({ catalogo }: { catalogo: Catalogo }) {
   const [abierto, setAbierto] = useState<Producto | null>(null);
+  const [filtro, setFiltro] = useState<string | null>(null);
 
   const porRubro = new Map<string, Producto[]>();
   for (const p of catalogo.productos) {
@@ -217,11 +342,28 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
     const c = p.category;
     if (c && !ordenDe.has(c.name)) ordenDe.set(c.name, c.sort ?? 0);
   }
-  const rubros = [...porRubro.entries()].sort(([a], [b]) => {
-    const oa = ordenDe.get(a) ?? Number.MAX_SAFE_INTEGER;
-    const ob = ordenDe.get(b) ?? Number.MAX_SAFE_INTEGER;
-    return oa !== ob ? oa - ob : a.localeCompare(b, "es");
-  });
+  const rubros = [...porRubro.entries()]
+    .sort(([a], [b]) => {
+      const oa = ordenDe.get(a) ?? Number.MAX_SAFE_INTEGER;
+      const ob = ordenDe.get(b) ?? Number.MAX_SAFE_INTEGER;
+      return oa !== ob ? oa - ob : a.localeCompare(b, "es");
+    })
+    .map(([rubro, items]) => [rubro, [...items].sort(primeroElMasVendido)] as const);
+
+  // Todo en el orden de los estantes: de aca salen el estante "Mas vendidos" y
+  // la grilla del filtro, para que ninguno de los dos invente un orden propio.
+  const enOrden = rubros.flatMap(([, items]) => items);
+  const masVendidos = enOrden.filter((p) => p.featured === true);
+
+  const { generales, rasgos } = filtrosDe(catalogo);
+  const activo = [...generales, ...rasgos].find((f) => f.clave === filtro) ?? null;
+  const resultado = activo ? enOrden.filter(activo.cumple).sort(primeroElMasVendido) : [];
+
+  // Tocar el chip que ya esta prendido lo apaga: es lo que promete un boton con
+  // `aria-pressed`. "Todo" y "Quitar filtro" llegan como null.
+  function elegir(clave: string | null) {
+    setFiltro((previo) => (clave === previo ? null : clave));
+  }
 
   return (
     <section id="tienda" className="scroll-mt-24 px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
@@ -254,15 +396,64 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
             </p>
           </div>
         ) : (
-          rubros.map(([rubro, items]) => (
-            <Estante
-              key={rubro}
-              titulo={rubro}
-              items={items}
-              siguiendoStock={catalogo.siguiendoStock}
-              onAbrir={setAbierto}
-            />
-          ))
+          <>
+            {/* Sin nada que filtrar no hay barra: un "Todo" solo no elige
+                nada. Es lo que ve hoy produccion, que todavia no manda ni
+                `trait` ni `featured` ni descuentos. */}
+            {generales.length + rasgos.length > 0 && (
+              <FiltrosTienda
+                generales={generales}
+                rasgos={rasgos}
+                etiquetaRasgo={catalogo.etiquetaRasgo}
+                activo={activo?.clave ?? null}
+                onElegir={elegir}
+              />
+            )}
+
+            {/* Para el lector de pantalla: el filtro cambia todo lo que hay
+                debajo del chip y sin esto no se entera de cuanto quedo. Esta
+                siempre montado porque un aviso que aparece ya con el texto
+                puesto muchos lectores no lo leen. */}
+            <p aria-live="polite" className="sr-only">
+              {activo ? `${activo.nombre}: ${cuantos(resultado.length)}` : ""}
+            </p>
+
+            {activo && (
+              <Grilla
+                titulo={activo.nombre}
+                items={resultado}
+                siguiendoStock={catalogo.siguiendoStock}
+                onAbrir={setAbierto}
+                onQuitar={() => elegir(null)}
+              />
+            )}
+
+            {/* CON UN FILTRO LOS ESTANTES SE ESCONDEN, NO SE DESMONTAN. Cada
+                uno entra con el revelado al scroll (`.reveal`): desmontados,
+                al volver a "Todo" se montarian de nuevo invisibles y cada fila
+                tardaria en aparecer lo que dura el revelado. Escondidos vuelven
+                en el acto, y sus videos se pausan solos mientras no se ven
+                (ver `VideoProducto`). */}
+            <div hidden={activo !== null}>
+              {masVendidos.length > 0 && (
+                <Estante
+                  titulo="Más vendidos"
+                  items={masVendidos}
+                  siguiendoStock={catalogo.siguiendoStock}
+                  onAbrir={setAbierto}
+                />
+              )}
+              {rubros.map(([rubro, items]) => (
+                <Estante
+                  key={rubro}
+                  titulo={rubro}
+                  items={items}
+                  siguiendoStock={catalogo.siguiendoStock}
+                  onAbrir={setAbierto}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
 

@@ -328,6 +328,14 @@ export function FichaProducto({
             <div className="flex flex-col gap-4 p-6 sm:p-8">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
+                  {/* Tambien aca y no solo en la tarjeta: la ficha se abre
+                      desde cualquier estante o filtro, y es lo que el cliente
+                      quiere que se lea primero. */}
+                  {producto.featured === true && (
+                    <span className="rounded-pill border border-tinta bg-tinta px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-papel">
+                      Más vendido
+                    </span>
+                  )}
                   {producto.category && (
                     <span className="rounded-pill border border-linea px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-tinta-suave">
                       {producto.category.name}
