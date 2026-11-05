@@ -40,6 +40,15 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [{ key: "Content-Language", value: "es-UY" }],
       },
+      // Las fotos de las guias llevan un hash del contenido en el nombre
+      // (`scripts/importar-guia.mjs`): si la foto cambia, cambia el nombre. Por
+      // eso se pueden guardar para siempre, y las dos guias las comparten.
+      {
+        source: "/guias/:archivo*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
     ];
   },
 };

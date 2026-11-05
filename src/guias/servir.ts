@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { GUIAS, type IdGuia } from "@/lib/guias";
+import { ID_SITIO, ID_TIENDA } from "@/lib/schema";
 import { SE_INDEXA, SITE } from "@/lib/site";
 
 /**
@@ -129,10 +130,9 @@ function jsonLd(id: IdGuia, html: string, url: string, imagen: string, fecha: st
   const nombres: Record<string, string> = guia.recorridos;
   // Los nodos de la tienda y del sitio los declara el JSON-LD de la home; aca
   // solo se los nombra por su @id, para que el buscador lea una sola tienda y
-  // no dos que se llaman igual. Son `ID_TIENDA` e `ID_SITIO` de `schema.ts` en
-  // la rama de SEO, que esta todavia no tiene: por eso van escritos aca.
-  const tienda = `${SITE.url}/#tienda`;
-  const sitio = `${SITE.url}/#sitio`;
+  // no dos que se llaman igual.
+  const tienda = ID_TIENDA;
+  const sitio = ID_SITIO;
   const howtos = [...pasosDe(id, html)].map(([clave, pasos]) => ({
     "@type": "HowTo",
     "@id": `${url}#${clave || "pasos"}`,

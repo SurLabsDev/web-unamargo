@@ -1,4 +1,4 @@
-import { PICKUPS, ZONAS_ENVIO } from "@/lib/zonas";
+import { ENVIO_GRATIS_TEXTO, PICKUPS, ZONAS_ENVIO } from "@/lib/zonas";
 import { FORMAS_PAGO, enumerar } from "@/lib/pedido";
 
 /**
@@ -48,7 +48,7 @@ const pagos = enumerar(
 export const FAQ: Pregunta[] = [
   {
     pregunta: "¿Hacen envíos en Montevideo?",
-    respuesta: `Sí. Un Amargo entrega en todo Montevideo por cadetería, con precio por zona: ${precios}. El pedido se arma en la tienda de esta misma página: en el carrito se elige el barrio y el envío se suma solo al total. El día y la hora se coordinan al confirmarlo, en el chat de WhatsApp que se abre desde el carrito.`,
+    respuesta: `Sí. Un Amargo entrega en todo Montevideo por cadetería, con precio por zona: ${precios}. En compras desde ${ENVIO_GRATIS_TEXTO} el envío en Montevideo es gratis. El pedido se arma en la tienda de esta misma página: en el carrito se elige el barrio y el envío se suma solo al total. El día y la hora se coordinan al confirmarlo, en el chat de WhatsApp que se abre desde el carrito.`,
   },
   {
     pregunta: "¿Se puede retirar sin costo?",
