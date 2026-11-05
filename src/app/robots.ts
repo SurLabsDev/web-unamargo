@@ -17,13 +17,24 @@ export default function robots(): MetadataRoute.Robots {
       // leer la pagina no la puede citar, y para un negocio que vive de que lo
       // recomienden, aparecer cuando alguien pregunta "donde compro un mate en
       // Montevideo" vale mas que la visita que cuesta.
+      //
+      // Van los de busqueda y los que leen la pagina cuando alguien le
+      // pregunta al asistente (`*-SearchBot`, `*-User`), no solo los de
+      // entrenamiento: son justamente los que citan.
+      //
+      // OJO al agregar reglas: un rastreador que encuentra un grupo con su
+      // nombre usa SOLO ese grupo e ignora el de `*`. Un `disallow` que se
+      // sume arriba no les llega a estos; hay que repetirlo aca.
       {
         userAgent: [
           "GPTBot",
           "ChatGPT-User",
           "OAI-SearchBot",
           "PerplexityBot",
+          "Perplexity-User",
           "ClaudeBot",
+          "Claude-SearchBot",
+          "Claude-User",
           "anthropic-ai",
           "Google-Extended",
         ],

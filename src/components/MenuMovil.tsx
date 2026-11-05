@@ -123,7 +123,14 @@ export function MenuMovil({
                   onClick={(e) => ir(e, n.href)}
                   className="group flex items-baseline gap-4 py-2"
                 >
-                  <span className="w-6 shrink-0 text-xs font-medium tabular-nums text-papel/40">
+                  {/* El numero es adorno: escondido del lector, el enlace se
+                      llama "Tienda" y no "01Tienda", que es lo que se dice para
+                      tocarlo por voz. /50 y no /40 por contraste: 5.3:1 contra
+                      3.8:1 sobre el negro (ver la nota de Envios.tsx). */}
+                  <span
+                    aria-hidden
+                    className="w-6 shrink-0 text-xs font-medium tabular-nums text-papel/50"
+                  >
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   {/* 10.5vw y no mas: "Personalizados" es una palabra de

@@ -10,6 +10,9 @@ import { SITE } from "@/lib/site";
  * cosas que casualmente comparten dominio.
  *
  * Lo que aporta cada nodo:
+ *  - `WebSite`: el nombre del sitio. Es de donde Google saca el "Un Amargo"
+ *    que muestra arriba de cada resultado; sin este nodo lo adivina, y puede
+ *    elegir el dominio o un titulo.
  *  - `Store`: quien es el negocio, donde y como se lo contacta.
  *  - `ItemList` + `Product`: los 34 productos con precio, moneda y si hay
  *    stock. Es lo unico que puede hacer que un buscador muestre el precio
@@ -28,6 +31,14 @@ import { SITE } from "@/lib/site";
  * `potentialAction` ni `ContactPoint` en el grafo) y la seccion conserva su
  * ancla `#contacto`, asi que no quedo nada apuntando al vacio.
  */
+
+/** Los `@id` de la tienda y del sitio, exportados para que el JSON-LD de las
+ *  otras paginas (las guias) los REFERENCIE en vez de volver a declarar el
+ *  negocio: dos nodos `Store` con datos apenas distintos son, para un
+ *  buscador, dos negocios. Con la referencia, una guia dice "la publica esta
+ *  tienda" y la tienda queda descrita en un solo lugar. */
+export const ID_TIENDA = `${SITE.url}/#tienda`;
+export const ID_SITIO = `${SITE.url}/#sitio`;
 
 /** Un producto del catalogo, como lo entiende un buscador. */
 function nodoProducto(p: Producto) {
@@ -52,7 +63,7 @@ function nodoProducto(p: Producto) {
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
       url: SITE.url,
-      seller: { "@id": `${SITE.url}/#tienda` },
+      seller: { "@id": ID_TIENDA },
     },
   };
 }
@@ -66,11 +77,25 @@ export function construirSchema(catalogo: Catalogo, faq: { pregunta: string; res
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "WebSite",
+        "@id": ID_SITIO,
+        url: SITE.url,
+        name: SITE.nombre,
+        inLanguage: "es-UY",
+        publisher: { "@id": ID_TIENDA },
+      },
+      {
         "@type": "Store",
-        "@id": `${SITE.url}/#tienda`,
+        "@id": ID_TIENDA,
         name: SITE.nombre,
         description: SITE.descripcion,
         url: SITE.url,
+        // El favicon y no `public/marca/logo.png`: ese es blanco sobre
+        // transparente, y Google pinta el logo sobre fondo blanco, donde
+        // desaparece. El favicon es el isotipo negro sobre un cuadrado blanco,
+        // y Google acepta un SVG ahi igual que un PNG. Si el favicon cambia de
+        // nombre o de formato, hay que cambiar esta ruta.
+        logo: `${SITE.url}/icon.svg`,
         // ACA NO VA `telephone`, y son dos razones distintas.
         //
         // 1. Todo este trabajo saco el numero de las superficies visibles
@@ -128,6 +153,8 @@ export function construirSchema(catalogo: Catalogo, faq: { pregunta: string; res
       {
         "@type": "FAQPage",
         "@id": `${SITE.url}/#preguntas`,
+        inLanguage: "es-UY",
+        isPartOf: { "@id": ID_SITIO },
         mainEntity: faq.map((f) => ({
           "@type": "Question",
           name: f.pregunta,

@@ -63,6 +63,13 @@ const ENTRADA = 55;
 const PASO = 62;
 const SALIDA = 45;
 
+/* El texto tenue de esta seccion no baja de `text-papel/50`. Sobre el negro de
+ * la marca, /50 da 5.3:1 y pasa el minimo de 4.5:1 que pide la letra chica; /45
+ * queda en el limite y Lighthouse ya la marca, /40 da 3.8:1 y /35, 3.1:1. Eran
+ * esos tres valores en la etiqueta "Domicilio", el retiro apagado, el "para
+ * vos", el "Segui bajando" y las notas: justo lo que aclara que cuesta y que
+ * no. */
+
 /** Un grupo de la barra de pasos: las pildoras de retiro o las de domicilio.
  *
  *  CON UNA SOLA ZONA NO DIBUJA BARRA. Una barra de progreso de un paso no
@@ -120,7 +127,7 @@ function GrupoPasos({
             ? verde
               ? "border-verde-vivo text-verde-vivo"
               : "border-papel text-papel"
-            : "border-papel/20 text-papel/35 hover:border-papel/45 hover:text-papel/70"
+            : "border-papel/20 text-papel/50 hover:border-papel/45 hover:text-papel/70"
         }`}
       >
         {etiqueta}
@@ -153,7 +160,7 @@ function GrupoPasos({
           />
         );
       })}
-      <span className={`ml-1 ${rotulo} text-papel/35`}>{etiqueta}</span>
+      <span className={`ml-1 ${rotulo} text-papel/50`}>{etiqueta}</span>
     </div>
   );
 }
@@ -208,7 +215,7 @@ export function Envios() {
       {/* Encabezado, antes de que empiece la pista */}
       <div className="mx-auto max-w-[1400px] px-5 pt-24 sm:px-8 lg:px-12 lg:pt-28">
         <div className="reveal max-w-[36ch]">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-papel/45">
+          <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-papel/50">
             Logística
           </p>
           <h2 className="type-display text-[clamp(2.5rem,6vw,4.5rem)]">
@@ -315,7 +322,7 @@ export function Envios() {
                 >
                   {zona.precio ?? "Sin costo"}
                 </span>
-                <span className="text-xs text-papel/45">
+                <span className="text-xs text-papel/50">
                   {zona.precio ? "UYU" : "para vos"}
                 </span>
               </p>
@@ -343,7 +350,7 @@ export function Envios() {
               )}
 
               {notaFaltantes && (
-                <p className="mt-4 hidden max-w-[52ch] text-xs leading-relaxed text-papel/40 lg:block">
+                <p className="mt-4 hidden max-w-[52ch] text-xs leading-relaxed text-papel/50 lg:block">
                   {notaFaltantes}
                 </p>
               )}
@@ -375,7 +382,7 @@ export function Envios() {
                 etiqueta={`Montevideo con ${zona.titulo} resaltado`}
               />
               {i === 0 && (
-                <p className="mt-4 flex items-center justify-center gap-2 text-xs text-papel/35">
+                <p className="mt-4 flex items-center justify-center gap-2 text-xs text-papel/50">
                   <ArrowDown size={13} />
                   Seguí bajando
                 </p>
@@ -419,7 +426,7 @@ export function Envios() {
         {/* La misma nota que en escritorio, con los barrios de todas las
             zonas: aca el listado no se recorre zona por zona, se ve entero. */}
         {NOTA_TODAS && (
-          <p className="mt-2 text-xs leading-relaxed text-papel/40">
+          <p className="mt-2 text-xs leading-relaxed text-papel/50">
             {NOTA_TODAS}
           </p>
         )}
@@ -429,7 +436,7 @@ export function Envios() {
         {/* Esta nota estaba para aclarar el pickup de Ciudad de la Costa. Ese
             punto ya no existe y no hay dato nuevo sobre esa zona, asi que queda
             solo lo que si esta confirmado. */}
-        <p className="max-w-[62ch] text-xs leading-relaxed text-papel/40">
+        <p className="max-w-[62ch] text-xs leading-relaxed text-papel/50">
           Fuera de Montevideo enviamos por Correo Uruguayo o encomienda: el
           costo varía según destino y peso.
         </p>

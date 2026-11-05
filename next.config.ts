@@ -25,6 +25,23 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  /* Este header es para Bing. Google decide el idioma por el texto y el `lang`
+   * del <html>; Bing ademas lee `Content-Language`, y en un .com, que no dice
+   * de que pais es, es la señal mas directa de que la tienda es para Uruguay.
+   * Bing pesa mas de lo que parece: es el indice de Copilot y una de las
+   * fuentes de la busqueda de ChatGPT.
+   *
+   * Va como header y no como <meta http-equiv>: esa meta es obsoleta en HTML y
+   * las metadatas de Next no la generan; la documentacion manda a los headers. */
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [{ key: "Content-Language", value: "es-UY" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
