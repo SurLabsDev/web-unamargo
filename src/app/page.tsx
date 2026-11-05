@@ -17,6 +17,7 @@ import { Preguntas } from "@/components/Preguntas";
 import { Contacto } from "@/components/Contacto";
 import { Footer } from "@/components/Footer";
 import { PopupAviso } from "@/components/PopupAviso";
+import { Playlist } from "@/components/Playlist";
 
 /** El catalogo del ERP se revalida cada 5 minutos. Su propio endpoint ya
  *  cachea 60s en CDN con stale-while-revalidate 300, asi que esto no agrega
@@ -52,6 +53,7 @@ export default async function Home() {
       <Footer />
       <CartDrawer />
       <PopupAviso popup={popup} />
+      <Playlist />
     </CartProvider>
   );
 }

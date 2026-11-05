@@ -31,13 +31,25 @@ export function Empresas() {
           </a>
         </div>
 
-        <div className="reveal relative aspect-[4/3] overflow-hidden rounded-foto bg-humo lg:col-span-6 lg:col-start-7" style={{ "--d": "120ms" } as React.CSSProperties}>
+        {/* La foto es 4:5 vertical (1120x1400) y vivia en un marco 4:3 apaisado
+            con `object-cover`. Para llenarlo, el navegador la agrandaba hasta
+            el ancho y le cortaba el 40% de la altura: por eso el cliente la veia
+            cuadrada, con zoom y sin entrar entera. Ahora el marco es la foto:
+            `width` y `height` le dan su proporcion y `h-auto` la respeta, asi
+            que se ve entera en cualquier ancho.
+
+            Debajo de lg va con tope de ancho porque ahi la columna es toda la
+            pantalla: a lo ancho de una tablet, una 4:5 mide 880px de alto a
+            768 y 1200 a 1023, mas alta que la pantalla apaisada. Con el tope
+            queda en 640. Desde lg manda la columna, como en Personalizados. */}
+        <div className="reveal lg:col-span-6 lg:col-start-7" style={{ "--d": "120ms" } as React.CSSProperties}>
           <Image
             src="/secciones/empresas.jpg"
             alt="Pedidos por cantidad para empresas"
-            fill
-            sizes="(max-width: 1024px) 100vw, 48vw"
-            className="object-cover"
+            width={1120}
+            height={1400}
+            sizes="(min-width: 1024px) 45vw, (min-width: 640px) 512px, 100vw"
+            className="h-auto w-full max-w-lg rounded-foto bg-humo lg:max-w-none"
           />
         </div>
       </div>
