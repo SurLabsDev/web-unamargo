@@ -1,4 +1,5 @@
 import { EnvelopeSimple } from "@phosphor-icons/react/dist/ssr";
+import { GUIAS, ORDEN_GUIAS } from "@/lib/guias";
 import { SITE } from "@/lib/site";
 import { Instagram, Spotify, Pinterest } from "./Sociales";
 import { Logo } from "./Logo";
@@ -13,6 +14,16 @@ export function Footer() {
             <p className="type-body mt-5 max-w-[34ch] text-papel/55">
               Mates, bombillas y accesorios en {SITE.ciudad}, {SITE.pais}.
             </p>
+            {/* Las guias tambien desde el pie: es donde se busca lo que no es
+                la tienda, y un enlace en cada pagina le dice al buscador que
+                importan. Mismo tono que el mail, que pasa el contraste. */}
+            <nav aria-label="Guías" className="mt-6 flex flex-col items-start gap-2 text-sm">
+              {ORDEN_GUIAS.map((id) => (
+                <a key={id} href={GUIAS[id].ruta} className="text-papel/60 transition-colors hover:text-papel">
+                  {GUIAS[id].nombre}
+                </a>
+              ))}
+            </nav>
           </div>
 
           {/* Aca habia un enlace a WhatsApp con el numero. El WhatsApp quedo
@@ -39,7 +50,10 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-3 border-t border-papel/15 pt-7 text-sm text-papel/45 sm:flex-row sm:items-center sm:justify-between">
+        {/* papel/55 y no /45: sobre el negro, el 45% pinta #787878, que da
+            4.48:1 y no llega al 4.5:1 que pide AA para texto de este tamaño.
+            El 55% pinta #919191: 6.28:1. */}
+        <div className="mt-14 flex flex-col gap-3 border-t border-papel/15 pt-7 text-sm text-papel/55 sm:flex-row sm:items-center sm:justify-between">
           <p>{new Date().getFullYear()} {SITE.nombre}</p>
           <a href="https://www.surlabs.tech" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-papel">
             Sitio por Surlabs

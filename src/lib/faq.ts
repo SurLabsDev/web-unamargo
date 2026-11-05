@@ -74,4 +74,19 @@ export const FAQ: Pregunta[] = [
     respuesta:
       "El catálogo tiene mates, bombillas, combos de mate con posamate y accesorios como materas, yerberos, bases y secadores. Todo se ve con precio en la tienda de esta misma página.",
   },
+  // Las dos que siguen resumen las guias interactivas del cliente, con sus
+  // tiempos y sus temperaturas: no se inventa ninguno. Son texto suelto y sin
+  // enlace porque tambien van al `FAQPage`; las guias estan a la vista en la
+  // seccion de arriba. Si el cliente cambia un paso, hay que repasarlas: el
+  // importador lo recuerda.
+  {
+    pregunta: "¿Cómo curo un mate nuevo?",
+    respuesta:
+      "Depende del mate. El de calabaza se llena con yerba usada de otro mate y se mantiene húmeda; a las 24 horas se saca la yerba, se raspa el interior para quitar las impurezas y se seca bien con servilletas. El de algarrobo primero se unta por dentro con manteca o grasa, que se deja actuar 6 horas; después se llena con yerba usada apenas húmeda, sin llegar al borde, se deja reposar de 12 a 24 horas y se limpia con un paño húmedo. Los dos curados están paso a paso en la guía de esta web.",
+  },
+  {
+    pregunta: "¿Cómo se ceba un mate amargo?",
+    respuesta:
+      "Se llena el mate con yerba hasta tres cuartas partes, se tapa la boca con la mano, se agita y se deja de costado para que se forme la montañita. El hueco que queda se moja con un poco de agua fría y se deja reposar unos minutos. Después se clava la bombilla, tapada con el dedo, en la parte húmeda y hasta el fondo, y no se mueve más. Se ceba con agua a 70 u 80 °C, nunca hervida, despacio y siempre en el mismo lugar, junto a la bombilla.",
+  },
 ];

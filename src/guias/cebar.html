@@ -1,0 +1,1102 @@
+<!doctype html>
+<!--guia
+  Guia "cebar", servida en /como-cebar-un-mate. La genera scripts/importar-guia.mjs
+  con el HTML que manda el cliente: no se edita a mano, se vuelve a importar.
+  Origen: artifact-47693bef-1793489143-2c11.html
+  Actualizada: 2026-11-05
+-->
+<html lang="es-UY">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--guia:head-->
+<style>
+    :root {
+      --ink: #0a0a0a;
+      --ink-soft: #555;
+      --muted: #888;
+      --accent: #a3a3a3;
+      --bg: #fff;
+      --btn-bg: #0a0a0a;
+      --btn-ink: #fff;
+      --ease: cubic-bezier(.22, .61, .36, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      transition: background-color 900ms var(--ease), color 600ms var(--ease);
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+
+    /* El último paso pasa a negro, como las secciones oscuras de la tienda */
+    body.is-dark {
+      --ink: #fff;
+      --ink-soft: rgba(255, 255, 255, .62);
+      --muted: rgba(255, 255, 255, .45);
+      --accent: rgba(255, 255, 255, .42);
+      --btn-bg: #fff;
+      --btn-ink: #0a0a0a;
+    }
+
+    /* ── 3D STAGE ─────────────────────────────────────────── */
+    #stage {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100vh; height: 100lvh;
+      display: block;
+      z-index: 0;
+    }
+    .fallback {
+      position: fixed; right: 6vw; top: 50%;
+      transform: translateY(-50%);
+      width: min(38vw, 420px);
+      border-radius: 24px;
+      display: none;
+      z-index: 0;
+    }
+    .no-webgl .fallback { display: block; }
+
+    /* ── CHROME ───────────────────────────────────────────── */
+    .top {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 10;
+      /* blanco + difference: se ve negro sobre fondo claro y blanco sobre el termo o el paso final */
+      color: #fff;
+      mix-blend-mode: difference;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px clamp(16px, 4vw, 48px);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; letter-spacing: -.02em; }
+    .top svg { height: 26px; width: auto; display: block; }
+    .top svg path { fill: currentColor; }
+    .top-link { font-size: 14px; transition: opacity 180ms; }
+    .top-link:hover { opacity: .55; }
+
+    .dots {
+      position: fixed; right: clamp(16px, 3vw, 40px); top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .dots button {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: currentColor; opacity: .22;
+      transition: opacity 300ms, transform 300ms var(--ease);
+    }
+    .dots button:hover { opacity: .5; }
+    .dots button[aria-current="step"] { opacity: 1; transform: scale(1.25); }
+
+    .bottom {
+      position: fixed; left: 0; right: 0; bottom: 0;
+      z-index: 10;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 22px clamp(16px, 4vw, 48px);
+      font-size: 13px;
+    }
+    .bottom button, .bottom a { display: inline-flex; gap: 8px; align-items: center; transition: opacity 300ms; }
+    .bottom button:hover, .bottom a:hover { opacity: .55; }
+    .bottom .hidden { opacity: 0; pointer-events: none; }
+    .bottom .arrow { display: inline-block; animation: nudge 1.8s var(--ease) infinite; }
+    @keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+    /* ── COPY ─────────────────────────────────────────────── */
+    .copy {
+      position: fixed;
+      left: clamp(16px, 7vw, 120px);
+      top: 50%;
+      transform: translateY(-50%);
+      width: min(560px, 44vw);
+      z-index: 5;
+      pointer-events: none;
+    }
+    .step-copy {
+      position: absolute; left: 0; top: 50%;
+      width: 100%;
+      transform: translateY(-50%);
+      opacity: 0;
+      filter: blur(10px);
+      transition: opacity 600ms var(--ease), filter 600ms var(--ease), transform 600ms var(--ease);
+    }
+    .step-copy.before { transform: translateY(calc(-50% + 18px)); }
+    .step-copy.after  { transform: translateY(calc(-50% - 18px)); }
+    .step-copy.active {
+      opacity: 1; filter: blur(0);
+      transform: translateY(-50%);
+      pointer-events: auto;
+      transition-delay: 120ms;
+    }
+    /* celular: si el texto cambia de arriba a abajo (o al revés), aparece recién cuando la escena ya se corrió */
+    @media (max-width: 760px) {
+      body.pos-swap .step-copy.active { transition-delay: 520ms; }
+    }
+    .eyebrow {
+      font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+    .step-copy h1, .step-copy h2 {
+      font-size: clamp(44px, 5.8vw, 86px);
+      font-weight: 700;
+      line-height: .86;
+      letter-spacing: -.045em;
+    }
+    .step-copy h1 em, .step-copy h2 em {
+      font-style: normal;
+      font-weight: 400;
+      color: var(--ink);
+      display: block;
+      transition: color 600ms var(--ease);
+    }
+    .step-copy p {
+      margin-top: 24px;
+      font-size: 17px; line-height: 1.6;
+      color: var(--ink-soft);
+      max-width: 340px;
+    }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 32px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 22px;
+      padding: 14px 22px;
+      border-radius: 100px;
+      background: var(--btn-bg); color: var(--btn-ink);
+      font-size: 14px; font-weight: 500;
+      transition: transform 250ms var(--ease), background-color 600ms, color 600ms;
+    }
+    .pill:hover { transform: translateY(-2px); }
+    .inline-link { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; pointer-events: auto; }
+    .pill.ghost {
+      background: transparent; color: var(--ink);
+      box-shadow: inset 0 0 0 1.5px currentColor;
+    }
+
+    /* ── SCROLL SNAP SECTIONS ─────────────────────────────── */
+    .steps { position: relative; z-index: 1; pointer-events: none; }
+    .steps section {
+      height: 100vh; height: 100svh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+
+    /* ── MOBILE: mate arriba, texto abajo ─────────────────── */
+    @media (max-width: 760px) {
+      /* una sola escena a pantalla completa: el mate, su sombra y el texto comparten el mismo fondo.
+         El texto va abajo o arriba según el paso, y la escena se corre hacia la zona libre */
+      .copy { top: 0; bottom: 0; left: 16px; right: 16px; width: auto; transform: none; }
+      .step-copy { top: auto; bottom: 64px; transform: none; }
+      .step-copy[data-pos="top"] { top: 78px; bottom: auto; }
+      .step-copy.before { transform: translateY(14px); }
+      .step-copy.after  { transform: translateY(-14px); }
+      .step-copy.active { transform: none; }
+      .step-copy h1, .step-copy h2 { font-size: clamp(38px, 11.4vw, 54px); }
+      .step-copy p { margin-top: 14px; font-size: 16px; line-height: 1.5; }
+      .actions { margin-top: 20px; }
+      .pill { padding: 14px 22px; font-size: 15px; }
+      .eyebrow { margin-bottom: 12px; font-size: 12px; }
+      .dots { right: 12px; gap: 10px; }
+      .bottom { padding-block: 16px; }
+      .fallback { left: 50%; right: auto; top: 36%; transform: translate(-50%, -50%); width: 52vw; }
+    }
+    @media (max-width: 760px) and (max-height: 700px) {
+      /* teléfonos bajos (iPhone SE y similares): texto un poco más compacto */
+      .step-copy { bottom: 56px; }
+      .step-copy[data-pos="top"] { top: 70px; }
+      .step-copy p { font-size: 14px; margin-top: 10px; }
+      .step-copy h1, .step-copy h2 { font-size: clamp(32px, 9.6vw, 42px); }
+      .actions { margin-top: 14px; }
+      .eyebrow { margin-bottom: 8px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .step-copy { filter: none; transition-duration: 200ms; }
+      .bottom .arrow { animation: none; }
+    }
+  </style>
+</head>
+<body>
+<canvas id="stage" aria-hidden="true"></canvas>
+<img class="fallback" src="/guias/mate-calabaza-324a7991.jpg" alt="Mate de calabaza" />
+
+<header class="top">
+  <a aria-label="Un Amargo, ir al inicio" href="/" class="brand">
+    <svg viewBox="0 0 8256 7030" xmlns="http://www.w3.org/2000/svg">
+      <path d="M231 568.104C722.281 434.795 779.775 708.583 1260.46 1308.71C1549.24 1416.81 1649.63 1531.52 1625.83 1913.55C1851.2 2129.57 1856.88 2247.24 1949.23 2543.08C2001.47 2690.95 2010 2793.07 2035.630 2924.46C2035.3 2938.06 2134.65 3773.31 2134.71 3773.88V4623.29C2134.71 4893.33 2191.14 5092.84 2303.99 5221.81C2420.87 5346.76 2584.11 5409.23 2793.69 5409.23C2938.79 5409.23 3067.76 5379 3180.61 5318.54C3293.47 5254.06 3382.14 5157.33 3446.62 5028.35C3511.11 4895.35 3543.35 4730.1 3543.35 4532.61C3543.35 3264.32 3987.14 3015.38 4881.9 3015.38C4232.85 3579.44 4118.53 5318.54 5087.97 6177.03H3591.72V5795.92C3502.75 5901.18 3395.95 5987.91 3271.3 6056.12C3061.72 6168.97 2831.98 6225.39 2582.09 6225.39C2312.05 6225.39 2070.23 6173 1856.61 6068.21C1647.03 5963.42 1483.8 5804.21 1366.92 5590.6C1250.03 5372.95 1191.59 5096.87 1191.59 4762.34L1314 3234.24C1333.59 2900.93 1176.55 2409.5 1041.08 2093.77C762.856 1968.86 714.738 1845.23 784.329 1545.71L231 568.104Z"/>
+      <path d="M7742.17 3362.67C9380.18 7296.92 3294.86 7056.75 4987.41 3362.67C6033.4 3619.39 6644.56 3620.22 7742.17 3362.67ZM7397.48 2832C7385.45 2984.99 7407.52 3053.74 7532.24 3127.07C6621.47 3327.26 6110.83 3327.41 5200.06 3127.07C5347.36 3048.85 5384.17 2981.89 5389.65 2832C6139.29 3002.67 6587.05 3001.46 7397.48 2832Z"/>
+    </svg>
+    <span aria-hidden="true">Un Amargo</span>
+  </a>
+  <a href="https://www.instagram.com/unamargo_/" target="_blank" rel="noopener" class="top-link">Instagram</a>
+</header>
+
+<nav class="dots" id="dots" aria-label="Pasos"></nav>
+
+<div class="copy" id="copy">
+  <div class="step-copy" data-pos="bottom">
+    <p class="eyebrow">El ritual</p>
+    <h1>Cómo cebar <em>un buen amargo.</em></h1>
+    <p>Un ritual, paso a paso.</p>
+    <div class="actions">
+      <button class="pill" data-go="1">Empezar <span aria-hidden="true">↗</span></button>
+    </div>
+  </div>
+  <div class="step-copy" data-pos="bottom">
+    <p class="eyebrow">Paso 1 de 5</p>
+    <h2>Primero, <em>la yerba.</em></h2>
+    <p>Llená el mate hasta tres cuartas partes.</p>
+  </div>
+  <div class="step-copy" data-pos="top">
+    <p class="eyebrow">Paso 2 de 5</p>
+    <h2>Hacé la <em>montañita.</em></h2>
+    <p>Tapá la boca con la mano, agitá y dejá el mate de costado: la yerba se junta de un lado y queda un hueco del otro.</p>
+  </div>
+  <div class="step-copy" data-pos="bottom">
+    <p class="eyebrow">Paso 3 de 5</p>
+    <h2>Un poco de <em>agua fría.</em></h2>
+    <p>Con el mate todavía de costado, mojá el hueco con un poco de agua fría o a temperatura ambiente y dejá reposar unos minutos.</p>
+  </div>
+  <div class="step-copy" data-pos="bottom">
+    <p class="eyebrow">Paso 4 de 5</p>
+    <h2>Ahora, <em>la bombilla.</em></h2>
+    <p>Tapala con el dedo y clavala en la parte húmeda, hasta el fondo. Después, no la muevas más.</p>
+  </div>
+  <div class="step-copy" data-pos="bottom">
+    <p class="eyebrow">Paso 5 de 5</p>
+    <h2>Cebá. <em>Sin apuro.</em></h2>
+    <p>Agua a 70–80&nbsp;°C, nunca hervida. Vertí despacio, siempre en el mismo lugar, junto a la bombilla.</p>
+  </div>
+  <div class="step-copy" data-pos="top">
+    <p class="eyebrow">Y por último</p>
+    <h2>El mejor paso: <em>compartirlo.</em></h2>
+    <p>Volvé a cebar y que siga la ronda. ¿Mate nuevo? <a href="/como-curar-un-mate" class="inline-link">Primero curalo</a>.</p>
+    <div class="actions">
+      <button class="pill" data-go="1">Otra ronda <span aria-hidden="true">↺</span></button>
+      <a class="pill ghost" href="/#tienda">La tienda <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</div>
+
+<footer class="bottom">
+  <button id="prev" class="hidden"><span aria-hidden="true">↑</span> Anterior</button>
+  <button id="next"><span id="nextLabel">Deslizá para empezar</span> <span class="arrow" aria-hidden="true">↓</span></button>
+</footer>
+
+<main class="steps" id="steps">
+  <section id="paso-0"></section>
+  <section id="paso-1"></section>
+  <section id="paso-2"></section>
+  <section id="paso-3"></section>
+  <section id="paso-4"></section>
+  <section id="paso-5"></section>
+  <section id="paso-6"></section>
+</main>
+
+<script>
+  // ── Navegación por pasos (independiente del 3D) ───────────
+  (function () {
+    const BG = ['#ffffff', '#fafafa', '#f6f6f6', '#f3f3f3', '#f1f1f1', '#eeeeee', '#0a0a0a'];
+    const sections = [...document.querySelectorAll('.steps section')];
+    const copies = [...document.querySelectorAll('.step-copy')];
+    const dots = document.getElementById('dots');
+    const prev = document.getElementById('prev');
+    const next = document.getElementById('next');
+    const nextLabel = document.getElementById('nextLabel');
+    const last = sections.length - 1;
+    let current = -1;
+
+    sections.forEach((_, i) => {
+      const b = document.createElement('button');
+      b.setAttribute('aria-label', i === 0 ? 'Inicio' : i === last ? 'Compartir' : 'Paso ' + i);
+      b.addEventListener('click', () => go(i));
+      dots.appendChild(b);
+    });
+
+    function go(i) {
+      i = Math.max(0, Math.min(last, i));
+      sections[i].scrollIntoView({ behavior: 'smooth' });
+    }
+    document.querySelectorAll('[data-go]').forEach(b =>
+      b.addEventListener('click', () => go(+b.dataset.go)));
+    prev.addEventListener('click', () => go(current - 1));
+    next.addEventListener('click', () => go(current === last ? 0 : current + 1));
+
+    function setStep(i) {
+      if (i === current) return;
+      const from = current;
+      current = i;
+      document.body.classList.toggle('pos-swap', from >= 0 && !!copies[from] && copies[from].dataset.pos !== copies[i].dataset.pos);
+      copies.forEach((c, k) => {
+        c.classList.toggle('active', k === i);
+        c.classList.toggle('before', k > i);
+        c.classList.toggle('after', k < i);
+        c.inert = k !== i;
+      });
+      [...dots.children].forEach((d, k) =>
+        k === i ? d.setAttribute('aria-current', 'step') : d.removeAttribute('aria-current'));
+      document.body.style.backgroundColor = BG[i];
+      document.body.classList.toggle('is-dark', i === last);
+      prev.classList.toggle('hidden', i === 0);
+      nextLabel.textContent = i === 0 ? 'Deslizá para empezar' : i === last ? 'Volver al inicio' : 'Seguí bajando';
+      history.replaceState(null, '', '#paso-' + i);
+      window.dispatchEvent(new CustomEvent('ritual:step', { detail: { step: i, from } }));
+    }
+
+    // el paso se decide con el alto real de cada sección y recién cuando el scroll se asienta:
+    // así un cambio de alto de la ventana (barra del navegador, carga) no hace saltar de paso
+    let settle;
+    function stepNow() {
+      const h = sections[0].offsetHeight || innerHeight;
+      return Math.max(0, Math.min(last, Math.round(scrollY / h)));
+    }
+    function onScroll() {
+      clearTimeout(settle);
+      const i = stepNow();
+      if (Math.abs(scrollY - i * sections[0].offsetHeight) < 4) setStep(i);
+      else settle = setTimeout(() => setStep(stepNow()), 140);
+    }
+    addEventListener('scroll', onScroll, { passive: true });
+
+    const start = /^#paso-(\d)$/.exec(location.hash);
+    if (start) sections[+start[1]].scrollIntoView();
+    window.ritualStep = () => current;
+    onScroll();
+  })();
+</script>
+
+<script type="importmap">
+  { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  } }
+</script>
+<script type="module">
+  import * as THREE from 'three';
+  import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+  const canvas = document.getElementById('stage');
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  } catch (e) {
+    document.documentElement.classList.add('no-webgl');
+    throw e;
+  }
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.92;
+
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+  const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
+  const key = new THREE.DirectionalLight(0xffffff, 1.6);
+  key.position.set(-3, 6, 4);
+  scene.add(key, new THREE.AmbientLight(0xffffff, 0.25));
+
+  // ── Texturas procedurales ─────────────────────────────────
+  function rand(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
+
+  function shadowTexture() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 256;
+    const g = c.getContext('2d');
+    const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+    grad.addColorStop(0, 'rgba(0,0,0,.42)');
+    grad.addColorStop(0.45, 'rgba(0,0,0,.16)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
+    return new THREE.CanvasTexture(c);
+  }
+
+  // ── El mate: la calabaza de la foto ────────────────────────
+  // Se tornea con la silueta medida en images/mate-calabaza.jpg (bordes izq./der. de cada fila de píxeles)
+  // y la misma foto se proyecta encima desde el ángulo en que fue sacada.
+  const PHOTO = {"w":533,"h":533,"top":95,"bottom":422,"rim":121,"L":[288,268,249,240,231,220,214,200,196,187,183,176,172,165,161,157,154,149,147,144,141,139,136,133,132,130,128,127,127,126,125,125,124,124,124,124,125,126,126,127,128,128,129,130,131,131,132,133,133,134,135,135,136,137,137,138,139,140,140,141,142,142,143,144,144,145,146,146,147,148,148,149,150,150,150,151,152,152,153,154,154,154,155,155,156,156,157,157,158,158,158,159,159,159,160,160,160,160,160,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,160,160,160,160,160,160,160,160,160,160,159,159,159,158,158,158,158,158,158,158,158,157,157,157,157,157,156,156,156,156,156,156,156,156,156,156,155,155,155,155,155,155,155,155,155,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,154,155,155,155,155,155,155,156,156,156,156,156,156,156,156,157,157,157,158,158,158,158,158,159,159,159,159,160,160,160,160,161,161,161,162,162,162,163,163,164,164,164,165,165,166,166,166,167,167,168,168,169,169,170,170,170,171,171,172,173,173,174,174,175,176,176,176,177,178,179,179,180,181,181,182,183,184,184,185,186,187,187,188,189,190,191,192,192,193,194,195,197,198,199,200,200,201,203,204,205,206,207,209,210,211,212,214,216,217,218,220,221,223,224,226,228,229,229,234,236,239,241,242,244,248,251,254,261,268,279],"R":[337,359,368,377,381,388,393,396,398,400,402,404,405,406,406,407,407,407,408,408,408,407,407,407,407,406,406,405,404,403,402,401,401,400,399,399,398,397,397,396,395,395,394,394,393,393,392,392,391,391,391,390,390,390,388,388,388,387,386,386,386,386,385,385,384,384,384,384,384,383,384,383,383,382,381,381,381,380,380,380,380,379,380,380,380,380,380,379,379,379,379,379,379,380,380,380,380,380,380,380,380,380,380,380,380,380,380,380,380,380,381,381,382,382,382,382,383,383,383,383,383,384,385,385,385,385,385,385,385,386,386,387,387,387,388,388,388,388,388,388,388,389,389,389,389,389,389,389,389,390,390,390,391,391,392,393,393,393,393,393,393,393,393,393,393,393,393,393,393,393,393,393,393,393,394,394,394,394,394,394,394,394,394,394,395,395,395,395,395,395,395,395,395,395,395,395,395,394,395,395,394,394,394,394,394,394,394,394,394,394,393,393,393,393,393,393,392,392,392,392,392,391,391,391,391,390,390,390,389,389,389,389,388,388,388,387,387,386,386,386,385,384,384,384,384,383,383,382,382,382,381,381,380,380,379,379,378,377,376,376,376,375,375,374,373,372,372,371,371,370,369,369,368,367,366,366,365,364,363,362,361,360,360,359,358,357,356,355,354,353,352,351,350,349,348,347,346,344,343,342,341,340,339,337,336,335,333,332,331,329,328,326,325,323,321,319,318,317,317,318,318,316,314,314,311,308,305,288]};
+  const MATE_H = 1.93;
+  const kpx = MATE_H / (PHOTO.bottom - PHOTO.top);                  // unidades por píxel
+  const rimSpan = PHOTO.R[PHOTO.rim - PHOTO.top] - PHOTO.L[PHOTO.rim - PHOTO.top];
+  const sinT = (PHOTO.rim - PHOTO.top) / (rimSpan / 2);             // la boca se ve como elipse: b / a
+  const cosT = Math.sqrt(1 - sinT * sinT);
+  function rowAt(py) {
+    const n = PHOTO.L.length - 1;
+    const f = Math.min(n, Math.max(0, py - PHOTO.top)), i = Math.min(n - 1, Math.floor(f)), t = f - i;
+    return [PHOTO.L[i] + (PHOTO.L[i + 1] - PHOTO.L[i]) * t, PHOTO.R[i] + (PHOTO.R[i + 1] - PHOTO.R[i]) * t];
+  }
+  const outer = [new THREE.Vector2(0.001, 0)];
+  for (let py = PHOTO.bottom - 1; py >= PHOTO.rim; py -= 2) {
+    let span = 0;
+    for (let d = -2; d <= 2; d++) { const [l, r] = rowAt(py + d); span += (r - l) / 5; }
+    outer.push(new THREE.Vector2(span / 2 * kpx * 0.99, (PHOTO.bottom - py) * kpx / cosT));
+  }
+  const WALL = 0.05;
+  const radiusAt = (y) => {
+    for (let i = 1; i < outer.length; i++) {
+      if (outer[i].y >= y) {
+        const a = outer[i - 1], b = outer[i];
+        return a.x + (b.x - a.x) * ((y - a.y) / (b.y - a.y || 1));
+      }
+    }
+    return outer[outer.length - 1].x;
+  };
+  const innerRadiusAt = (y) => radiusAt(y) - WALL;
+
+  const rig = new THREE.Group();     // posición / escala por paso
+  const mate = new THREE.Group();    // inclinación (montañita)
+  rig.add(mate);
+  scene.add(rig);
+
+  const loader = new THREE.TextureLoader();
+  const photoTex = loader.load('/guias/mate-calabaza-324a7991.jpg');
+  photoTex.colorSpace = THREE.SRGBColorSpace;
+  photoTex.anisotropy = 8;
+  const gourdGeo = new THREE.LatheGeometry(outer, 160);
+  {
+    const pos = gourdGeo.attributes.position, uv = gourdGeo.attributes.uv;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+      const py = PHOTO.bottom - (y * cosT - z * sinT) / kpx;
+      const [l, r] = rowAt(py), rr = Math.max(radiusAt(y), 1e-3);
+      const u = (l + r) / 2 + (x / rr) * (r - l) / 2 * 0.985;
+      uv.setXY(i, u / PHOTO.w, 1 - py / PHOTO.h);
+    }
+  }
+  // la luz ya viene en la foto: material sin iluminar y sin tone mapping
+  const gourd = new THREE.Mesh(gourdGeo, new THREE.MeshBasicMaterial({ map: photoTex, toneMapped: false }));
+
+  // borde redondeado + pared interior, con la textura del interior de la misma calabaza
+  const top = outer[outer.length - 1];
+  const shell = [];
+  for (let i = 0; i <= 8; i++) {
+    const a = (i / 8) * Math.PI;
+    shell.push(new THREE.Vector2(top.x - WALL / 2 + Math.cos(a) * WALL / 2, top.y + Math.sin(a) * 0.018));
+  }
+  for (let i = outer.length - 2; i >= 0; i--) {
+    const p = outer[i];
+    if (p.y < 0.07) break;
+    shell.push(new THREE.Vector2(Math.max(0.001, p.x - WALL), p.y + 0.004));
+  }
+  shell.push(new THREE.Vector2(0.001, 0.07));
+  const shellGeo = new THREE.LatheGeometry(shell, 160);
+  {
+    // más oscuro hacia el fondo, como dentro de una calabaza real
+    const pos = shellGeo.attributes.position, col = new Float32Array(pos.count * 3);
+    for (let i = 0; i < pos.count; i++) {
+      const k = 0.42 + 0.58 * THREE.MathUtils.smoothstep(pos.getY(i), 0.3, top.y);
+      col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = k;
+    }
+    shellGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  }
+  const interiorTex = loader.load('/guias/mate-calabaza-interior-387e4b3e.jpg');
+  interiorTex.colorSpace = THREE.SRGBColorSpace;
+  interiorTex.wrapS = interiorTex.wrapT = THREE.MirroredRepeatWrapping;
+  interiorTex.repeat.set(8, 6);   // par: con espejado no deja costura
+  const inside = new THREE.Mesh(shellGeo, new THREE.MeshBasicMaterial({
+    map: interiorTex, vertexColors: true, toneMapped: false, side: THREE.DoubleSide
+  }));
+  mate.add(gourd, inside);
+
+
+  // Superficie de yerba: se recalcula con llenado, pendiente (montañita) y humedad
+  const RINGS = 22, SEGS = 72;
+  const yerbaGeo = new THREE.BufferGeometry();
+  const yPos = new Float32Array((RINGS + 1) * (SEGS + 1) * 3);
+  const yCol = new Float32Array((RINGS + 1) * (SEGS + 1) * 3);
+  const grain = new Float32Array((RINGS + 1) * (SEGS + 1));
+  { const r = rand(11); for (let i = 0; i < grain.length; i++) grain[i] = r(); }
+  const idx = [];
+  for (let i = 0; i < RINGS; i++) for (let j = 0; j < SEGS; j++) {
+    const a = i * (SEGS + 1) + j, b = a + SEGS + 1;
+    idx.push(a, b, a + 1, b, b + 1, a + 1);
+  }
+  yerbaGeo.setIndex(idx);
+  yerbaGeo.setAttribute('position', new THREE.BufferAttribute(yPos, 3));
+  yerbaGeo.setAttribute('color', new THREE.BufferAttribute(yCol, 3));
+  const yUv = new Float32Array((RINGS + 1) * (SEGS + 1) * 2);
+  yerbaGeo.setAttribute('uv', new THREE.BufferAttribute(yUv, 2));
+
+  // textura de yerba canchada: hojas picadas en verdes oliva y palitos claros
+  function yerbaTexture() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 1024;
+    const g = c.getContext('2d');
+    g.fillStyle = '#56603a'; g.fillRect(0, 0, 1024, 1024);
+    const r = rand(17);
+    const leaf = ['#7b8350', '#677144', '#8f945e', '#525c33', '#a0a06c', '#717c45', '#868b5c', '#5e6739'];
+    for (let i = 0; i < 3000; i++) {
+      const x = r() * 1024, y = r() * 1024, s = 14 + r() * 34, n = 3 + Math.floor(r() * 4), a0 = r() * 6.28;
+      g.fillStyle = leaf[Math.floor(r() * leaf.length)];
+      g.beginPath();
+      for (let k = 0; k < n; k++) {
+        const a = a0 + (k / n) * 6.28, rr = s * (0.5 + r() * 0.6);
+        g[k ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rr, y + Math.sin(a) * rr * (0.5 + r() * 0.5));
+      }
+      g.closePath(); g.fill();
+    }
+    for (let i = 0; i < 70; i++) {                        // palitos
+      const x = r() * 1024, y = r() * 1024, len = 40 + r() * 80, w = 8 + r() * 8, a = r() * 6.28;
+      g.save(); g.translate(x, y); g.rotate(a);
+      g.fillStyle = r() < .5 ? '#d9cfab' : '#c7b98f'; g.fillRect(-len / 2, -w / 2, len, w);
+      g.fillStyle = 'rgba(90,75,40,.35)'; g.fillRect(-len / 2, w / 2 - 1.5, len, 1.5);
+      g.restore();
+    }
+    for (let i = 0; i < 1800; i++) {                      // polvo
+      g.fillStyle = r() < .5 ? 'rgba(40,45,20,.35)' : 'rgba(210,205,160,.25)';
+      g.fillRect(r() * 1024, r() * 1024, 2 + r() * 3, 2 + r() * 3);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
+  }
+  const yerbaTex = yerbaTexture();
+  const yerba = new THREE.Mesh(yerbaGeo, new THREE.MeshStandardMaterial({
+    map: yerbaTex, bumpMap: yerbaTex, bumpScale: 2, vertexColors: true, roughness: 1, side: THREE.DoubleSide
+  }));
+  mate.add(yerba);
+
+  const DRY = new THREE.Color('#e4e6d6'), DRY2 = new THREE.Color('#c4c8b2');
+  const WET = new THREE.Color('#6d7458'), WET2 = new THREE.Color('#565c44');
+  const tmpC = new THREE.Color(), tmpW = new THREE.Color();
+  const HUECO_X = -0.32;
+  const yerbaTop = (fill) => 0.25 + fill * 1.27;   // altura media del colchón
+
+  function updateYerba(fill, slope, wet) {
+    yerba.visible = fill > 0.01;
+    if (!yerba.visible) return;
+    const base = yerbaTop(fill);
+    let k = 0;
+    for (let i = 0; i <= RINGS; i++) {
+      const rho = i / RINGS;
+      for (let j = 0; j <= SEGS; j++, k++) {
+        const th = (j / SEGS) * Math.PI * 2;
+        const cx = Math.cos(th), cz = Math.sin(th);
+        let R = innerRadiusAt(base), y = base;
+        for (let it = 0; it < 3; it++) {
+          const x = rho * R * cx;
+          // montañita: alta del lado +x, hueco del lado -x
+          const well = slope * 0.55 * Math.exp(-((x - HUECO_X) ** 2 + (rho * R * cz) ** 2) / 0.05);
+          y = base + slope * (x * 0.7 + 0.04) - well + (grain[k] - 0.5) * 0.018;
+          y = Math.min(y, 1.74);
+          R = innerRadiusAt(y) * 0.99;
+        }
+        yPos[k * 3] = rho * R * cx; yPos[k * 3 + 1] = y; yPos[k * 3 + 2] = rho * R * cz;
+        const x = rho * R * cx;
+        const wetMask = wet * THREE.MathUtils.smoothstep(0.3 - x * 0.9, 0, 0.6);
+        tmpW.copy(WET).lerp(WET2, grain[k]);
+        tmpC.copy(DRY).lerp(DRY2, grain[k] * 0.8).lerp(tmpW, wetMask);
+        yCol[k * 3] = tmpC.r; yCol[k * 3 + 1] = tmpC.g; yCol[k * 3 + 2] = tmpC.b;
+        yUv[k * 2] = x * 0.62 + 0.5; yUv[k * 2 + 1] = rho * R * cz * 0.62 + 0.5;
+      }
+    }
+    yerbaGeo.attributes.position.needsUpdate = true;
+    yerbaGeo.attributes.color.needsUpdate = true;
+    yerbaGeo.computeVertexNormals();
+  }
+
+  // Bombilla: la foto recortada (images/bombilla.png), a escala real. Como el mate casi no gira,
+  // una lámina de frente se ve igual que la foto; la pared y la yerba la tapan como a una de verdad.
+  const bombilla = new THREE.Group();   // se desliza al entrar
+  const bombAxis = new THREE.Group();   // inclinada hacia el hueco
+  bombilla.add(bombAxis);
+  const BOMB_TILT = 0.1;
+  bombAxis.rotation.z = BOMB_TILT;
+  bombAxis.position.set(-0.27, 0.28, 0.05);
+  {
+    // medidas del recorte (px de la foto original): 148 × 511, eje recto en x=107, punta del filtro en y=499
+    const BOMB_PX = 3.18 / 487;                                // 19 cm de punta a punta = 487 px
+    const tex = loader.load('/guias/bombilla-af5e8706.png');
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.generateMipmaps = false;          // sin mipmaps: se ve nítida en vez de promediada
+    tex.minFilter = THREE.LinearFilter;
+    const sheet = new THREE.Mesh(
+      new THREE.PlaneGeometry(148 * BOMB_PX, 511 * BOMB_PX),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.04, toneMapped: false })
+    );
+    sheet.position.set(-(107 - 74) * BOMB_PX, (499 - 255.5) * BOMB_PX, 0);
+    bombAxis.add(sheet);
+  }
+  const BOMB_DIR = new THREE.Vector3(-Math.sin(BOMB_TILT), Math.cos(BOMB_TILT), 0);
+  mate.add(bombilla);
+
+  // Termo negro mate: cuello acanalado, pico cebador rojo y asa
+  const termo = new THREE.Group();
+  {
+    const matte = new THREE.MeshPhysicalMaterial({ color: 0x151515, roughness: 0.48, metalness: 0.25, clearcoat: 0.15, clearcoatRoughness: 0.6 });
+    const plastic = new THREE.MeshStandardMaterial({ color: 0x1b1b1b, roughness: 0.62 });
+    const body = new THREE.Mesh(new THREE.LatheGeometry([
+      [0.001, -1.1], [0.32, -1.1], [0.345, -1.08], [0.35, -1.02], [0.352, 0.7], [0.346, 0.8], [0.33, 0.86]
+    ].map(([r, y]) => new THREE.Vector2(r, y)), 64), matte);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.354, 0.354, 0.012, 64), plastic);
+    base.position.y = -0.97;
+    const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.37, 0.37, 0.34, 64), plastic);
+    collar.position.y = 1.0;
+    const groove = [];
+    for (let i = 0; i <= 14; i++) groove.push(new THREE.Vector2(i % 2 ? 0.318 : 0.305, 1.17 + i * 0.013));
+    const thread = new THREE.Mesh(new THREE.LatheGeometry(groove, 64), plastic);
+    const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.285, 0.3, 0.13, 64), plastic);
+    lid.position.y = 1.42;
+    const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.34, 20),
+      new THREE.MeshStandardMaterial({ color: 0xd6261d, roughness: 0.4 }));
+    spout.position.set(0.04, 1.56, 0);
+    spout.rotation.z = 0.6;
+    const handle = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0.34, 1.08, 0), new THREE.Vector3(0.56, 1.09, 0), new THREE.Vector3(0.66, 1.0, 0),
+      new THREE.Vector3(0.68, 0.8, 0), new THREE.Vector3(0.68, 0.15, 0)
+    ]), 60, 0.034, 12), plastic);
+    handle.rotation.y = Math.PI * 0.6;   // el asa queda hacia atrás al servir
+    termo.add(body, base, collar, thread, lid, spout, handle);
+  }
+  const spoutTip = new THREE.Object3D();
+  spoutTip.position.set(0.04 - Math.sin(0.6) * 0.17, 1.56 + Math.cos(0.6) * 0.17, 0);
+  termo.add(spoutTip);
+  const TERMO_SCALE = 1.95, TERMO_ROT = 2.3;
+  termo.scale.setScalar(TERMO_SCALE);
+  termo.rotation.z = TERMO_ROT;
+  rig.add(termo);
+  // ubica el termo para que el pico quede justo arriba del hueco; el cuerpo sale de cuadro
+  const Z = new THREE.Vector3(0, 0, 1);
+  const SPOUT_OFF = spoutTip.position.clone().multiplyScalar(TERMO_SCALE).applyAxisAngle(Z, TERMO_ROT);
+  const TERMO_IN = new THREE.Vector3(), TERMO_OUT = new THREE.Vector3(), huecoRig = new THREE.Vector3();
+  const OUT_SHIFT = new THREE.Vector3(3.2, 3.2, 0);
+
+  // Vaso de vidrio con agua a temperatura ambiente (paso 3): ~10 cm de alto y 7 cm de boca
+  renderer.localClippingEnabled = true;
+  const vaso = new THREE.Group();
+  {
+    const prof = [
+      [0.001, 0], [0.47, 0], [0.5, 0.03], [0.6, 1.68], [0.6, 1.7], [0.565, 1.7], [0.465, 0.13], [0.001, 0.13]
+    ].map(([r, y]) => new THREE.Vector2(r, y));
+    // vidrio: casi transparente, se lee por los reflejos y por el borde
+    const glass = new THREE.Mesh(new THREE.LatheGeometry(prof, 64), new THREE.MeshPhysicalMaterial({
+      color: 0xffffff, roughness: 0.03, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05,
+      transparent: true, opacity: 0.16, envMapIntensity: 2.2, depthWrite: false, side: THREE.DoubleSide
+    }));
+    glass.renderOrder = 2;
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.582, 0.018, 10, 64),
+      new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.05, transparent: true, opacity: 0.55, clearcoat: 1 }));
+    rim.rotation.x = Math.PI / 2; rim.position.y = 1.7;
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.47, 0.5, 0.13, 48),
+      new THREE.MeshPhysicalMaterial({ color: 0xeef4f4, roughness: 0.05, transparent: true, opacity: 0.4, clearcoat: 1 }));
+    base.position.y = 0.065;
+    vaso.add(glass, rim, base);
+  }
+  // agua: el interior del vaso recortado por un plano horizontal, así la superficie queda a nivel aunque se incline
+  const waterPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+  const vasoWater = new THREE.Mesh(
+    new THREE.LatheGeometry([[0.001, 0.14], [0.455, 0.14], [0.55, 1.66], [0.001, 1.66]].map(([r, y]) => new THREE.Vector2(r, y)), 48),
+    new THREE.MeshPhysicalMaterial({
+      color: 0xa6c6d0, roughness: 0.05, clearcoat: 1, transparent: true, opacity: 0.55,
+      depthWrite: false, clippingPlanes: [waterPlane], side: THREE.DoubleSide
+    })
+  );
+  vasoWater.renderOrder = 1;
+  vaso.add(vasoWater);
+  const vasoLip = new THREE.Object3D();
+  vasoLip.position.set(-0.6, 1.7, 0);                    // por donde cae el agua al inclinarlo
+  vaso.add(vasoLip);
+  const VASO_ROT = 1.95;
+  vaso.rotation.z = VASO_ROT;
+  rig.add(vaso);
+  const LIP_OFF = vasoLip.position.clone().applyAxisAngle(Z, VASO_ROT);
+  const VASO_IN = new THREE.Vector3(), VASO_OUT = new THREE.Vector3();
+  const lipWorld = new THREE.Vector3();
+
+  // Yerbera Un Amargo (paso 1): la lata de la foto con su tapa y el pico vertedor. ~10 cm de diámetro y 15 cm de alto.
+  // Como el mate, se tornea y se le proyecta la foto de frente (images/yerbera.jpg, recorte de 390 × 645 px).
+  const YB_R = 0.85, YB_H = 2.58;
+  const yerbera = new THREE.Group();
+  {
+    const tex = loader.load('/guias/yerbera-3bc3cb0c.jpg');
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 8;
+    const pts = [];
+    for (let i = 0; i <= 12; i++) pts.push(new THREE.Vector2(YB_R, (i / 12) * YB_H));
+    const bodyGeo = new THREE.LatheGeometry(pts, 96);
+    // en la foto, los aros dorados se curvan hacia abajo en el centro (se ve un poco desde arriba)
+    const pos = bodyGeo.attributes.position, uv = bodyGeo.attributes.uv;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), t = 1 - y / YB_H;
+      const py = 10 + 555 * t + (23 + 37 * t) * (z / YB_R);
+      const px = 194 + (x / YB_R) * 183 * 0.99;
+      uv.setXY(i, px / 390, 1 - py / 645);
+    }
+    const body = new THREE.Mesh(bodyGeo, new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
+    const inner = new THREE.Mesh(
+      new THREE.CylinderGeometry(YB_R - 0.02, YB_R - 0.02, YB_H - 0.02, 64, 1, true),
+      new THREE.MeshStandardMaterial({ color: 0xc9c9c6, metalness: 0.7, roughness: 0.35, side: THREE.BackSide })
+    );
+    inner.position.y = YB_H / 2 + 0.01;
+    const bottom = new THREE.Mesh(new THREE.CircleGeometry(YB_R, 64),
+      new THREE.MeshStandardMaterial({ color: 0xf2f2ef, roughness: 0.4 }));
+    bottom.rotation.x = Math.PI / 2;
+    const brass = new THREE.MeshStandardMaterial({ color: 0xd9bd7a, metalness: 1, roughness: 0.25 });
+    const topRim = new THREE.Mesh(new THREE.TorusGeometry(YB_R - 0.005, 0.03, 12, 96), brass);
+    topRim.rotation.x = Math.PI / 2; topRim.position.y = YB_H;
+    const baseRim = new THREE.Mesh(new THREE.TorusGeometry(YB_R + 0.004, 0.022, 12, 96), brass);
+    baseRim.rotation.x = Math.PI / 2; baseRim.position.y = 0.02;
+    // tapa blanca, apenas abombada
+    const lid = new THREE.Mesh(new THREE.LatheGeometry([
+      [0.001, 0.36], [0.5, 0.35], [0.8, 0.31], [YB_R + 0.025, 0.26], [YB_R + 0.03, 0.02], [YB_R + 0.02, 0]
+    ].map(([r, y]) => new THREE.Vector2(r, y)), 96),
+      // blanca de todos lados: al volcar, la cara de arriba mira lejos de la luz y no debe agrisarse
+      new THREE.MeshPhysicalMaterial({ color: 0xf3f3f0, emissive: 0xc9c9c6, roughness: 0.28, clearcoat: 0.6, clearcoatRoughness: 0.3, side: THREE.DoubleSide }));
+    lid.position.y = YB_H;
+    yerbera.add(body, inner, bottom, topRim, baseRim, lid);
+  }
+  // pico vertedor de acero: una canaleta que sale de la tapa al servir y se guarda después
+  const SPOUT_LEN = 1.0, SPOUT_TILT = 0.38;
+  const spout = new THREE.Group();
+  {
+    // media caña angosta que se afina hacia la punta, con el lomo hacia cámara
+    const g = new THREE.CylinderGeometry(0.15, 0.3, SPOUT_LEN, 32, 1, true, -Math.PI / 2, Math.PI);
+    g.translate(0, SPOUT_LEN / 2, 0);
+    const steelMat = new THREE.MeshStandardMaterial({ color: 0xdadcde, metalness: 1, roughness: 0.28, side: THREE.DoubleSide });
+    spout.add(new THREE.Mesh(g, steelMat));
+  }
+  spout.position.set(-0.3, YB_H + 0.2, 0);             // nace dentro de la tapa: solo se ve lo que sale por arriba de ella
+  spout.rotation.z = SPOUT_TILT;
+  yerbera.add(spout);
+  const ybLip = new THREE.Object3D();
+  ybLip.position.set(0, SPOUT_LEN, 0);                  // la punta del pico: de ahí cae la yerba
+  spout.add(ybLip);
+  const YB_ROT = 2.05;
+  yerbera.rotation.z = YB_ROT;
+  rig.add(yerbera);
+  const YB_LIP_OFF = new THREE.Vector3(0, SPOUT_LEN, 0).applyAxisAngle(Z, SPOUT_TILT).add(spout.position).applyAxisAngle(Z, YB_ROT);
+  const YB_IN = new THREE.Vector3(0.0, 2.3, 0.05).sub(YB_LIP_OFF);
+  const YB_OUT = YB_IN.clone().add(new THREE.Vector3(3.6, 2.4, 0));
+  const ybLipMate = new THREE.Vector3();
+
+  // Chorro de agua
+  const stream = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.028, 0.034, 1, 12, 1, true),
+    new THREE.MeshPhysicalMaterial({ color: 0xdff1f5, roughness: 0.05, transparent: true, opacity: 0.6 })
+  );
+  scene.add(stream);
+
+  // Lluvia de yerba (paso 1)
+  const N = 520;
+  const pPos = new Float32Array(N * 3), pVel = new Float32Array(N), pLife = new Float32Array(N).fill(-1);
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0x7a8248, size: 0.062 }));
+  particles.frustumCulled = false;
+  mate.add(particles);
+  const pr = rand(3);
+
+  // Espuma de los primeros mates: es la superficie del agua, plana y a nivel. Llena el hueco y el lado
+  // bajo; donde la montañita queda más alta, la yerba la tapa sola (por profundidad), como en un mate real.
+  function foamTexture() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 1024;
+    const g = c.getContext('2d');
+    g.fillStyle = '#9fa384'; g.fillRect(0, 0, 1024, 1024);
+    const r = rand(29);
+    for (let i = 0; i < 260; i++) {                       // manchas de tono
+      const x = r() * 1024, y = r() * 1024, s = 30 + r() * 90;
+      const rg = g.createRadialGradient(x, y, 0, x, y, s);
+      const tone = r() < .5 ? '150,156,120' : '222,224,204';
+      rg.addColorStop(0, `rgba(${tone},.35)`); rg.addColorStop(1, `rgba(${tone},0)`);
+      g.fillStyle = rg; g.fillRect(x - s, y - s, s * 2, s * 2);
+    }
+    for (let i = 0; i < 1100; i++) {                      // burbujitas: borde oscuro, centro claro y un brillo
+      const x = r() * 1024, y = r() * 1024, s = 5 + Math.pow(r(), 2.5) * 34;
+      g.fillStyle = 'rgba(205,210,186,.45)';
+      g.beginPath(); g.arc(x, y, s, 0, 6.283); g.fill();
+      g.strokeStyle = 'rgba(95,100,75,.55)'; g.lineWidth = Math.max(1, s * 0.18);
+      g.beginPath(); g.arc(x, y, s, 0, 6.283); g.stroke();
+      g.fillStyle = 'rgba(255,255,255,.8)';
+      g.beginPath(); g.arc(x - s * 0.35, y - s * 0.35, Math.max(0.8, s * 0.22), 0, 6.283); g.fill();
+    }
+    const leaf = ['#6d7a3f', '#8b934f', '#59652f'];
+    for (let i = 0; i < 70; i++) {                        // algo de yerba flotando
+      g.fillStyle = leaf[i % 3];
+      g.fillRect(r() * 1024, r() * 1024, 4 + r() * 10, 3 + r() * 7);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
+  }
+  const foamTex = foamTexture();
+  const foam = new THREE.Mesh(
+    new THREE.CircleGeometry(1, 96),
+    new THREE.MeshStandardMaterial({ map: foamTex, bumpMap: foamTex, bumpScale: 2, color: 0xc2c5b0, roughness: 0.25, metalness: 0 })
+  );
+  foam.rotation.x = -Math.PI / 2;
+  mate.add(foam);
+  function updateFoam() {
+    foam.visible = S.foam > 0.01 && S.fill > 0.5;
+    if (!foam.visible) return;
+    // sube desde el fondo del hueco hasta el pie de la montañita
+    const low = yerbaTop(S.fill) + S.slope * (-0.45 * 0.7 + 0.04) - 0.12;
+    const full = yerbaTop(S.fill) + S.slope * 0.04 - 0.015;
+    const level = low + (full - low) * S.foam;
+    foam.position.y = level;
+    foam.scale.setScalar(innerRadiusAt(level) * 0.995);
+  }
+
+  // Sombra de contacto
+  const shadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(3.4, 3.4),
+    new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false })
+  );
+  shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.002;
+  rig.add(shadow);
+
+  // ── Tweens por parámetro ──────────────────────────────────
+  const S = { fill: 1, slope: 0.6, wet: 1, bomb: 1, termo: 0, head: 0, tail: 0, tilt: 0, shake: 0, scale: 1, x: 0, y: 0, rain: 0, foam: 0, vaso: 0, vasoWater: 1, yerbera: 0, spout: 0, vy: 1 };
+  const tweens = {};
+  // celular: 1 = texto abajo (la escena sube), -1 = texto arriba (la escena baja)
+  const POS = [...document.querySelectorAll('.step-copy')].map((c) => (c.dataset.pos === 'top' ? -1 : 1));
+  const REST = { shake: 0, rain: 0, head: 0, tail: 0, vaso: 0, yerbera: 0, spout: 0 };
+  const ease = (t) => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  let clock = 0;
+  function to(key, value, dur = 0.8, delay = 0) {
+    (tweens[key] ||= []).push({ from: null, to: value, start: clock + delay, dur: reduceMotion ? Math.min(dur, 0.25) : dur });
+  }
+  function tick(dt) {
+    clock += dt;
+    for (const key in tweens) {
+      const q = tweens[key];
+      while (q.length) {
+        const tw = q[0];
+        if (clock < tw.start) break;
+        if (tw.from === null) tw.from = S[key];
+        const t = tw.dur ? Math.min(1, (clock - tw.start) / tw.dur) : 1;
+        S[key] = tw.from + (tw.to - tw.from) * ease(t);
+        if (t < 1) break;
+        q.shift();
+      }
+    }
+  }
+
+  function enterStep(step) {
+    for (const k in tweens) tweens[k].length = 0;
+    S.head = S.tail = 0;                    // el chorro nunca queda colgado entre pasos
+    const pour = (start, end) => { to('head', 1, 0.35, start); to('tail', 1, 0.35, end); };
+    if (step !== 3) { to('vaso', 0, 0.6); to('vasoWater', 1, 0.01, 0.7); }   // se rellena ya fuera de cuadro
+    if (step !== 1) { to('yerbera', 0, 0.6); to('spout', 0, 0.3); }
+    if (step < 5) to('foam', 0, 0.4);
+    to('vy', POS[step] ?? 1, 0.6);
+    switch (step) {
+      case 0:
+        to('fill', 1); to('slope', 0.6); to('wet', 1); to('bomb', 1, 0.9, 0.2); to('termo', 0, 0.6);
+        to('tilt', 0); to('scale', 1); to('x', 0); to('y', 0); to('rain', 0, 0.2);
+        break;
+      case 1:
+        to('bomb', 0, 0.5); to('termo', 0, 0.6); to('tilt', 0); to('wet', 0, 0.5); to('slope', 0, 0.5);
+        // entra la yerbera, vuelca la yerba hasta las tres cuartas partes y se retira igual que entró
+        to('fill', 0, 0.45); to('yerbera', 1, 1.0); to('spout', 1, 0.45, 0.85);
+        to('rain', 1, 0.15, 1.3); to('fill', 1, 2.5, 1.4); to('rain', 0, 0.3, 3.8);
+        to('spout', 0, 0.4, 4.1); to('yerbera', 0, 1.0, 4.5);
+        to('scale', 0.85); to('x', -0.6); to('y', -0.4);
+        break;
+      case 2:
+        to('fill', 1, 0.4); to('bomb', 0, 0.5); to('termo', 0, 0.6); to('wet', 0, 0.5); to('rain', 0, 0.2);
+        // se agita inclinado y queda de costado: la yerba se junta del lado bajo (+x) y el hueco queda arriba (-x)
+        to('tilt', -1.0, 0.7); to('shake', 1, 0.15); to('shake', 0, 0.3, 1.2);
+        to('slope', 0.6, 0.9, 0.35); to('tilt', -0.8, 0.7, 1.3);
+        to('scale', 1.1); to('x', 0); to('y', -0.1);
+        break;
+      case 3:
+        to('fill', 1, 0.4); to('slope', 0.6, 0.4); to('bomb', 0, 0.5); to('rain', 0, 0.2);
+        // entra el vaso, moja el hueco y se retira a la misma velocidad
+        to('termo', 0, 0.6); to('vaso', 1, 0.9); pour(0.9, 2.5); to('wet', 0.65, 1.6, 1.0); to('tilt', -0.7, 0.6);
+        to('vasoWater', 0.25, 1.7, 0.9); to('vaso', 0, 0.9, 3.0);
+        to('scale', 0.8); to('x', -0.75); to('y', -0.45);
+        break;
+      case 4:
+        to('fill', 1, 0.4); to('slope', 0.6, 0.4); to('termo', 0, 0.6); to('tilt', 0); to('rain', 0, 0.2);
+        to('wet', Math.max(S.wet, 0.65), 0.6); to('bomb', 1, 1.1, 0.3);
+        to('scale', 1.1); to('x', 0); to('y', -0.15);
+        break;
+      case 5:
+        to('fill', 1, 0.4); to('slope', 0.6, 0.4); to('bomb', 1, 0.6); to('tilt', 0); to('rain', 0, 0.2);
+        // ceba, la espuma sube mientras termina de llenar y el termo se retira igual que entró
+        to('termo', 1, 0.9); pour(0.9, 3.0); to('wet', 1, 1.8, 1.0);
+        to('foam', 1, 2.0, 1.4); to('termo', 0, 0.9, 3.5);
+        to('scale', 0.8); to('x', -0.75); to('y', -0.45);
+        break;
+      case 6:
+        to('fill', 1, 0.4); to('slope', 0.6, 0.4); to('bomb', 1, 0.6); to('wet', 1, 0.6); to('termo', 0, 0.7); to('foam', 1, 0.6);
+        to('tilt', 0); to('rain', 0, 0.2); to('scale', 1.02); to('x', 0); to('y', -0.05);
+        break;
+    }
+    // red de seguridad: si un paso se interrumpe a la mitad, sus movimientos pasajeros (sacudida, chorro,
+    // lluvia de yerba, vaso, yerbera y su pico) vuelven siempre a reposo en vez de quedar congelados
+    for (const k in REST) if (!tweens[k] || tweens[k].length === 0) to(k, REST[k], 0.3);
+  }
+  addEventListener('ritual:step', (e) => enterStep(e.detail.step));
+  enterStep(window.ritualStep() ?? 0);
+
+  // ── Layout ────────────────────────────────────────────────
+  let mobile = false;
+  let lastW = 0, lastH = 0;
+  function resize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (w === lastW && Math.abs(h - lastH) < 2) return;
+    lastW = w; lastH = h;
+    mobile = innerWidth <= 760;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    const dist = mobile ? 13.5 * 844 / 506 : 13, el = THREE.MathUtils.degToRad(19), aim = mobile ? 2.9 : 2.15;
+    camera.position.set(0, aim + Math.sin(el) * dist, Math.cos(el) * dist);
+    camera.lookAt(0, aim, 0);
+    // escritorio: el mate a la derecha, dejando lugar al texto
+    if (!mobile) camera.setViewOffset(w, h, -w * 0.2, h * 0.02, w, h);
+    camera.updateProjectionMatrix();
+  }
+  addEventListener('resize', resize);
+  resize();
+
+  const pointer = { x: 0, y: 0 }, look = { x: 0, y: 0 };
+  addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;            // con el dedo se está scrolleando: el mate no lo sigue
+    pointer.x = e.clientX / innerWidth - 0.5;
+    pointer.y = e.clientY / innerHeight - 0.5;
+  });
+
+  // ── Loop ─────────────────────────────────────────────────
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), mid = new THREE.Vector3();
+  const hueco = new THREE.Vector3();
+  let last = performance.now(), elapsed = 0, spawnAcc = 0;
+
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now; elapsed += dt;
+    tick(dt);
+
+    look.x += (pointer.x - look.x) * 0.05;
+    look.y += (pointer.y - look.y) * 0.05;
+    const idle = reduceMotion ? 0 : 1;
+    // en celular el encuadre es angosto: los corrimientos laterales de cada paso van a la mitad
+    // y el mate de costado se corre hacia el centro para no cortarse contra el borde
+    rig.position.set(mobile ? S.x * 0.5 + S.tilt * 1.05 : S.x, S.y * (mobile ? 0.4 : 1) + Math.sin(elapsed * 0.9) * 0.03 * idle, 0);
+    // en celular el mate no pasa de un tamaño, así la bombilla nunca se mete en el encabezado
+    rig.scale.setScalar(mobile ? Math.min(S.scale, 1) * 1.45 : S.scale * 1.3);
+    // la foto está proyectada de frente: el mate apenas gira para no delatar el truco
+    rig.rotation.y = Math.sin(elapsed * 0.35) * 0.03 * idle + look.x * 0.06;
+    // inclinación con un leve vaivén mientras se "agita"
+    mate.rotation.z = S.tilt + Math.sin(elapsed * 22) * 0.04 * S.shake;
+    mate.rotation.x = -S.tilt * 0.45;   // de costado, con la boca un poco hacia quien mira
+    // al inclinarse se apoya sobre la panza: se levanta lo justo para que el punto más bajo toque la mesa
+    {
+      const sn = Math.sin(mate.rotation.z), cs = Math.cos(mate.rotation.z);
+      let low = 0, lowX = 0;
+      for (const p of outer) for (const x of [p.x, -p.x]) {
+        const y = x * sn + p.y * cs;
+        if (y < low) { low = y; lowX = x * cs - p.y * sn; }
+      }
+      mate.position.y = -low;
+      shadow.position.x = lowX * 0.7;
+    }
+    shadow.scale.setScalar(1 - Math.abs(S.tilt) * 0.15);
+
+    if (mobile) {
+      camera.setViewOffset(lastW, lastH, 0, S.vy * (S.vy > 0 ? 0.15 : 0.12) * lastH, lastW, lastH);
+      camera.updateProjectionMatrix();
+    }
+
+    updateYerba(S.fill, S.slope, S.wet);
+
+    // bombilla entra desde arriba siguiendo su propio eje
+    bombilla.visible = S.bomb > 0.01;
+    bombilla.position.copy(BOMB_DIR).multiplyScalar(2.6 * (1 - S.bomb));
+
+    termo.visible = S.termo > 0.01;
+    // pico del termo siempre un poco arriba del hueco, siga el mate derecho o inclinado
+    huecoRig.set(HUECO_X, yerbaTop(S.fill), 0).applyAxisAngle(Z, mate.rotation.z);
+    TERMO_IN.set(huecoRig.x + 0.22, huecoRig.y + 1.05, 0.1).sub(SPOUT_OFF);
+    TERMO_OUT.copy(TERMO_IN).add(OUT_SHIFT);
+    termo.position.lerpVectors(TERMO_OUT, TERMO_IN, S.termo);
+    termo.rotation.z = TERMO_ROT - (1 - S.termo) * 0.5;
+
+    vaso.visible = S.vaso > 0.01;
+    if (vaso.visible) {
+      // el borde del vaso queda apenas arriba del hueco; entra más derecho y se inclina para servir
+      VASO_IN.set(huecoRig.x + 0.3, huecoRig.y + 0.75, 0.1).sub(LIP_OFF);
+      VASO_OUT.copy(VASO_IN).add(new THREE.Vector3(3.4, 1.2, 0));
+      vaso.position.lerpVectors(VASO_OUT, VASO_IN, S.vaso);
+      vaso.rotation.z = VASO_ROT - (1 - S.vaso) * 1.4;
+      // nivel del agua: un poco por encima del borde más bajo, y baja a medida que sirve
+      vaso.updateMatrixWorld(true);
+      vasoLip.getWorldPosition(lipWorld);
+      waterPlane.constant = lipWorld.y + (0.1 + 0.32 * S.vasoWater) * rig.scale.x;
+    }
+
+    // chorro: de la boca del termo (o del borde del vaso) al hueco de la montañita
+    const pouring = vaso.visible && S.vaso > 0.5 ? vasoLip : termo.visible ? spoutTip : null;
+    const flowing = S.head - S.tail > 0.001 && pouring !== null;
+    stream.visible = flowing;
+    if (flowing) {
+      scene.updateMatrixWorld();
+      pouring.getWorldPosition(a);
+      hueco.set(HUECO_X, yerbaTop(S.fill) - 0.05, 0.02);
+      mate.localToWorld(b.copy(hueco));
+      const p0 = a.clone().lerp(b, S.tail), p1 = a.clone().lerp(b, S.head);
+      const len = p0.distanceTo(p1);
+      mid.addVectors(p0, p1).multiplyScalar(0.5);
+      stream.position.copy(mid);
+      const w = pouring === vasoLip ? 1.7 : 1;           // del vaso cae un chorro más ancho
+      stream.scale.set(rig.scale.x * w, Math.max(len, 0.001), rig.scale.x * w);
+      stream.quaternion.setFromUnitVectors(up, p1.clone().sub(p0).normalize());
+    }
+
+    updateFoam();
+
+    // yerbera: entra casi derecha y se inclina para volcar; sale deshaciendo el mismo movimiento
+    yerbera.visible = S.yerbera > 0.01;
+    yerbera.position.lerpVectors(YB_OUT, YB_IN, S.yerbera);
+    yerbera.rotation.z = YB_ROT - (1 - S.yerbera) * 1.6;
+    spout.visible = S.spout > 0.02;
+    spout.scale.set(1, Math.max(S.spout, 0.02), 1);      // se desliza hacia afuera desde la tapa
+    const fromLip = yerbera.visible && S.yerbera > 0.85 && S.spout > 0.9;
+    if (fromLip) {
+      yerbera.updateMatrixWorld(true);
+      mate.updateMatrixWorld(true);
+      mate.worldToLocal(ybLip.getWorldPosition(ybLipMate));
+    }
+
+    // partículas de yerba cayendo dentro del mate (desde el borde de la yerbera cuando está volcando)
+    const floor = yerbaTop(S.fill);
+    spawnAcc += S.rain * dt * 340;
+    for (let i = 0; i < N; i++) {
+      if (pLife[i] < 0) {
+        if (spawnAcc >= 1) {
+          spawnAcc--;
+          if (fromLip) {
+            pPos[i * 3] = Math.min(0.3, Math.max(-0.3, ybLipMate.x + (pr() - 0.5) * 0.18));
+            pPos[i * 3 + 1] = ybLipMate.y - pr() * 0.1;
+            pPos[i * 3 + 2] = (pr() - 0.5) * 0.2;
+            pVel[i] = 0.2 + pr() * 0.6;
+          } else {
+            const r = Math.sqrt(pr()) * 0.32, t = pr() * Math.PI * 2;
+            pPos[i * 3] = Math.cos(t) * r; pPos[i * 3 + 1] = 2.4 + pr() * 1.0; pPos[i * 3 + 2] = Math.sin(t) * r;
+            pVel[i] = 0.5 + pr() * 0.8;
+          }
+          pLife[i] = 1;
+        } else { pPos[i * 3 + 1] = -99; continue; }
+      }
+      pVel[i] += 9 * dt;
+      pPos[i * 3 + 1] -= pVel[i] * dt;
+      if (pPos[i * 3 + 1] < floor) { pLife[i] = -1; pPos[i * 3 + 1] = -99; }
+    }
+    spawnAcc = Math.min(spawnAcc, 5);
+    pGeo.attributes.position.needsUpdate = true;
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>

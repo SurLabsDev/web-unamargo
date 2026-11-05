@@ -13,6 +13,7 @@ import { Nosotros } from "@/components/Nosotros";
 import { Personalizados } from "@/components/Personalizados";
 import { Empresas } from "@/components/Empresas";
 import { Envios } from "@/components/Envios";
+import { Guias } from "@/components/Guias";
 import { Preguntas } from "@/components/Preguntas";
 import { Contacto } from "@/components/Contacto";
 import { Footer } from "@/components/Footer";
@@ -46,6 +47,7 @@ export default async function Home() {
         <Personalizados />
         <Empresas />
         <Envios />
+        <Guias />
         <Preguntas />
         <Contacto />
       </main>
