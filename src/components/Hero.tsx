@@ -38,17 +38,33 @@ export function Hero() {
           className="entra mt-9 flex max-w-[900px] flex-wrap items-center justify-between gap-5"
           style={{ "--d": "300ms" } as React.CSSProperties}
         >
-          <a
-            href="#tienda"
-            className="group inline-flex items-center gap-2.5 rounded-pill bg-tinta px-7 py-3.5 text-sm font-semibold text-papel transition-transform duration-300 hover:scale-[1.03] active:scale-[0.99]"
-          >
-            Ver productos
-            <ArrowDown
-              size={15}
-              weight="bold"
-              className="transition-transform duration-300 group-hover:translate-y-0.5"
-            />
-          </a>
+          {/* Las guias van aca, al lado de "Ver productos": el cliente pidio
+              que se vean rapido ("es un distintivo que no he visto") y el
+              dueño, que queden detras de un boton. Lleva a la seccion con las
+              dos y no a una sola, porque desde aca no se sabe si quien entra
+              tiene el mate por curar o ya lo esta cebando.
+              Es el `.btn-outline` de la demo del cliente: borde negro de 1.5px
+              que se llena al pasar. El borde es un ring hacia adentro y no un
+              `border`, para que mida lo mismo que el boton lleno de al lado. */}
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="#tienda"
+              className="group inline-flex items-center gap-2.5 rounded-pill bg-tinta px-7 py-3.5 text-sm font-semibold text-papel transition-transform duration-300 hover:scale-[1.03] active:scale-[0.99]"
+            >
+              Ver productos
+              <ArrowDown
+                size={15}
+                weight="bold"
+                className="transition-transform duration-300 group-hover:translate-y-0.5"
+              />
+            </a>
+            <a
+              href="#guias"
+              className="inline-flex items-center rounded-pill px-7 py-3.5 text-sm font-semibold ring-[1.5px] ring-tinta ring-inset transition-colors duration-300 hover:bg-tinta hover:text-papel"
+            >
+              Cómo curar y cebar
+            </a>
+          </div>
 
           {/* Las tres redes del archivo del cliente, en su orden. Pinterest
               estaba en el original y se habia caido de esta version. */}

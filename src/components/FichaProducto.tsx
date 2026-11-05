@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { X, CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { precio, videoDe, type Producto } from "@/lib/catalog";
+import { GUIAS } from "@/lib/guias";
 import { AddToCart } from "./cart/AddToCart";
 
 /** El video de un producto, apoyado encima de la foto que le hace de marco.
@@ -356,6 +357,19 @@ export function FichaProducto({
                 <p className="type-body text-sm leading-relaxed text-tinta-media">
                   {producto.description}
                 </p>
+              )}
+
+              {/* Un mate nuevo se cura antes de usarlo, y es lo primero que
+                  pregunta quien compra uno. Solo en los mates: en una bombilla
+                  o una matera no aplica. Se compara el slug y no el nombre, que
+                  es el texto que el cliente puede cambiar desde el ERP. */}
+              {producto.category?.slug === "mates" && (
+                <a
+                  href={GUIAS.curar.ruta}
+                  className="self-start text-sm font-medium underline decoration-tinta-suave underline-offset-4 transition-colors hover:decoration-tinta"
+                >
+                  ¿Mate nuevo? Así se cura
+                </a>
               )}
 
               <dl className="mt-1 border-t border-linea pt-4 text-sm">

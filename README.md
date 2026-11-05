@@ -189,6 +189,41 @@ dibujo: los límites son los oficiales de la Intendencia.
 - Pesa 98 KB de trazos, que comprimidos viajan en unos 64 KB junto con toda la
   página. Si algún día molesta, se simplifica subiendo el umbral del generador.
 
+## Las guías de curar y cebar
+
+`/como-curar-un-mate` y `/como-cebar-un-mate` son dos páginas del cliente, con
+un mate en 3D (three.js) que hace cada paso mientras se baja. Las armó el
+cliente en claude.ai y se sirven tal cual: su CSS, su marcado y sus scripts no
+se tocan.
+
+- **Cada plantilla está en `src/guias/<guia>.html`** y sus imágenes en
+  `public/guias/`. No se editan a mano: se reimportan.
+- **Cuando el cliente mande una versión nueva**, se guarda su HTML y:
+
+  ```bash
+  node scripts/importar-guia.mjs curar ~/Downloads/curar.html
+  npm run build   # y mirarla en el navegador, también en un celular
+  ```
+
+  El script saca el runtime que claude.ai le inyecta a todo artifact
+  (`window.__FRAME_PREAMBLE` y un IIFE de ~40 KB), pasa las imágenes en base64 a
+  archivos con el hash del contenido en el nombre, apunta el enlace a la otra
+  guía y el logo a este sitio, y cambia el "Seguinos" del último paso por "La
+  tienda". **Frena sin escribir nada** si queda código del host, si la guía
+  nombra un host externo que no está en su lista, si una dependencia del CDN no
+  tiene versión fija o si un script usa la red. Esto último se acepta con
+  `--revisado`, pero después de leerlo: es código de un tercero publicado con
+  nuestro dominio.
+- **Lo que depende del ambiente lo pone la ruta al construir**
+  (`src/guias/servir.ts`): título y descripción pensados para la búsqueda,
+  canonical, robots según `SE_INDEXA`, Open Graph con su imagen y un JSON-LD
+  `HowTo` armado con los pasos que la propia guía muestra. Si el cliente cambia
+  un paso, el JSON-LD lo sigue solo; las dos respuestas de `src/lib/faq.ts` que
+  las resumen no, y hay que repasarlas.
+- **"La tienda" ocupa el lugar de "Seguinos"; no se suma como tercer botón.** En
+  el celular entran dos por fila, y en cebar la bombilla 3D se metía en la
+  segunda. Instagram sigue arriba a la derecha en todos los pasos.
+
 ## Nada de datos inventados
 
 El telefono, el mail y las zonas de entrega salen de la demo que armo el
