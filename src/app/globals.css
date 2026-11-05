@@ -6,7 +6,10 @@
 @theme {
   --color-tinta: #0a0a0a;        /* negro de la marca, no #000 puro */
   --color-tinta-media: #555555;  /* parrafos. 7.4:1 sobre blanco */
-  --color-tinta-suave: #888888;  /* metadatos */
+  --color-tinta-suave: #6e6e6e;  /* metadatos. Era #888 y daba 3.5:1, por
+                                    debajo del minimo AA (4.5:1) para texto
+                                    chico; asi da 5.1:1 sobre blanco y 4.55:1
+                                    sobre el gris humo. */
   --color-linea: #e8e8e8;        /* hairlines y bordes de pill */
   --color-humo: #f2f2f2;         /* superficie hundida */
   --color-papel: #ffffff;

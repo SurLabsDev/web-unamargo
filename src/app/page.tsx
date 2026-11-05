@@ -35,7 +35,13 @@ export default async function Home() {
     <CartProvider>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        // `<` escapado: los textos de los productos vienen del ERP, y un
+        // "</script>" adentro de una descripcion cerraria esta etiqueta y lo
+        // que sigue se ejecutaria como codigo. Es lo que indica la guia de
+        // JSON-LD de Next.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
+        }}
       />
       <ScrollReveal />
       <Header />
