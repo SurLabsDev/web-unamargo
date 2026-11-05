@@ -18,7 +18,7 @@ import { useCarrito } from "./CartProvider";
 import { aCentavos } from "@/lib/centavos";
 import { precio } from "@/lib/catalog";
 import { SITE, linkWhatsApp } from "@/lib/site";
-import { PICKUPS, ZONAS_ENVIO } from "@/lib/zonas";
+import { ENVIO_GRATIS_TEXTO, PICKUPS, ZONAS_ENVIO } from "@/lib/zonas";
 import {
   A_DOMICILIO,
   FORMAS_PAGO,
@@ -141,7 +141,7 @@ export function CartDrawer() {
     setDatos((d) => ({ ...d, ...parcial }));
   }
 
-  const envio = envioDe(datos);
+  const envio = envioDe(datos, total);
   const totalFinal = totalConEnvio(total, envio);
   const falta = faltantes(datos);
   const href = linkWhatsApp(armarMensaje(items, total, datos));
@@ -328,7 +328,7 @@ export function CartDrawer() {
                     elegido={datos.modo === A_DOMICILIO}
                     onElegir={() => cambiar({ modo: A_DOMICILIO })}
                     titulo="Envío a domicilio"
-                    detalle="Por cadetería, según el barrio"
+                    detalle={`Según el barrio · gratis desde ${ENVIO_GRATIS_TEXTO}`}
                     costo={ENVIO_DESDE ? `desde ${precio(ENVIO_DESDE)}` : ""}
                   />
                 </div>
@@ -377,6 +377,12 @@ export function CartDrawer() {
                     {envio?.tipo === "zona" && (
                       <span className="mt-2 block text-xs text-tinta-media">
                         {envio.zona.rotulo} · el envío cuesta {precio(envio.costo)}
+                      </span>
+                    )}
+                    {envio?.tipo === "gratis" && (
+                      <span className="mt-2 block text-xs font-semibold text-verde">
+                        {envio.zona.rotulo} · envío gratis en compras desde{" "}
+                        {ENVIO_GRATIS_TEXTO}
                       </span>
                     )}
                   </label>
@@ -464,18 +470,22 @@ export function CartDrawer() {
                   <dt className="text-tinta-media">
                     {envio?.tipo === "retiro"
                       ? "Retiro"
-                      : envio?.tipo === "zona"
+                      : envio?.tipo === "zona" || envio?.tipo === "gratis"
                         ? `Envío · ${envio.zona.rotulo}`
                         : "Envío"}
                   </dt>
-                  <dd className="tabular-nums">
+                  <dd
+                    className={`tabular-nums ${envio?.tipo === "gratis" ? "font-semibold text-verde" : ""}`}
+                  >
                     {envio?.tipo === "retiro"
                       ? "Sin costo"
-                      : envio?.tipo === "zona"
-                        ? precio(envio.costo)
-                        : envio?.tipo === "a-coordinar"
-                          ? "A coordinar"
-                          : "—"}
+                      : envio?.tipo === "gratis"
+                        ? "Gratis"
+                        : envio?.tipo === "zona"
+                          ? precio(envio.costo)
+                          : envio?.tipo === "a-coordinar"
+                            ? "A coordinar"
+                            : "—"}
                   </dd>
                 </div>
                 <div className="flex items-baseline justify-between pt-1">

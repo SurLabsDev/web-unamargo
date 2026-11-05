@@ -2,7 +2,13 @@ import { aCentavos } from "@/lib/centavos";
 import { getCatalogo, precio, type Producto } from "@/lib/catalog";
 import { FORMAS_PAGO, enumerar } from "@/lib/pedido";
 import { SITE } from "@/lib/site";
-import { PICKUPS, ZONAS_ENVIO } from "@/lib/zonas";
+import {
+  ENVIO_GRATIS_TEXTO,
+  ENVIO_INTERIOR,
+  FUERA_DE_MONTEVIDEO,
+  PICKUPS,
+  ZONAS_ENVIO,
+} from "@/lib/zonas";
 
 /**
  * /llms.txt: la tienda contada para un asistente de IA, en el formato de
@@ -19,10 +25,9 @@ import { PICKUPS, ZONAS_ENVIO } from "@/lib/zonas";
  * las URLs sueltas Lighthouse daba el archivo por invalido ("no contiene
  * enlaces").
  *
- * Lo que la pagina solo tiene escrito a mano en un componente (el envio gratis
- * desde cierto monto, los envios fuera de Montevideo) no se repite aca: copiado,
- * es el mismo texto en dos lugares, que es como se llego a los tres retiros.
- * Entra el dia que viva en `zonas.ts`.
+ * El envio gratis desde cierto monto y los envios fuera de Montevideo se
+ * repiten aca porque viven en `zonas.ts`, de donde los lee tambien la pagina:
+ * escritos a mano en dos lugares es como se llego a los tres retiros.
  */
 
 export const dynamic = "force-static";
@@ -80,6 +85,8 @@ export async function GET(): Promise<Response> {
           precio(z.costo) ?? "costo a coordinar"
         }. Barrios: ${enumerar(z.barrios)}.`,
     ),
+    `- Envío gratis en ${SITE.ciudad} en compras desde ${ENVIO_GRATIS_TEXTO} (no aplica en ${enumerar(FUERA_DE_MONTEVIDEO)}).`,
+    `- ${ENVIO_INTERIOR}`,
     "",
     "## Tienda",
     `- [Catálogo con precios](${url("/#tienda")}): todos los productos, por rubro, con su precio.`,

@@ -5,7 +5,15 @@ import { MapPin, Truck, ArrowDown } from "@phosphor-icons/react/dist/ssr";
 import { SITE } from "@/lib/site";
 import { Instagram } from "./Sociales";
 import { MapaMontevideo } from "./MapaMontevideo";
-import { PICKUPS, ZONAS_ENVIO, SIN_POLIGONO, barriosDeZona, type Zona } from "@/lib/zonas";
+import {
+  ENVIO_GRATIS_TEXTO,
+  ENVIO_INTERIOR,
+  PICKUPS,
+  ZONAS_ENVIO,
+  SIN_POLIGONO,
+  barriosDeZona,
+  type Zona,
+} from "@/lib/zonas";
 
 const TODAS: Zona[] = [...PICKUPS, ...ZONAS_ENVIO];
 
@@ -229,7 +237,7 @@ export function Envios() {
           </p>
         </div>
         <div className="reveal mt-8 inline-flex rounded-pill bg-verde px-5 py-2.5 text-sm font-semibold">
-          Envío gratis en Montevideo a partir de $3.490
+          Envío gratis en Montevideo a partir de {ENVIO_GRATIS_TEXTO}
         </div>
       </div>
 
@@ -437,8 +445,7 @@ export function Envios() {
             punto ya no existe y no hay dato nuevo sobre esa zona, asi que queda
             solo lo que si esta confirmado. */}
         <p className="max-w-[62ch] text-xs leading-relaxed text-papel/50">
-          Fuera de Montevideo enviamos por Correo Uruguayo o encomienda: el
-          costo varía según destino y peso.
+          {ENVIO_INTERIOR}
         </p>
       </div>
     </section>

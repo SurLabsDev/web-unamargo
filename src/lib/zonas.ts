@@ -93,6 +93,33 @@ export const ZONAS_ENVIO: Zona[] = [
   }),
 ];
 
+/** El envio a domicilio es GRATIS en Montevideo a partir de este monto, como
+ *  string decimal igual que toda la plata del sitio. Es la politica de la demo
+ *  del cliente ("en Montevideo, las compras superiores a $3.490 tienen envio
+ *  sin costo") y la promesa del cartel verde de la seccion Envios.
+ *
+ *  Vive aca y no escrita en el cartel porque la cumplen tres lugares: el
+ *  carrito (que deja de sumar el envio), las preguntas frecuentes y llms.txt.
+ *  Estuvo solo en el cartel y el carrito cobraba la zona igual: la pagina
+ *  prometia una cosa y el pedido decia otra. Se toma "a partir de" (incluye
+ *  el monto justo) porque es lo que dice la pagina. */
+export const ENVIO_GRATIS_DESDE = "3490";
+
+/** El mismo monto listo para mostrar: "$3.490". */
+export const ENVIO_GRATIS_TEXTO = `$${new Intl.NumberFormat("es-UY").format(
+  Number(ENVIO_GRATIS_DESDE),
+)}`;
+
+/** Barrios de las zonas de cadeteria que NO son Montevideo. La promesa del
+ *  envio gratis es "en Montevideo", y Las Piedras queda en Canelones: se le
+ *  cobra su zona siempre. */
+export const FUERA_DE_MONTEVIDEO = ["Las Piedras"];
+
+/** Como se envia al resto del pais. Lo muestran la seccion Envios y llms.txt,
+ *  y por eso vive aca y no en el componente. */
+export const ENVIO_INTERIOR =
+  "Fuera de Montevideo enviamos por Correo Uruguayo o encomienda: el costo varía según destino y peso.";
+
 /** El nombre de uso corriente no siempre es el oficial de la Intendencia.
  *  Acá se traduce, y lo que no tiene poligono se declara en `SIN_POLIGONO`
  *  en vez de forzarlo contra un barrio que no es. */
