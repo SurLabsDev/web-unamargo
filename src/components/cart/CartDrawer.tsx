@@ -210,10 +210,17 @@ export function CartDrawer() {
           ) : (
             <h2 className="text-lg font-semibold tracking-tight">
               Tu pedido
+              {/* El espacio va escrito, como en los titulos de la tienda: con
+                  el margen solo, el lector de pantalla leia "Tu pedido1
+                  artículo". El margen es la mitad porque el espacio ya ocupa
+                  su lugar: el hueco mide 7.8px, casi los 8 de antes. */}
               {unidades > 0 && (
-                <span className="ml-2 text-tinta-media">
-                  {unidades} {unidades === 1 ? "artículo" : "artículos"}
-                </span>
+                <>
+                  {" "}
+                  <span className="ml-1 text-tinta-media">
+                    {unidades} {unidades === 1 ? "artículo" : "artículos"}
+                  </span>
+                </>
               )}
             </h2>
           )}
