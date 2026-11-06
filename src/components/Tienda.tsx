@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { CaretLeft, CaretRight, Plus, X } from "@phosphor-icons/react/dist/ssr";
 import { precio, videoDe, type Catalogo, type Producto } from "@/lib/catalog";
-import { FichaProducto, VideoProducto } from "./FichaProducto";
+import { VideoProducto } from "./VideoProducto";
 import { FiltrosTienda, filtrosDe } from "./FiltrosTienda";
 import { useCarrito } from "./cart/CartProvider";
 import { SITE } from "@/lib/site";
@@ -332,6 +333,23 @@ function Grilla({
 const primeroElMasVendido = (a: Producto, b: Producto) =>
   Number(b.featured === true) - Number(a.featured === true);
 
+/** LA FICHA SE BAJA APARTE, despues del primer pintado. Es de lo mas pesado
+ *  de la pagina y nadie la necesita para ver la tienda: solo al tocar una
+ *  pieza. Cargada con el resto, su codigo se bajaba y se evaluaba antes de
+ *  que la pagina terminara de aparecer, y en un celular lento eso es lo que
+ *  mide PageSpeed. En el servidor no se dibuja nunca (abre recien con un
+ *  toque), asi que el HTML no cambia. Ver `precargarFicha`. */
+const FichaProducto = dynamic(
+  () => import("./FichaProducto").then((m) => m.FichaProducto),
+  { ssr: false },
+);
+
+/** Con la pagina ya quieta se baja la ficha de antemano, asi el primer toque
+ *  en una pieza la abre sin esperar a la red. */
+function precargarFicha() {
+  void import("./FichaProducto");
+}
+
 /** La ficha abierta, o la ultima que se abrio (ver donde se monta). */
 type Ficha = {
   producto: Producto;
@@ -355,6 +373,17 @@ type Ficha = {
 export function Tienda({ catalogo }: { catalogo: Catalogo }) {
   const [ficha, setFicha] = useState<Ficha | null>(null);
   const [filtro, setFiltro] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Safari recien tiene `requestIdleCallback` desde hace poco: si no esta,
+    // un rato despues de cargar alcanza.
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(precargarFicha, { timeout: 4000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const t = setTimeout(precargarFicha, 2500);
+    return () => clearTimeout(t);
+  }, []);
 
   function abrirFicha(producto: Producto, origen: HTMLElement) {
     setFicha((f) => ({ producto, origen, abierta: true, vez: (f?.vez ?? 0) + 1 }));

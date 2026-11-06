@@ -6,7 +6,6 @@ import { getTira } from "@/lib/tira";
 import { construirSchema } from "@/lib/schema";
 import { FAQ } from "@/lib/faq";
 import { CartProvider } from "@/components/cart/CartProvider";
-import { CartDrawer } from "@/components/cart/CartDrawer";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
@@ -20,8 +19,7 @@ import { Guias } from "@/components/Guias";
 import { Preguntas } from "@/components/Preguntas";
 import { Contacto } from "@/components/Contacto";
 import { Footer } from "@/components/Footer";
-import { PopupAviso } from "@/components/PopupAviso";
-import { Playlist } from "@/components/Playlist";
+import { Diferidos } from "@/components/Diferidos";
 
 /** El catalogo del ERP se revalida cada 5 minutos. Su propio endpoint ya
  *  cachea 60s en CDN con stale-while-revalidate 300, asi que esto no agrega
@@ -81,9 +79,7 @@ export default async function Home() {
         <Contacto />
       </main>
       <Footer />
-      <CartDrawer />
-      <PopupAviso popup={popup} />
-      <Playlist />
+      <Diferidos popup={popup} />
     </CartProvider>
   );
 }

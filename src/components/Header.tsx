@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { Bag } from "@phosphor-icons/react/dist/ssr";
 import { useCarrito } from "./cart/CartProvider";
 import { Logo } from "./Logo";
-import { MenuMovil } from "./MenuMovil";
+
+/** El menu del celular se baja despues del primer pintado: es un dialogo que
+ *  en el servidor no dibuja nada (vive en un portal) y nadie lo abre antes de
+ *  que la pagina aparezca. Si alguien toca la hamburguesa antes de que llegue,
+ *  se abre apenas llega. */
+const MenuMovil = dynamic(
+  () => import("./MenuMovil").then((m) => m.MenuMovil),
+  { ssr: false },
+);
 
 const NAV = [
   { href: "#tienda", label: "Tienda" },
