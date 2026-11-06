@@ -29,9 +29,13 @@ import { useEffect, useEffectEvent, useSyncExternalStore, type RefObject } from 
  * `allow-discrete` en `display`. Safari todavia no, y ahi la salida cortaba
  * seco. Esto anda en los dos.
  *
- * `esperaMax` es la red por si la transicion no dispara (movimiento reducido,
- * o un navegador que no anima): sin eso el dialogo quedaria abierto para
- * siempre. Tiene que ser un poco mas larga que la transicion de salida.
+ * Lo que dura la salida, el dialogo sigue modal y la pagina de atras inerte:
+ * un clic ahi no llega a nada. Se acepta porque se lo ve irse. Sin
+ * transicion no hay nada que ver, y por eso ahi se cierra en el acto.
+ *
+ * `esperaMax` es la red por si la transicion no dispara (un navegador que no
+ * anima): sin eso el dialogo quedaria abierto para siempre. Tiene que ser un
+ * poco mas larga que la transicion de salida.
  */
 export function useDialogo(
   ref: RefObject<HTMLDialogElement | null>,
@@ -58,6 +62,22 @@ export function useDialogo(
     }
 
     if (!abierto && d.open) {
+      // SIN TRANSICION SE CIERRA EN EL ACTO. Con movimiento reducido el CSS
+      // de los cuatro dialogos pone `transition: none`: el dialogo
+      // desaparecia en el primer cuadro pero seguia modal hasta `esperaMax`,
+      // y un clic en ese rato no llegaba a nada, sin nada en pantalla que
+      // explicara por que. Se mira tambien el `::backdrop`, que tiene su
+      // propia transicion.
+      const quieto = (duraciones: string) =>
+        duraciones.split(",").every((s) => parseFloat(s) === 0);
+      if (
+        quieto(getComputedStyle(d).transitionDuration) &&
+        quieto(getComputedStyle(d, "::backdrop").transitionDuration)
+      ) {
+        d.close();
+        return;
+      }
+
       d.setAttribute("data-cerrando", "");
       let cerrado = false;
       const terminar = () => {
