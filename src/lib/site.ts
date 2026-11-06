@@ -55,6 +55,18 @@ export const ERP_API =
   process.env.NEXT_PUBLIC_ERP_API ??
   "https://erp-unamargo.vercel.app/api/public/v1/stock";
 
+/** La direccion de otro recurso de la misma API, al lado de `/stock`:
+ *  `urlDelErp("popup")` da `.../v1/popup`. `new URL` reemplaza el ultimo
+ *  tramo de `ERP_API`, pero si la variable termina en barra (`.../v1/stock/`)
+ *  lo conserva y agrega: `.../v1/stock/popup`, un 404 que la web toma por "no
+ *  hay pop-up" sin que nada avise. El catalogo no lo sufre porque arma su URL
+ *  pegando texto. La barra se saca aca, una vez, y no en cada consumidor.
+ *  Tira si la variable no es una URL: quien lo llama lo hace adentro de su
+ *  try. */
+export function urlDelErp(recurso: string): URL {
+  return new URL(recurso, ERP_API.replace(/\/+$/, ""));
+}
+
 export function linkWhatsApp(mensaje: string): string {
   return `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(mensaje)}`;
 }

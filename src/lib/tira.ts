@@ -1,4 +1,4 @@
-import { ERP_API } from "./site";
+import { urlDelErp } from "./site";
 import { fotoServible } from "./fotos";
 
 /** Contrato de /api/public/v1/tira del ERP: las fotos que corren abajo del
@@ -52,7 +52,7 @@ export async function getTira(): Promise<FotoTira[] | null> {
     // pop-up: si la web apunta a otra instancia con `NEXT_PUBLIC_ERP_API`, la
     // tira viene de esa misma instancia. Se arma ADENTRO del try: una variable
     // mal escrita deja la tira con las fotos de siempre, no tira la pagina.
-    const url = new URL("tira", ERP_API);
+    const url = urlDelErp("tira");
     // El mismo sello que el catalogo (ver `getCatalogo`): el endpoint cachea
     // 60s en el CDN del ERP, y sin el sello el aviso de "cambio algo" del ERP
     // regeneraria la pagina con la respuesta vieja.

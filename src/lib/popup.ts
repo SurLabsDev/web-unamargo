@@ -1,4 +1,4 @@
-import { ERP_API } from "./site";
+import { urlDelErp } from "./site";
 import { fotoServible } from "./fotos";
 
 /** Contrato de /api/public/v1/popup del ERP: el pop-up que el cliente tiene
@@ -68,7 +68,7 @@ export async function getPopup(): Promise<Popup | null> {
     // apunta a otra instancia con `NEXT_PUBLIC_ERP_API`, el pop-up viene de
     // esa misma instancia sin configurar nada mas. Se arma ADENTRO del try: una
     // variable mal escrita no puede tirar la pagina, solo dejarla sin pop-up.
-    const url = new URL("popup", ERP_API);
+    const url = urlDelErp("popup");
     // El mismo sello que el catalogo (ver `getCatalogo`): el endpoint cachea
     // 60s en el CDN del ERP, y sin el sello el aviso de "cambio algo" del ERP
     // regeneraria la pagina con la respuesta vieja.
