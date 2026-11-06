@@ -136,13 +136,32 @@ export function useMontado(): boolean {
   );
 }
 
-/** Lo que dura, despues de abrirse un dialogo, la ventana en la que se ignoran
- *  los clics adentro y en el fondo. Es el segundo toque del gesto que lo abrio:
- *  un doble toque en "Agregar" abre el cajon con el primero, y el segundo cae
- *  en lo que quedo debajo del dedo. Medido en el iPhone: con 40 a 500ms entre
- *  toques caia en "Continuar" y salteaba la lista; con 0ms caia en el fondo y
- *  lo cerraba. Con el mouse, un doble clic abria y cerraba en el mismo gesto. */
+/** El segundo toque de un doble toque. Un doble toque en "Agregar" abre el
+ *  cajon con el primero, y el segundo cae en lo que quedo debajo del dedo.
+ *  Medido en el iPhone: con 40 a 500ms entre toques caia en "Continuar" y
+ *  salteaba la lista; con 0ms caia en el fondo y lo cerraba. Con el mouse, un
+ *  doble clic abria y cerraba en el mismo gesto.
+ *
+ *  Por eso se ignora un clic que llega durante `GRACIA_MS` despues de abrir Y
+ *  cae a menos de `RADIO_DOBLE` px del toque que abrio el dialogo. Solo ese:
+ *  la X o el fondo tocados en otro lugar responden enseguida, por rapido que
+ *  sea. */
 const GRACIA_MS = 500;
+const RADIO_DOBLE = 40;
+
+/** Donde y cuando fue el ultimo toque o clic en la pagina: el que abre un
+ *  dialogo ocurre antes de que el dialogo exista, asi que se escucha en el
+ *  documento. Se registra al cargar el modulo, una sola vez. */
+let ultimoToque: { x: number; y: number; t: number } | null = null;
+if (typeof document !== "undefined") {
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      ultimoToque = { x: e.clientX, y: e.clientY, t: performance.now() };
+    },
+    { capture: true, passive: true },
+  );
+}
 
 /**
  * Cerrar con un clic en el fondo, y solo con eso. Lo usan los tres dialogos
@@ -157,23 +176,37 @@ const GRACIA_MS = 500;
  * dedo el `pointerup` le llega al mismo elemento que el `pointerdown`, asi que
  * un toque en el fondo sigue cerrando.
  *
- * Ademas, durante `GRACIA_MS` despues de abrirse no pasa ningun clic, ni al
- * fondo ni a lo de adentro: ver la constante.
+ * Ademas se ignora el segundo toque del gesto que lo abrio: ver `GRACIA_MS`.
  */
 export function useCierreEnFondo(abierto: boolean, cerrar: () => void) {
   const empezo = useRef(false);
   const termino = useRef(false);
   const abiertoEn = useRef(0);
+  const origen = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
-    if (abierto) abiertoEn.current = performance.now();
+    if (!abierto) return;
+    const ahora = performance.now();
+    abiertoEn.current = ahora;
+    // Un dialogo que se abre con el teclado, o solo (el pop-up), no tiene
+    // toque de origen y no ignora nada.
+    origen.current =
+      ultimoToque && ahora - ultimoToque.t < 1000
+        ? { x: ultimoToque.x, y: ultimoToque.y }
+        : null;
   }, [abierto]);
 
   return {
     onClickCapture: (e: React.MouseEvent<HTMLDialogElement>) => {
       // `detail` es 0 en un clic de teclado (Enter, Espacio): ese no viene
       // de un doble toque y pasa siempre.
-      if (e.detail > 0 && performance.now() - abiertoEn.current < GRACIA_MS) {
+      const o = origen.current;
+      if (
+        e.detail > 0 &&
+        o &&
+        performance.now() - abiertoEn.current < GRACIA_MS &&
+        Math.hypot(e.clientX - o.x, e.clientY - o.y) < RADIO_DOBLE
+      ) {
         e.preventDefault();
         e.stopPropagation();
       }
