@@ -75,18 +75,23 @@ lenguaje fue el primer intento y estuvo mal: acá se parte del suyo.
   (`#0E6E50`), 5.69:1. El claro queda para el hover, donde aclarar sube el
   contraste.
 - **Los textos son los de ellos, palabra por palabra.** El hero, "¿Qué hacemos?",
-  "Personalizados", "Trabajo para empresas", las tres zonas de pickup y
+  "Personalizados", "Trabajo para empresas", el punto de retiro y
   "Trabajá con nosotros" salen de su demo. No se reescriben.
-- **Sus assets**: el logo, las 11 fotos del marquee y las fotos de sección están
-  en `public/`, copiadas de la demo.
+- **Sus assets**: el logo, las 6 fotos de la tira y las fotos de sección están
+  en `public/`, copiadas de la demo. Las de la tira son las de siempre: las que
+  se ven mientras el cliente no cargue otras en `/tira` del ERP.
 - **El widget de Spotify no es un adorno.** La playlist la armaron ellos y es de
   las cosas más propias que tiene la marca.
 - Copia en español rioplatense. Sin emojis y sin rayas largas.
 
 ### Animaciones
 
-- **Marquee de fotos**: la tira lleva las 11 imágenes dos veces y se desplaza
-  exactamente la mitad, así el ciclo cierra sin salto. Se frena al pasar el mouse.
+- **Tira de fotos**: las fotos salen del ERP (`src/lib/tira.ts`) y, si no hay
+  ninguna o el ERP no contesta, son las 6 de `public/marquee/`. El juego se
+  repite hasta cubrir 2560px y esa unidad va dos veces; la animación corre
+  exactamente la mitad, así el ciclo cierra sin salto y a la misma velocidad
+  sea cual sea la cantidad de fotos. No se frena con el mouse encima (el porqué
+  está en `globals.css`).
 - **Entrada del hero**: no espera al observador, entra sola al cargar, escalonada
   con `--d`.
 - **Revelado al scroll**: un solo IntersectionObserver que desuscribe cada
