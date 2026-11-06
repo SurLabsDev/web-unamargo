@@ -135,6 +135,11 @@ html { scroll-behavior: smooth; }
 .cajon-pedido[open][data-cerrando] {
   transform: translateX(100%);
 }
+/* El foco entra al dialogo mismo (ver `CartDrawer`), igual que en el menu y
+   en el pop-up: un aro alrededor de todo el cajon no le dice nada a nadie. */
+.cajon-pedido:focus {
+  outline: none;
+}
 
 .cajon-pedido::backdrop {
   background: rgb(10 10 10 / 0);

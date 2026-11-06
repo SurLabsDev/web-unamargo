@@ -111,7 +111,6 @@ export function CartDrawer() {
   const [bloqueado, setBloqueado] = useState(false);
   const [paso, setPaso] = useState<Paso>("pedido");
   const [datos, setDatos] = useState<DatosEntrega>(leerDatosGuardados);
-  const cerrarRef = useRef<HTMLButtonElement>(null);
   const tituloEntregaRef = useRef<HTMLHeadingElement>(null);
   const dialogoRef = useRef<HTMLDialogElement>(null);
   const montado = useMontado();
@@ -129,8 +128,12 @@ export function CartDrawer() {
     }
   }
 
+  // El foco va al dialogo y no a la X, como en el menu: el cajon se abre con
+  // el dedo (agregar, la bolsa) y Safari en el iPhone le pintaba a la X el aro
+  // de foco del teclado en cada apertura. El primer Tab cae igual en la X,
+  // que es lo primero que se puede enfocar adentro.
   useDialogo(dialogoRef, abierto, {
-    alAbrir: () => cerrarRef.current?.focus(),
+    alAbrir: () => dialogoRef.current?.focus(),
   });
 
   useEffect(() => {
@@ -176,6 +179,7 @@ export function CartDrawer() {
     <dialog
       ref={dialogoRef}
       aria-label="Tu pedido"
+      tabIndex={-1}
       onCancel={(e) => {
         e.preventDefault();
         setAbierto(false);
@@ -225,7 +229,6 @@ export function CartDrawer() {
             </h2>
           )}
           <button
-            ref={cerrarRef}
             onClick={() => setAbierto(false)}
             aria-label="Cerrar el pedido"
             className="rounded-pill p-2 text-tinta-media transition-colors hover:bg-humo hover:text-tinta"
