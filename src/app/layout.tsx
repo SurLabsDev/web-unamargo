@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { OPEN_GRAPH_BASE } from "@/lib/metadatos";
 import { SE_INDEXA, SITE } from "@/lib/site";
 import "./globals.css";
 
@@ -29,24 +30,18 @@ export const metadata: Metadata = {
     template: `%s | ${SITE.nombre}`,
   },
   description: SITE.descripcion,
-  /* "./" y no "/". Con "/", las guias (/como-curar-un-mate y
-     /como-cebar-un-mate) heredaban el canonical de la home: le decian a Google
-     que eran una copia de la portada, que es la forma mas rapida de que no
-     indexe una pagina nueva. "./" Next lo resuelve contra la ruta de cada
-     pagina (`resolveRelativeUrl` en next/dist/lib/metadata/resolvers), asi que
-     cada una se declara a si misma, y en la home sigue dando
-     https://unamargo.com. */
-  alternates: { canonical: "./" },
-  openGraph: {
-    type: "website",
-    url: "./",
-    locale: "es_UY",
-    siteName: SITE.nombre,
-    /* Sin `title` ni `description` a proposito: escritos aca, las guias se
-       compartian por WhatsApp con el titulo y la bajada de la portada. Vacios,
-       Next los completa con el title y la description de cada pagina. La
-       imagen sale de `opengraph-image.tsx`. */
-  },
+  /* SIN canonical NI og:url: cada pagina declara la suya. La home los pone en
+     "/" en su propio `metadata` (`page.tsx`); las guias, en el <head> que arma
+     `src/guias/servir.ts`, porque son `route.ts` y no pasan por este layout;
+     la 404 no tiene, porque no es una direccion.
+
+     Aca estaban en "./", que Next resuelve contra la ruta con la que se dibuja
+     la pagina (`resolveRelativeUrl` en next/dist/lib/metadata/resolvers) y
+     solo colapsa al dominio pelado cuando esa ruta es exactamente "/". Vercel
+     regenera la home (ISR) dibujandola como "/index": pasados los primeros
+     5 minutos, la home le decia a Google que su direccion canonica era
+     https://unamargo.com/index. */
+  openGraph: OPEN_GRAPH_BASE,
   robots: { index: SE_INDEXA, follow: SE_INDEXA },
 };
 

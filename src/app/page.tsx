@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { OPEN_GRAPH_BASE } from "@/lib/metadatos";
 import { getCatalogo } from "@/lib/catalog";
 import { getPopup } from "@/lib/popup";
 import { getTira } from "@/lib/tira";
@@ -26,6 +28,21 @@ import { Playlist } from "@/components/Playlist";
  *  desfasaje real. */
 export const revalidate = 300;
 
+/** La direccion canonica de la home, declarada por ella y escrita "/".
+ *
+ *  "/" Next lo resuelve contra `metadataBase` y no contra la ruta con la que
+ *  se dibuja la pagina, asi que da el dominio pelado siempre: tambien cuando
+ *  Vercel la regenera como "/index", que con el "./" que habia en el layout
+ *  le decia a Google que la home era https://unamargo.com/index. Y por eso
+ *  mismo /index, que Vercel contesta con la home, apunta a la raiz.
+ *
+ *  El `openGraph` de una pagina reemplaza entero el del layout: se parte de
+ *  la base compartida y se le suma solo la url. La imagen la sigue agregando
+ *  Next desde `opengraph-image.tsx`. */
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { ...OPEN_GRAPH_BASE, url: "/" },
+};
 
 export default async function Home() {
   // En paralelo: son tres pedidos al mismo ERP y ninguno depende de otro.

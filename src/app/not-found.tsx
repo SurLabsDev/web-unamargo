@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
-import { SITE } from "@/lib/site";
+import { OPEN_GRAPH_BASE } from "@/lib/metadatos";
 import { alt, contentType, size } from "./opengraph-image";
 
 /** La 404 de Next viene en ingles ("This page could not be found"), y en una
@@ -12,15 +12,15 @@ import { alt, contentType, size } from "./opengraph-image";
 export const metadata: Metadata = {
   title: "Página no encontrada",
   robots: { index: false, follow: true },
-  // El layout pone canonical y og:url en "./", que en esta pagina resuelve a
-  // la ruta interna /_not-found: una pagina que no existe no tiene direccion
-  // canonica. El openGraph de una pagina REEMPLAZA entero el del layout, asi
-  // que se repite lo demas, sin url.
+  // Una pagina que no existe no tiene direccion canonica, ni og:url. El
+  // layout ya no pone ninguna de las dos (cada pagina declara la suya), pero
+  // esta lo dice explicito: si un dia el layout vuelve a tener canonical, la
+  // 404 no lo hereda.
   alternates: { canonical: null },
+  // El openGraph de una pagina REEMPLAZA entero el del layout: se parte de la
+  // misma base compartida y se le suma la imagen.
   openGraph: {
-    type: "website",
-    locale: "es_UY",
-    siteName: SITE.nombre,
+    ...OPEN_GRAPH_BASE,
     // Con sus medidas, tipo y texto, como la del resto del sitio: dada como
     // una URL suelta, la imagen perdia esos datos.
     images: {
