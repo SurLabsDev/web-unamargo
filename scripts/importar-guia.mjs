@@ -104,7 +104,9 @@ const EXTENSIONES = {
   "image/webp": "webp",
   "image/avif": "avif",
   "image/gif": "gif",
-  "image/svg+xml": "svg",
+  // SVG NO se extrae: un .svg servido desde nuestro dominio es un documento y
+  // puede correr <script> u onload si alguien lo abre directo. Embebido como
+  // data URI en un <img> no puede ejecutar nada, asi que queda embebido.
   "font/woff2": "woff2",
   "font/woff": "woff",
   "font/ttf": "ttf",
@@ -440,14 +442,24 @@ function revisar(html, { revisado }) {
   if (!/\bstep-copy\b/.test(html)) errores.push("No quedaron pasos (.step-copy).");
 
   const externos = new Set();
-  for (const [url] of html.matchAll(/https?:\/\/[^\s"'`<>()\\]+/g)) {
+  // Toda referencia a otro origen, no solo las "http(s)://" en minusculas: el
+  // navegador tambien carga "HTTPS://host", "wss://host" y "//host" (que sale
+  // por https en este sitio). Las "//host" se buscan solo detras de comillas,
+  // "(" o "=", que es donde las pone un atributo, un string o un url() de
+  // CSS: detras de un espacio son casi siempre comentarios de JS.
+  const candidatas = [
+    ...html.matchAll(/\b[a-z][a-z0-9+.-]*:\/\/[^\s"'`<>()\\]+/gi),
+    ...html.matchAll(/(?<=["'`(=])\/\/[^\s"'`<>()\\/]+[^\s"'`<>()\\]*/g),
+  ].map((m) => m[0]);
+  for (const url of candidatas) {
     let host;
     try {
-      host = new URL(url).hostname;
+      host = new URL(url, "https://local.invalid/").hostname;
     } catch {
       errores.push(`URL que no se entiende: ${url}`);
       continue;
     }
+    if (host === "local.invalid") continue;
     if (!HOSTS_PERMITIDOS.has(host)) errores.push(`Host externo no permitido: ${url}`);
     // Un CDN sin version fija sirve lo que haya hoy: la guia podria romperse
     // sola, o cambiar de codigo sin que nadie lo revise.
@@ -463,9 +475,16 @@ function revisar(html, { revisado }) {
     const primera =
       tipo === "importmap" ? "" : (/^\s*\/\/\s*(.+)$/m.exec(cuerpo)?.[1] ?? "").replace(/^[─\s]+|[─\s]+$/g, "");
     const avisos = SOSPECHOSOS.filter(([re]) => re.test(cuerpo)).map(([, n]) => n);
-    if (attrs && /\ssrc\s*=/.test(` ${attrs}`)) avisos.push(`src externo ${atributo(`<x ${attrs}>`, "src")}`);
+    if (attrs && /\ssrc\s*=/i.test(` ${attrs}`)) avisos.push(`src externo ${atributo(`<x ${attrs}>`, "src")}`);
     return { tipo, bytes: Buffer.byteLength(cuerpo), primera, avisos };
   });
+  // Los manejadores en linea (onclick=, onload=...) tambien son codigo, aunque
+  // no esten adentro de un <script>: se revisan con las mismas reglas.
+  const enLinea = [...html.matchAll(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*')/gi)].map(([, valor]) => valor);
+  const avisosEnLinea = [...new Set(enLinea.flatMap((v) => SOSPECHOSOS.filter(([re]) => re.test(v)).map(([, n]) => n)))];
+  if (avisosEnLinea.length) {
+    scripts.push({ tipo: "manejadores en linea (on*=)", bytes: Buffer.byteLength(enLinea.join("")), primera: "", avisos: avisosEnLinea });
+  }
   const conAvisos = scripts.filter((s) => s.avisos.length);
   if (conAvisos.length && !revisado) {
     errores.push(
