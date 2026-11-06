@@ -41,5 +41,8 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   revalidatePath("/");
+  // llms.txt tambien lista precios del catalogo: sin esto seguia con los
+  // viejos hasta su propia revalidacion por tiempo.
+  revalidatePath("/llms.txt");
   return Response.json({ ok: true, momento: new Date().toISOString() });
 }

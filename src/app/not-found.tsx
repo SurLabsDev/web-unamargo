@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { SITE } from "@/lib/site";
 
 /** La 404 de Next viene en ingles ("This page could not be found"), y en una
  *  tienda uruguaya eso se lee como un sitio roto. Esta dice lo mismo en su
@@ -10,6 +11,17 @@ import { Logo } from "@/components/Logo";
 export const metadata: Metadata = {
   title: "Página no encontrada",
   robots: { index: false, follow: true },
+  // El layout pone canonical y og:url en "./", que en esta pagina resuelve a
+  // la ruta interna /_not-found: una pagina que no existe no tiene direccion
+  // canonica. El openGraph de una pagina REEMPLAZA entero el del layout, asi
+  // que se repite lo demas, sin url.
+  alternates: { canonical: null },
+  openGraph: {
+    type: "website",
+    locale: "es_UY",
+    siteName: SITE.nombre,
+    images: "/opengraph-image",
+  },
 };
 
 export default function NoEncontrada() {

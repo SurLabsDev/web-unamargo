@@ -50,7 +50,12 @@ function Pieza({
     >
       <button
         onClick={onAbrir}
-        aria-label={`Ver ${producto.name}`}
+        // La marca y el descuento van en el nombre accesible: las chapitas
+        // estan adentro de este boton, y su aria-label las tapaba para el
+        // lector de pantalla.
+        aria-label={`Ver ${producto.name}${masVendido ? ", más vendido" : ""}${
+          producto.discount ? `, ${producto.discount.percentage}% off` : ""
+        }`}
         className="relative block aspect-square w-full"
       >
         {/* LA FOTO SIEMPRE VA POR `next/image`, Y EL VIDEO SE MONTA ENCIMA.
@@ -361,6 +366,8 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
 
   // Tocar el chip que ya esta prendido lo apaga: es lo que promete un boton con
   // `aria-pressed`. "Todo" y "Quitar filtro" llegan como null.
+  const barraRef = useRef<HTMLDivElement>(null);
+
   function elegir(clave: string | null) {
     setFiltro((previo) => (clave === previo ? null : clave));
   }
@@ -401,6 +408,7 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
                 nada. Es lo que ve hoy produccion, que todavia no manda ni
                 `trait` ni `featured` ni descuentos. */}
             {generales.length + rasgos.length > 0 && (
+              <div ref={barraRef}>
               <FiltrosTienda
                 generales={generales}
                 rasgos={rasgos}
@@ -408,6 +416,7 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
                 activo={activo?.clave ?? null}
                 onElegir={elegir}
               />
+              </div>
             )}
 
             {/* Para el lector de pantalla: el filtro cambia todo lo que hay
@@ -424,7 +433,17 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
                 items={resultado}
                 siguiendoStock={catalogo.siguiendoStock}
                 onAbrir={setAbierto}
-                onQuitar={() => elegir(null)}
+                onQuitar={() => {
+                  elegir(null);
+                  // "Quitar filtro" se desmonta con la grilla, y el foco caia
+                  // al <body>: se lleva a "Todo", que queda prendido y en el
+                  // mismo lugar.
+                  requestAnimationFrame(() =>
+                    barraRef.current
+                      ?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')
+                      ?.focus(),
+                  );
+                }}
               />
             )}
 
