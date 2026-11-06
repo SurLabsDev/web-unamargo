@@ -455,8 +455,15 @@ export function FichaProducto({
               </h3>
             </div>
 
+            {/* La descripcion se muestra con sus saltos de linea, como el
+                texto del pop-up: el ERP la manda en parrafos separados por un
+                renglon en blanco y con una caracteristica por renglon
+                ("Material: ...", "Cuidados: ..."), y sin `pre-line` todo
+                quedaba en un solo parrafo corrido. Llegan saltos `\r\n` y
+                `\n`; los dos se ven igual con `pre-line` (medido en Chrome y
+                en WebKit), asi que no hace falta tocar el texto. */}
             {producto.description && (
-              <p className="type-body text-sm leading-relaxed text-tinta-media">
+              <p className="type-body whitespace-pre-line text-sm leading-relaxed text-tinta-media">
                 {producto.description}
               </p>
             )}
