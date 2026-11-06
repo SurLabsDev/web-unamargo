@@ -116,11 +116,21 @@ export function faltantes(d: DatosEntrega): string[] {
   return f;
 }
 
-/** "a, b y c", o "a, b o c". */
+/** "a, b y c", o "a, b o c". Delante de un sonido "i" la "y" pasa a "e", y
+ *  delante de un sonido "o" la "o" pasa a "u": la nota del carrito enumera
+ *  nombres de productos, y "Porongo y Imperial Zebra" esta mal escrito. Con
+ *  "hie", "io" y compania el sonido no es "i" y queda la "y" ("agua y
+ *  hielo"). */
 export function enumerar(partes: string[], conjuncion: "y" | "o" = "y"): string {
-  return partes.length < 2
-    ? (partes[0] ?? "")
-    : `${partes.slice(0, -1).join(", ")} ${conjuncion} ${partes[partes.length - 1]}`;
+  if (partes.length < 2) return partes[0] ?? "";
+  const ultima = partes[partes.length - 1];
+  const nexo =
+    conjuncion === "y" && /^h?[ií](?![aeiouáéíóú])/i.test(ultima)
+      ? "e"
+      : conjuncion === "o" && /^h?[oó]/i.test(ultima)
+        ? "u"
+        : conjuncion;
+  return `${partes.slice(0, -1).join(", ")} ${nexo} ${ultima}`;
 }
 
 export function armarMensaje(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import {
@@ -14,7 +14,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { Whatsapp } from "../Sociales";
 import { useDialogo, useMontado } from "../useDialogo";
-import { useCarrito } from "./CartProvider";
+import { useCarrito, type Ajustes } from "./CartProvider";
 import { aCentavos } from "@/lib/centavos";
 import { precio } from "@/lib/catalog";
 import { SITE, linkWhatsApp } from "@/lib/site";
@@ -62,6 +62,31 @@ const CAMPO =
   "mt-2 w-full rounded-pill border border-linea bg-papel px-5 py-3 text-base placeholder:text-tinta-suave transition-colors focus:border-tinta focus:outline-none";
 const ETIQUETA = "text-sm font-semibold";
 
+/** La nota de lo que cambio al poner el pedido al dia con la tienda. Dice
+ *  que y de que producto: sin eso, un precio distinto del que se recordaba o
+ *  una linea que falta parecen un error de la pagina. */
+function textoAjustes({ precio, cantidad, quitados }: Ajustes): string {
+  const frases: string[] = [];
+  if (precio.length > 0) {
+    frases.push(
+      precio.length === 1
+        ? `Cambió el precio de ${precio[0]}.`
+        : `Cambiaron los precios de ${enumerar(precio)}.`,
+    );
+  }
+  if (cantidad.length > 0) {
+    frases.push(
+      `Ajustamos ${cantidad.length === 1 ? "la cantidad" : "las cantidades"} de ${enumerar(cantidad)} al stock disponible.`,
+    );
+  }
+  if (quitados.length > 0) {
+    frases.push(
+      `Sacamos ${enumerar(quitados)} del pedido porque ya no ${quitados.length === 1 ? "está disponible" : "están disponibles"}.`,
+    );
+  }
+  return frases.join(" ");
+}
+
 /** Una opcion de "como lo recibis": el radio de verdad queda invisible pero
  *  presente, asi el teclado y los lectores de pantalla lo manejan como lo que
  *  es. */
@@ -106,13 +131,22 @@ function Opcion({
 }
 
 export function CartDrawer() {
-  const { items, unidades, total, abierto, setAbierto, cambiarCantidad, quitar } =
-    useCarrito();
+  const {
+    items,
+    unidades,
+    total,
+    abierto,
+    ajustes,
+    setAbierto,
+    cambiarCantidad,
+    quitar,
+  } = useCarrito();
   const [bloqueado, setBloqueado] = useState(false);
   const [paso, setPaso] = useState<Paso>("pedido");
   const [datos, setDatos] = useState<DatosEntrega>(leerDatosGuardados);
   const tituloEntregaRef = useRef<HTMLHeadingElement>(null);
   const dialogoRef = useRef<HTMLDialogElement>(null);
+  const idNota = useId();
   const montado = useMontado();
 
   // Cada vez que se abre arranca por la lista: se abre al agregar un
@@ -173,12 +207,20 @@ export function CartDrawer() {
     setBloqueado(true);
   }
 
+  // La nota va arriba de la lista o del carrito vacio, que es donde arranca
+  // cada apertura. En el formulario ya no hace falta: para llegar ahi se paso
+  // por la lista.
+  const verNota = ajustes !== null && (paso === "pedido" || items.length === 0);
+
   if (!montado) return null;
 
   return createPortal(
     <dialog
       ref={dialogoRef}
       aria-label="Tu pedido"
+      // Con el foco en el dialogo, el lector de pantalla anuncia el nombre y
+      // esta descripcion: la nota se oye al abrir, no recien al recorrerlo.
+      aria-describedby={verNota ? idNota : undefined}
       tabIndex={-1}
       onCancel={(e) => {
         e.preventDefault();
@@ -236,6 +278,15 @@ export function CartDrawer() {
             <X size={20} weight="bold" />
           </button>
         </header>
+
+        {verNota && (
+          <p
+            id={idNota}
+            className="type-body mx-5 mt-4 rounded-foto bg-humo px-4 py-3 text-xs leading-relaxed text-tinta-media"
+          >
+            {textoAjustes(ajustes)}
+          </p>
+        )}
 
         {items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center">

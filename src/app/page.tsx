@@ -38,7 +38,7 @@ export default async function Home() {
   const schema = construirSchema(catalogo, FAQ);
 
   return (
-    <CartProvider>
+    <CartProvider catalogo={catalogo}>
       <script
         type="application/ld+json"
         // `<` escapado: los textos de los productos vienen del ERP, y un
