@@ -353,8 +353,19 @@ export function FichaProducto({
 
           Sigue siendo flex y no grid: en escritorio las dos columnas se
           estiran a la misma altura, que es lo que deja el precio apoyado
-          abajo de la columna de texto. */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto sm:flex-row">
+          abajo de la columna de texto.
+
+          Y es `flex-auto`, no `flex-1`. El dialogo no tiene alto propio: es
+          `fit-content` (asi lo centra `margin: auto`), o sea que toma el alto
+          de este scroller. `flex-1` es `flex-basis: 0%`, y Safari 26.6 usa esa
+          base como el alto del scroller cuando calcula el `fit-content`: la
+          ficha quedaba de 0px de alto y solo se veia el fondo oscurecido.
+          Chrome y el WebKit de Playwright miden el contenido, y por eso las
+          pruebas automaticas no lo vieron. Con base `auto` la base es el
+          contenido, y con `min-h-0` igual se achica y scrollea cuando no entra
+          en el `max-height`. Medido en Safari 26.6.2: de 0 a 577px en
+          escritorio y de 0 a 546px a 390 y a 375px de ancho. */}
+      <div className="flex min-h-0 flex-auto flex-col overflow-y-auto sm:flex-row">
         <div className="relative flex shrink-0 flex-col sm:w-1/2">
           {/* EL MARCO NO IMPONE PROPORCION, LA PONE LA FOTO.
               Antes era `aspect-square`. Como el ERP manda todas las fotos en
