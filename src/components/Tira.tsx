@@ -53,23 +53,33 @@ const TRAMOS = [
  *  explicado en globals.css, arriba de `.tira`. */
 const VELOCIDAD = 187.2;
 
-/** El `gap` de `.tira` en globals.css. */
+/** El `gap` de `.tira` en globals.css, que es tambien su `padding-inline-end`:
+ *  la tira deja un hueco despues de CADA foto, la ultima incluida. */
 const HUECO = 10;
+
+/** La pantalla mas ancha que la tira llena siempre de punta a punta, en px: un
+ *  monitor de 2560x1440 a escala 100%. Las fijas no llegaban solas (un juego
+ *  mide 2018.6px en lg) y un juego corto del ERP, mucho menos. En una pantalla
+ *  mas ancha que esto, un juego corto puede dejar a la derecha un tramo vacio
+ *  al final de cada vuelta. */
+const ANCHO_MAXIMO = 2560;
 
 /** Lo que mide de ancho una foto dibujada a `alto` px, con su proporcion. */
 function anchoA(f: Foto, alto: number): number {
   return (alto * f.ancho) / f.alto;
 }
 
-/** Cuanto tiene que durar un ciclo para que ESTE juego corra a VELOCIDAD con
- *  las fotos a `alto` px. La tira lleva el juego dos veces y viaja la mitad:
- *  un ciclo recorre un juego entero mas la mitad de los 2n - 1 huecos de la
- *  tira, o sea n - 0.5 huecos. */
-function duracion(juego: Foto[], alto: number): string {
-  const ciclo =
-    juego.reduce((suma, f) => suma + anchoA(f, alto), 0) +
-    (juego.length - 0.5) * HUECO;
-  return `${(ciclo / VELOCIDAD).toFixed(3)}s`;
+/** Lo que recorre la tira en un ciclo con las fotos a `alto` px. La tira lleva
+ *  sus fotos dos veces y viaja la mitad, y cada mitad es cada foto con el
+ *  hueco que la sigue (ver el empalme en globals.css, arriba de `.tira`). */
+function ciclo(fotos: Foto[], alto: number): number {
+  return fotos.reduce((suma, f) => suma + anchoA(f, alto) + HUECO, 0);
+}
+
+/** Cuanto tiene que durar un ciclo para que la tira corra a VELOCIDAD con
+ *  ESTAS fotos a `alto` px. */
+function duracion(fotos: Foto[], alto: number): string {
+  return `${(ciclo(fotos, alto) / VELOCIDAD).toFixed(3)}s`;
 }
 
 /** Lo que de verdad mide la foto en cada tramo. Con eso el navegador baja el
@@ -87,10 +97,12 @@ function sizesDe(f: Foto): string {
  *  Las elige el cliente desde el ERP, en el orden en que las quiere ver. Si no
  *  cargo ninguna, o el ERP no contesta, corren las seis de siempre (`FIJAS`).
  *
- *  Van DOS veces y la animacion desplaza exactamente la mitad, asi el ciclo
- *  cierra sin salto. NO se frena al pasar el mouse: llegamos a pausarla para
- *  poder mirar una, pero el cliente ya habia sacado esa pausa en su version y
- *  la quiere corriendo siempre, haya cursor encima o no.
+ *  La tira lleva una UNIDAD de fotos DOS veces y la animacion desplaza
+ *  exactamente la mitad, asi el ciclo cierra sin salto. La unidad es el juego
+ *  repetido las veces que haga falta para llenar la pantalla (ver `vueltas`).
+ *  NO se frena al pasar el mouse: llegamos a pausarla para poder mirar una,
+ *  pero el cliente ya habia sacado esa pausa en su version y la quiere
+ *  corriendo siempre, haya cursor encima o no.
  *
  *  CADA FOTO CONSERVA SU PROPORCION, como en el original: alto fijo y ancho
  *  segun el archivo. Estuvieron metidas en un marco 4:3 con `object-cover`,
@@ -98,13 +110,19 @@ function sizesDe(f: Foto): string {
  *  levemente verticales". Las del ERP traen sus medidas en la respuesta.
  *
  *  LA VELOCIDAD ES SIEMPRE LA DEL ORIGINAL, 187.2 px/s, sean las fotos que
- *  sean. Como cada juego mide distinto, la duracion no puede estar escrita fija
- *  en el CSS: se calcula aca con los anchos de este juego en cada tramo y
+ *  sean. Como cada unidad mide distinto, la duracion no puede estar escrita
+ *  fija en el CSS: se calcula aca con los anchos de la unidad en cada tramo y
  *  llega a `.tira` como variables (`--dur-tira-movil`, `-sm` y `-lg`).
  *
- *  El `alt` es el que cargo el cliente, o vacio si no cargo ninguno. La tira
- *  sigue oculta para los lectores de pantalla: es decorativa y pasa cada foto
- *  dos veces. */
+ *  La tira sigue OCULTA PARA LOS LECTORES DE PANTALLA: es decorativa, se
+ *  mueve y repite cada foto. Abrirla no es gratis. Si un lector lleva el foco
+ *  a una foto que esta fuera de la ventana, el navegador corre la seccion (con
+ *  `overflow-hidden` se puede correr por programa) y la tira queda con un
+ *  tramo vacio en cada vuelta hasta que se recarga: en una prueba con 20
+ *  fotos a 1440px de ancho, 545px. Con `overflow: clip` no se corre, pero el
+ *  navegador deja de bajar antes de tiempo las fotos que estan por entrar. El
+ *  `alt` es el que cargo el cliente, o vacio si no cargo ninguno: sirve para
+ *  los buscadores, no para los lectores de pantalla. */
 export function Tira({ fotos }: { fotos: FotoTira[] | null }) {
   const juego: Foto[] =
     fotos && fotos.length > 0
@@ -115,9 +133,21 @@ export function Tira({ fotos }: { fotos: FotoTira[] | null }) {
           alt: f.alt ?? "",
         }))
       : FIJAS;
-  const dobles = [...juego, ...juego];
+
+  // La tira viaja media tira por vuelta. Si esa mitad es mas angosta que la
+  // pantalla, al final de cada vuelta se ve la punta de la tira y despues
+  // nada: con una o dos fotos del ERP la pantalla quedaba medio vacia. Por eso
+  // el juego se repite hasta que la mitad llena ANCHO_MAXIMO. Se mide en lg
+  // (`TRAMOS[0]`), el tramo de fotos mas altas y pantallas mas anchas. En sm y
+  // en el celular las fotos miden 0.81 y 0.67 de lo que miden en lg, asi que
+  // la mitad igual pasa los 2072px y 1707px en tramos que llegan a 1024px y
+  // 640px. Las repeticiones son las mismas URLs: el navegador no baja nada de
+  // mas.
+  const vueltas = Math.ceil(ANCHO_MAXIMO / ciclo(juego, TRAMOS[0].alto));
+  const unidad = Array.from({ length: vueltas }, () => juego).flat();
+  const dobles = [...unidad, ...unidad];
   const duraciones = Object.fromEntries(
-    TRAMOS.map(({ alto, variable }) => [variable, duracion(juego, alto)]),
+    TRAMOS.map(({ alto, variable }) => [variable, duracion(unidad, alto)]),
   ) as React.CSSProperties;
 
   return (

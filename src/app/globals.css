@@ -334,9 +334,19 @@ html { scroll-behavior: smooth; }
 }
 
 /* --- Marquee de fotos --------------------------------------------------- */
-/* La tira lleva su juego de fotos DOS veces y se desplaza exactamente la
-   mitad: al llegar al final, la segunda copia esta donde arranco la primera y
-   el salto es invisible.
+/* La tira lleva su unidad de fotos DOS veces y se desplaza exactamente la
+   mitad: al llegar al final, la segunda copia esta justo donde arranco la
+   primera y el salto es invisible. La unidad es el juego de fotos repetido
+   las veces que haga falta para llenar la pantalla (lo arma Tira.tsx).
+
+   EL HUECO DEL FINAL ES PARTE DEL EMPALME. Con `gap`, 2n fotos dejan 2n - 1
+   huecos: la primera mitad termina con el hueco que la separa de la copia y
+   la segunda no tiene ese hueco. Sin el `padding-inline-end`, -50% quedaba 5px
+   antes de donde arranca la copia y la tira saltaba 5px hacia adelante en
+   cada vuelta (el original del cliente tiene ese mismo salto). El padding es
+   el hueco que le faltaba a la segunda mitad. El % de translateX se mide sobre
+   la caja con el padding adentro, asi que las dos mitades quedan iguales. Va
+   con el mismo valor que el `gap`: si cambia uno, cambia el otro.
 
    NO SE FRENA CON EL CURSOR ENCIMA. Hubo una regla `.tira:hover` que la
    pausaba para poder mirar una foto; el cliente ya habia sacado esa pausa en
@@ -346,33 +356,36 @@ html { scroll-behavior: smooth; }
    ojo compara con el original del cliente no son los segundos sino la
    velocidad lineal: copiar los 20s del original copiaria el numero, no la
    velocidad. Y la cuenta no se puede hacer una vez y dejarla escrita aca,
-   porque las fotos las elige el cliente desde el ERP: cada juego mide
+   porque las fotos las elige el cliente desde el ERP: cada unidad mide
    distinto y pide su propia duracion.
 
    La velocidad a igualar sale del original (`claude code unamargo/index.html`,
    `.img-strip-track`): once fotos de 420px de alto y ancho automatico. Los
    archivos son 960x1200, o sea 4:5 vertical, asi que cada una se dibuja de
    336px de ancho; la ultima ("imagen para horizontal.jpg") es 797x1200 y da
-   279px. Como la tira lleva el juego dos veces y viaja -50%, un ciclo recorre
-   medio track, o sea un juego de fotos mas la mitad de los gaps de la tira
+   279px. Alla la tira lleva el juego dos veces SIN hueco al final, asi que
+   -50% recorre un juego de fotos mas la mitad de los 21 gaps de la tira
    entera: (10 x 336 + 279) + 10.5 x 10 = 3744px en 20s. ~187 px/s: ESA es la
    velocidad, no los 20s.
 
-   Tira.tsx hace esa misma cuenta con el juego que de verdad va, en cada tramo
-   de pantalla. Como el original, cada foto tiene ALTO FIJO EN PX y el ancho
-   que da su proporcion, asi que con n fotos y el `gap` de 10px:
-     ciclo    = suma de los anchos a ese alto + (n - 0.5) x 10
+   Tira.tsx hace la cuenta con la unidad que de verdad va, en cada tramo de
+   pantalla. Como el original, cada foto tiene ALTO FIJO EN PX y el ancho que
+   da su proporcion. Con el hueco del final, cada mitad es cada foto con el
+   hueco que la sigue, asi que con n fotos en la unidad y el `gap` de 10px:
+     ciclo    = suma de los anchos a ese alto + n x 10
      duracion = ciclo / 187.2
    Las tres duraciones llegan en el `style` de la tira como --dur-tira-movil,
    --dur-tira-sm y --dur-tira-lg, y aca solo se elige la del tramo. Los cortes
    son los de Tailwind (sm 40rem, lg 64rem), que son justo donde cambia el alto
    de las fotos en Tira.tsx. En lg el alto es el mismo del original, 420px.
 
-   Los valores de respaldo son la cuenta de las seis fotos fijas, las que
-   corren si el ERP no manda ninguna: cinco 4:5 y una de 597x900.
-     - movil (280px de alto): 5 x 224 + 185.7 + 55 = 1360.7px -> 7.27s
-     - sm    (340px de alto): 5 x 272 + 225.5 + 55 = 1640.5px -> 8.76s
-     - lg    (420px de alto): 5 x 336 + 278.6 + 55 = 2013.6px -> 10.76s
+   Los valores de respaldo son la cuenta de la unidad de las fotos fijas, las
+   que corren si el ERP no manda ninguna: cinco 4:5 y una de 597x900, DOS
+   veces, porque un juego solo mide 2018.6px en lg y la unidad tiene que
+   llenar 2560px (ver `ANCHO_MAXIMO` en Tira.tsx).
+     - movil (280px de alto): 2 x (5 x 224 + 185.7 + 60) = 2731.5px -> 14.59s
+     - sm    (340px de alto): 2 x (5 x 272 + 225.5 + 60) = 3291.1px -> 17.58s
+     - lg    (420px de alto): 2 x (5 x 336 + 278.6 + 60) = 4037.2px -> 21.57s
 
    Al ser px fijos, la velocidad da clavada en cualquier ancho de pantalla
    dentro de cada tramo. Antes las fotos se median en vw y la velocidad se
@@ -388,11 +401,12 @@ html { scroll-behavior: smooth; }
   display: flex;
   width: max-content;
   gap: 10px;
-  --dur-tira: var(--dur-tira-movil, 7.27s);
+  padding-inline-end: 10px;
+  --dur-tira: var(--dur-tira-movil, 14.59s);
   animation: correrTira var(--dur-tira) linear infinite;
 }
-@media (min-width: 40rem) { .tira { --dur-tira: var(--dur-tira-sm, 8.76s); } }
-@media (min-width: 64rem) { .tira { --dur-tira: var(--dur-tira-lg, 10.76s); } }
+@media (min-width: 40rem) { .tira { --dur-tira: var(--dur-tira-sm, 17.58s); } }
+@media (min-width: 64rem) { .tira { --dur-tira: var(--dur-tira-lg, 21.57s); } }
 
 /* --- Entrada del hero --------------------------------------------------- */
 /* La primera pantalla no espera al observador: entra sola al cargar. */
