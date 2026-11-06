@@ -199,10 +199,11 @@ dibujo: los límites son los oficiales de la Intendencia.
 `/como-curar-un-mate` y `/como-cebar-un-mate` son dos páginas del cliente, con
 un mate en 3D (three.js) que hace cada paso mientras se baja. Las armó el
 cliente en claude.ai y se sirven tal cual: su CSS, su marcado y sus scripts no
-se tocan.
+se tocan, salvo un parche de rendimiento en curar (más abajo).
 
 - **Cada plantilla está en `src/guias/<guia>.html`** y sus imágenes en
-  `public/guias/`. No se editan a mano: se reimportan.
+  `public/guias/`. No se editan a mano: se reimportan. La única excepción es
+  ese parche.
 - **Cuando el cliente mande una versión nueva**, se guarda su HTML y:
 
   ```bash
@@ -219,6 +220,25 @@ se tocan.
   tiene versión fija o si un script usa la red. Esto último se acepta con
   `--revisado`, pero después de leerlo: es código de un tercero publicado con
   nuestro dominio.
+- **La plantilla de curar lleva un parche local, y una versión nueva del
+  cliente lo borra.** Es el único cambio hecho a mano en su código y está
+  marcado `PARCHE LOCAL`: en `buildMate`, `sideMax` guarda lo que calcula por
+  altura y lado. El cliente lo calculaba de nuevo para cada uno de los 38.640
+  vértices del algarrobo, recorriendo 180 ángulos cada vez, y abrir la guía
+  trababa el hilo principal cerca de un segundo a CPU x4 (250 ms sin frenar)
+  armando un mate que de entrada ni se ve. Con el parche, esa tarea baja a unos
+  380 ms (100 ms). Los vértices de una misma fila tienen la misma altura, así
+  que devuelve los mismos números: medido, las 73 geometrías de la escena salen
+  idénticas bit a bit y cada paso de los dos mates da la misma captura, pixel a
+  pixel.
+
+  **Después de importar una versión nueva de `curar` hay que volver a
+  aplicarlo**: el importador escribe la plantilla de cero con lo que trae el
+  archivo del cliente. El commit que lo agregó se encuentra con
+  `git log -S sideMaxMemo -- src/guias/curar.html`, y el cambio es repetir ese
+  diff en el `sideMax` de la plantilla nueva. Si el cliente cambió esa función,
+  ver primero si el parche sigue valiendo. Pasar la plantilla ya importada por
+  el importador, para revalidarla, no lo toca.
 - **Lo que depende del ambiente lo pone la ruta al construir**
   (`src/guias/servir.ts`): título y descripción pensados para la búsqueda,
   canonical, robots según `SE_INDEXA`, Open Graph con su imagen y un JSON-LD

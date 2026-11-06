@@ -612,12 +612,23 @@
       g.computeVertexNormals();
     };
     // ancho de la silueta vista de frente a cada altura (para que la foto calce con la forma deformada)
+    // PARCHE LOCAL, no viene del cliente: importar una version nueva lo borra (ver el README,
+    // "Las guias de curar y cebar"). sideMax se llama una vez por vertice del torneado, 38.640 en
+    // el algarrobo, y cada llamada recorre 180 angulos. Pero depende solo de la altura y del lado,
+    // y los 161 vertices de una fila del torneado tienen la misma altura: guardado por (y, sign) se
+    // calcula una vez por fila y lado, y devuelve los mismos numeros. Sin esto, abrir la guia
+    // trababa el hilo principal cerca de un segundo a CPU x4 armando el algarrobo, que de entrada
+    // ni se ve.
+    const sideMaxMemo = [new Map(), new Map()];
     const sideMax = (y, sign) => {
+      const memo = sideMaxMemo[sign > 0 ? 1 : 0];
+      if (memo.has(y)) return memo.get(y);
       let m = 0;
       for (let k = 0; k < 180; k++) {
         const th = (k / 180) * Math.PI * 2, c = Math.cos(th);
         if (c * sign > 0) m = Math.max(m, c * sign * shape(th, y));
       }
+      memo.set(y, m || 1);
       return m || 1;
     };
     const geo = new THREE.LatheGeometry(outer, 160);

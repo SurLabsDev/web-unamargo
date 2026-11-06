@@ -27,6 +27,13 @@
  *     dependen del ambiente (titulo, canonical, robots, Open Graph, JSON-LD) NO
  *     van aca: las pone la ruta al construir, en el lugar de `<!--guia:head-->`.
  *
+ * OJO CON CURAR: su plantilla lleva un parche local de rendimiento, marcado
+ * `PARCHE LOCAL` (ver "Las guias de curar y cebar" en el README). Importar un
+ * archivo nuevo del cliente escribe la plantilla de cero, solo con lo que trae
+ * ese archivo, asi que el parche se pierde sin avisar y hay que volver a
+ * aplicarlo. Pasar por aca la plantilla ya importada, para revalidarla, lo
+ * deja como esta.
+ *
  * Es codigo de un tercero que se publica con nuestro dominio. Por eso, si algo
  * no cierra, falla sin escribir nada: si queda codigo del host, si aparece un
  * host externo que no esta en la lista, si una dependencia del CDN no tiene la
