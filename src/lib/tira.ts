@@ -1,4 +1,4 @@
-import { urlDelErp } from "./site";
+import { selloErp, urlDelErp } from "./site";
 import { fotoServible } from "./fotos";
 
 /** Contrato de /api/public/v1/tira del ERP: las fotos que corren abajo del
@@ -53,10 +53,10 @@ export async function getTira(): Promise<FotoTira[] | null> {
     // tira viene de esa misma instancia. Se arma ADENTRO del try: una variable
     // mal escrita deja la tira con las fotos de siempre, no tira la pagina.
     const url = urlDelErp("tira");
-    // El mismo sello que el catalogo (ver `getCatalogo`): el endpoint cachea
-    // 60s en el CDN del ERP, y sin el sello el aviso de "cambio algo" del ERP
-    // regeneraria la pagina con la respuesta vieja.
-    url.searchParams.set("v", String(Math.floor(Date.now() / 5000)));
+    // Un sello nuevo en cada pedido, como el catalogo: el endpoint cachea 60s
+    // en el CDN del ERP, y sin el la regeneracion que dispara un aviso del ERP
+    // podia recibir la respuesta de antes del cambio (ver `selloErp`).
+    url.searchParams.set("v", selloErp());
     const res = await fetch(url, {
       next: { revalidate: 300 },
     });

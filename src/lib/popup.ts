@@ -1,4 +1,4 @@
-import { urlDelErp } from "./site";
+import { selloErp, urlDelErp } from "./site";
 import { fotoServible } from "./fotos";
 
 /** Contrato de /api/public/v1/popup del ERP: el pop-up que el cliente tiene
@@ -69,10 +69,10 @@ export async function getPopup(): Promise<Popup | null> {
     // esa misma instancia sin configurar nada mas. Se arma ADENTRO del try: una
     // variable mal escrita no puede tirar la pagina, solo dejarla sin pop-up.
     const url = urlDelErp("popup");
-    // El mismo sello que el catalogo (ver `getCatalogo`): el endpoint cachea
-    // 60s en el CDN del ERP, y sin el sello el aviso de "cambio algo" del ERP
-    // regeneraria la pagina con la respuesta vieja.
-    url.searchParams.set("v", String(Math.floor(Date.now() / 5000)));
+    // Un sello nuevo en cada pedido, como el catalogo: el endpoint cachea 60s
+    // en el CDN del ERP, y sin el la regeneracion que dispara un aviso del ERP
+    // podia recibir la respuesta de antes del cambio (ver `selloErp`).
+    url.searchParams.set("v", selloErp());
     const res = await fetch(url, {
       next: { revalidate: 300 },
     });

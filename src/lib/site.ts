@@ -67,6 +67,25 @@ export function urlDelErp(recurso: string): URL {
   return new URL(recurso, ERP_API.replace(/\/+$/, ""));
 }
 
+/** El sello (`?v=`) que lleva cada pedido al ERP: distinto en cada pedido.
+ *
+ *  El ERP cachea sus respuestas 60s en su CDN, por URL exacta. Cuando avisa
+ *  que algo cambio, la pagina se regenera, y sin un sello nuevo ese pedido
+ *  podia recibir la respuesta de antes del cambio y guardarla otros 5 minutos.
+ *  Cambiar la URL tambien saltea la cache de datos de Next, asi que cada
+ *  regeneracion pregunta de verdad: es lo que se quiere, porque la pagina se
+ *  regenera pocas veces (cada 5 minutos o con cada aviso), no en cada visita.
+ *
+ *  Era un sello por ventana de 5 segundos, y ahi estaba el agujero: dos
+ *  cambios seguidos en el ERP (mover una foto dos lugares, cambiar dos
+ *  precios) regeneraban la pagina dos veces en la misma ventana, con la misma
+ *  URL; el CDN le devolvia a la segunda la respuesta de la primera, y la web
+ *  mostraba el estado intermedio durante 5 minutos. Cada funcion se llama una
+ *  sola vez por pagina, asi que no hay pedidos repetidos que convenga juntar. */
+export function selloErp(): string {
+  return String(Date.now());
+}
+
 export function linkWhatsApp(mensaje: string): string {
   return `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(mensaje)}`;
 }
