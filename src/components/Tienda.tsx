@@ -25,7 +25,8 @@ function Pieza({
 }: {
   producto: Producto;
   siguiendoStock: boolean;
-  onAbrir: () => void;
+  /** Recibe el boton que se toco: la ficha le devuelve el foco al cerrarse. */
+  onAbrir: (origen: HTMLElement) => void;
   /** En la grilla del filtro la tarjeta llena su columna, que en el celular
    *  es la mitad de la pantalla. Ahi el nombre en un solo renglon se corta
    *  justo en lo que distingue a un producto de otro: "Mate Camionero (..."
@@ -49,7 +50,7 @@ function Pieza({
       className={`group ${enGrilla ? "" : "w-[62vw] shrink-0 snap-start sm:w-[36vw] lg:w-[23vw] xl:w-[19vw]"}`}
     >
       <button
-        onClick={onAbrir}
+        onClick={(e) => onAbrir(e.currentTarget)}
         // La marca y el descuento van en el nombre accesible: las chapitas
         // estan adentro de este boton, y su aria-label las tapaba para el
         // lector de pantalla.
@@ -131,7 +132,7 @@ function Pieza({
 
       <div className="mt-2 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <button onClick={onAbrir} className="block w-full text-left">
+          <button onClick={(e) => onAbrir(e.currentTarget)} className="block w-full text-left">
             <p
               className={`text-sm font-medium group-hover:underline ${enGrilla ? "line-clamp-3" : "truncate"}`}
             >
@@ -179,7 +180,7 @@ function Estante({
   titulo: string;
   items: Producto[];
   siguiendoStock: boolean;
-  onAbrir: (p: Producto) => void;
+  onAbrir: (p: Producto, origen: HTMLElement) => void;
 }) {
   const pista = useRef<HTMLDivElement>(null);
   /* Las flechas, solo si hay para donde correr. El estante "Mas vendidos"
@@ -244,7 +245,7 @@ function Estante({
             key={p.sku}
             producto={p}
             siguiendoStock={siguiendoStock}
-            onAbrir={() => onAbrir(p)}
+            onAbrir={(origen) => onAbrir(p, origen)}
           />
         ))}
       </div>
@@ -270,7 +271,7 @@ function Grilla({
   titulo: string;
   items: Producto[];
   siguiendoStock: boolean;
-  onAbrir: (p: Producto) => void;
+  onAbrir: (p: Producto, origen: HTMLElement) => void;
   onQuitar: () => void;
 }) {
   return (
@@ -306,7 +307,7 @@ function Grilla({
             key={p.sku}
             producto={p}
             siguiendoStock={siguiendoStock}
-            onAbrir={() => onAbrir(p)}
+            onAbrir={(origen) => onAbrir(p, origen)}
             enGrilla
           />
         ))}
@@ -323,6 +324,17 @@ function Grilla({
 const primeroElMasVendido = (a: Producto, b: Producto) =>
   Number(b.featured === true) - Number(a.featured === true);
 
+/** La ficha abierta, o la ultima que se abrio (ver donde se monta). */
+type Ficha = {
+  producto: Producto;
+  /** El boton que la abrio: ahi vuelve el foco al cerrarla. */
+  origen: HTMLElement;
+  abierta: boolean;
+  /** Cuantas veces se abrio una ficha. Es la `key`, asi cada apertura arranca
+   *  de cero, en la primera foto. */
+  vez: number;
+};
+
 /** El orden de los estantes lo decide el ERP, no esta lista.
  *
  *  Antes estaba escrito aca, asi que cambiar en que orden se muestran los
@@ -333,8 +345,12 @@ const primeroElMasVendido = (a: Producto, b: Producto) =>
  *  que pasa cuando alguien crea uno nuevo y todavia no lo acomodo. */
 
 export function Tienda({ catalogo }: { catalogo: Catalogo }) {
-  const [abierto, setAbierto] = useState<Producto | null>(null);
+  const [ficha, setFicha] = useState<Ficha | null>(null);
   const [filtro, setFiltro] = useState<string | null>(null);
+
+  function abrirFicha(producto: Producto, origen: HTMLElement) {
+    setFicha((f) => ({ producto, origen, abierta: true, vez: (f?.vez ?? 0) + 1 }));
+  }
 
   const porRubro = new Map<string, Producto[]>();
   for (const p of catalogo.productos) {
@@ -432,7 +448,7 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
                 titulo={activo.nombre}
                 items={resultado}
                 siguiendoStock={catalogo.siguiendoStock}
-                onAbrir={setAbierto}
+                onAbrir={abrirFicha}
                 onQuitar={() => {
                   elegir(null);
                   // "Quitar filtro" se desmonta con la grilla, y el foco caia
@@ -459,7 +475,7 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
                   titulo="Más vendidos"
                   items={masVendidos}
                   siguiendoStock={catalogo.siguiendoStock}
-                  onAbrir={setAbierto}
+                  onAbrir={abrirFicha}
                 />
               )}
               {rubros.map(([rubro, items]) => (
@@ -468,7 +484,7 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
                   titulo={rubro}
                   items={items}
                   siguiendoStock={catalogo.siguiendoStock}
-                  onAbrir={setAbierto}
+                  onAbrir={abrirFicha}
                 />
               ))}
             </div>
@@ -476,11 +492,22 @@ export function Tienda({ catalogo }: { catalogo: Catalogo }) {
         )}
       </div>
 
-      {abierto && (
+      {/* LA FICHA NO SE DESMONTA AL CERRARSE: SE CIERRA, Y QUEDA AHI CERRADA
+          HASTA QUE SE ABRE OTRA. Es un <dialog> (ver `FichaProducto`), y
+          desmontarlo abierto lo saca de la pagina sin pasar por `close()`: no
+          hay salida y el foco cae en <body> en vez de volver a la tarjeta.
+          Tampoco se desmonta apenas se cerro, porque al agregar se cierra de
+          una y Chrome la sigue pintando mientras se va (ver globals.css).
+          Cerrada no molesta: no se ve, no recibe foco y no cuenta como
+          `dialog[open]`, que es lo que miran el pop-up y la playlist. */}
+      {ficha && (
         <FichaProducto
-          producto={abierto}
+          key={ficha.vez}
+          producto={ficha.producto}
+          abierta={ficha.abierta}
+          origen={ficha.origen}
           siguiendoStock={catalogo.siguiendoStock}
-          onCerrar={() => setAbierto(null)}
+          onCerrar={() => setFicha((f) => (f?.abierta ? { ...f, abierta: false } : f))}
         />
       )}
     </section>

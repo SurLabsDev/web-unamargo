@@ -4,8 +4,8 @@ import { useEffect, useEffectEvent, useSyncExternalStore, type RefObject } from 
 
 /**
  * Abre y cierra un <dialog> nativo con animacion de entrada y de salida. Lo
- * usan el cajon del pedido, el menu del celular y el pop-up: las tres cosas
- * que se apoyan encima de la pagina.
+ * usan el cajon del pedido, el menu del celular, el pop-up y la ficha de
+ * producto: las cuatro cosas que se apoyan encima de la pagina.
  *
  * Se abre con `showModal()`, no con CSS.
  *

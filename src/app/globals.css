@@ -338,6 +338,114 @@ html { scroll-behavior: smooth; }
   }
 }
 
+/* --- Ficha de producto --------------------------------------------------- */
+/* Otro <dialog> en la capa superior, con las tres piezas de animacion del
+   cajon y su misma regla: cerrado = escondido.
+
+   Se ve igual que el div que era antes. En el celular, una hoja pegada abajo,
+   de lado a lado, de hasta 92dvh y con las dos esquinas de arriba redondeadas.
+   Desde sm (40rem), una tarjeta centrada de hasta 56rem de ancho y 86dvh de
+   alto, redondeada entera. Detras, el negro al 55% con 2px de desenfoque, que
+   ahora es el `::backdrop`.
+
+   EL ESTADO ESCONDIDO SE ESCRIBE UNA SOLA VEZ, en las dos variables. Lo usan
+   el estado cerrado, `@starting-style` y `[data-cerrando]`, que tienen que
+   ser iguales (ver la regla del cajon), y asi no se pueden desencontrar. En el
+   celular la hoja entra y sale por el borde de abajo; centrada no tiene borde
+   del que salir, asi que sube 20px y aparece, como el pop-up.
+
+   Un solo tiempo para todo, el de la hoja y el del fondo: `useDialogo` cierra
+   con el primer `transitionend` del dialogo, y en Chrome el del `::backdrop`
+   tambien le llega al dialogo. Con tiempos distintos, ahi la salida se
+   cortaria con el mas corto. */
+.ficha {
+  --ficha-escondida: translateY(100%);
+  --ficha-opacidad: 1;
+
+  position: fixed;
+  inset: auto 0 0;            /* pegada abajo, de lado a lado */
+  width: 100%;
+  max-width: 56rem;
+  height: fit-content;
+  max-height: 92dvh;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  background: var(--color-papel);
+  color: inherit;             /* el del navegador es negro puro, no la tinta */
+
+  transform: var(--ficha-escondida);
+  opacity: var(--ficha-opacidad);
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease,
+    overlay 0.3s allow-discrete,
+    display 0.3s allow-discrete;
+}
+@media (min-width: 40rem) {
+  .ficha {
+    --ficha-escondida: translateY(20px);
+    --ficha-opacidad: 0;
+    inset: 0;
+    margin: auto;             /* centrada; el alto es el del contenido */
+    max-height: 86dvh;
+    border-radius: 18px;
+  }
+}
+/* El `display` va solo con `[open]`: puesto en `.ficha` le ganaria al
+   `display: none` con el que el navegador esconde el dialogo cerrado. */
+.ficha[open] {
+  display: flex;
+  flex-direction: column;
+  transform: none;
+  opacity: 1;
+}
+@starting-style {
+  .ficha[open] {
+    transform: var(--ficha-escondida);
+    opacity: var(--ficha-opacidad);
+  }
+}
+.ficha[open][data-cerrando] {
+  transform: var(--ficha-escondida);
+  opacity: var(--ficha-opacidad);
+}
+/* El foco entra al dialogo mismo (ver `FichaProducto`), como en el menu. */
+.ficha:focus {
+  outline: none;
+}
+
+.ficha::backdrop {
+  background: rgb(10 10 10 / 0.55);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    overlay 0.3s allow-discrete,
+    display 0.3s allow-discrete;
+}
+.ficha[open]::backdrop {
+  opacity: 1;
+}
+@starting-style {
+  .ficha[open]::backdrop {
+    opacity: 0;
+  }
+}
+.ficha[open][data-cerrando]::backdrop {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ficha,
+  .ficha::backdrop {
+    transition: none;
+  }
+}
+
 /* --- Marquee de fotos --------------------------------------------------- */
 /* La tira lleva su unidad de fotos DOS veces y se desplaza exactamente la
    mitad: al llegar al final, la segunda copia esta justo donde arranco la

@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { X, CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { precio, videoDe, type Producto } from "@/lib/catalog";
 import { GUIAS } from "@/lib/guias";
 import { AddToCart } from "./cart/AddToCart";
+import { useDialogo } from "./useDialogo";
 
 /** El video de un producto, apoyado encima de la foto que le hace de marco.
  *
@@ -123,16 +125,40 @@ export function VideoProducto({
 
 /** La ficha completa del producto. Se abre al tocar una pieza del estante y
  *  trae lo que no entra en la fila: todas las fotos, la descripcion, el rubro y
- *  el subtipo. */
+ *  el subtipo.
+ *
+ *  Es un <dialog> abierto con `showModal()`, como el cajon, el menu y el
+ *  pop-up (ver `useDialogo`). Era un div con `aria-modal`, y eso solo no hace
+ *  nada: el foco se quedaba en la tarjeta de atras, el Tab recorria la pagina
+ *  tapada (108 veces hasta llegar a la ficha), un Enter en un "Agregar" que no
+ *  se veia agregaba otro producto y al cerrar el foco caia en <body>. Con
+ *  `showModal()` el resto de la pagina queda inerte: el Tab da la vuelta por
+ *  los controles de la ficha y nunca llega a lo de atras (entre vuelta y
+ *  vuelta pasa por la barra del navegador, como en el cajon).
+ *
+ *  Va con un portal a <body>, como los otros tres. No le hace falta
+ *  `useMontado`: se monta recien cuando alguien toca una tarjeta, nunca en el
+ *  render del servidor, asi que `document` ya existe. */
 export function FichaProducto({
   producto,
   siguiendoStock,
+  abierta,
+  origen,
   onCerrar,
 }: {
   producto: Producto;
   siguiendoStock: boolean;
+  abierta: boolean;
+  /** El boton de la tarjeta que la abrio: ahi vuelve el foco al cerrarla. */
+  origen: HTMLElement | null;
   onCerrar: () => void;
 }) {
+  const dialogoRef = useRef<HTMLDialogElement>(null);
+  /** Si el clic que esta por llegar empezo en el fondo. Ver el `onClick`. */
+  const empezoEnElFondo = useRef(false);
+  /** Si lo ultimo que se uso adentro de la ficha fue el teclado. Ver
+   *  `devolverFoco`. */
+  const conTeclado = useRef(false);
   const [i, setI] = useState(0);
   const [videoAndando, setVideoAndando] = useState(false);
   const fotos = producto.images;
@@ -172,26 +198,68 @@ export function FichaProducto({
     setVideoAndando(false);
   }, []);
 
-  // Escape cierra y el fondo no scrollea mientras esta abierta.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      // Con un dialogo nativo encima (el pop-up, el pedido, el menu), las
-      // teclas son de el: su Escape lo cierra a el y no tambien a la ficha.
-      if (document.querySelector("dialog[open]")) return;
-      if (e.key === "Escape") onCerrar();
-      if (e.key === "ArrowRight" && diapos.length > 1)
-        verDiapo((v) => (v + 1) % diapos.length);
-      if (e.key === "ArrowLeft" && diapos.length > 1)
-        verDiapo((v) => (v - 1 + diapos.length) % diapos.length);
+  // El foco va al dialogo y no a la X, como en el menu: abierta con el dedo,
+  // Safari le pinta a la X el aro de foco del teclado. Con el foco en el
+  // dialogo el lector de pantalla anuncia el producto y el primer Tab ya cae
+  // adentro. El fondo deja de scrollear lo que dura abierta (`useDialogo`).
+  useDialogo(dialogoRef, abierta, {
+    alAbrir: () => dialogoRef.current?.focus(),
+  });
+
+  /* EL FOCO VUELVE A LA TARJETA, Y SE LO LLEVA A MANO.
+     `close()` devuelve el foco solo, pero al elemento que lo tenia cuando se
+     abrio, y no siempre es la tarjeta: Safari no le da foco a un boton al
+     tocarlo o al hacerle clic, asi que ahi la ficha se abre sin nada que
+     devolver. Medido en WebKit: despues de `close()` el foco se queda en el
+     dialogo ya cerrado, y de ahi cae a <body>.
+     Si al cerrarse ya hay otro dialogo abierto (el pedido, despues de
+     "Agregar"), el foco es de el y no se toca. `preventScroll` porque la
+     tarjeta ya esta a la vista: es la que se toco.
+     El aro de foco, solo si se cerro con el teclado. Llevado a mano, WebKit
+     tambien lo pintaba despues de un toque, porque hereda lo "visible" del
+     foco anterior y el dialogo lo trae de `showModal()`. Chrome, sin que se
+     lo digan, ya decide asi. `focusVisible` todavia no esta en los tipos de
+     TypeScript, por eso el tipo escrito a mano. */
+  const devolverFoco = () => {
+    if (document.querySelector("dialog[open]")) return;
+    const opciones: FocusOptions & { focusVisible: boolean } = {
+      preventScroll: true,
+      focusVisible: conTeclado.current,
     };
-    document.addEventListener("keydown", onKey);
-    const previo = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previo;
-    };
-  }, [onCerrar, diapos.length, verDiapo]);
+    if (origen?.isConnected) origen.focus(opciones);
+  };
+
+  /* "AGREGAR" CIERRA LA FICHA EN EL ACTO, SIN ESPERAR LA SALIDA.
+     Agregar abre el cajon del pedido (ver `AddToCart`), que es otro dialogo
+     modal. Si la ficha esperara su salida, por 300ms habria dos dialogos
+     modales a la vez: el cajon se abriria con el foco en este "Agregar" y lo
+     anotaria como el lugar adonde devolverlo, y al cerrarse el pedido ese
+     boton ya estaria en una ficha cerrada. Probado en Chrome y en WebKit con
+     dos dialogos sueltos: el foco termina en <body>.
+     Cerrandola aca, antes de que el cajon se abra, el foco pasa primero a la
+     tarjeta, el cajon la anota a ella y al cerrarse vuelve ahi.
+     La salida igual se ve en Chrome, que sigue pintando el dialogo mientras
+     se va (`allow-discrete`, ver globals.css). */
+  const pasarAlPedido = () => {
+    dialogoRef.current?.close();
+    devolverFoco();
+    onCerrar();
+  };
+
+  /* Las flechas pasan las fotos. Se escuchan en el dialogo y no en todo el
+     documento: escuchando el documento, para no robarle las teclas a un
+     dialogo de encima habia que callarse con cualquier `dialog[open]`, y
+     ahora la ficha es uno. Aca llegan solo con el foco adentro de la ficha,
+     y con otro dialogo modal encima el foco es de ese otro. El Escape no pasa
+     por aca: el navegador se lo da al dialogo de mas arriba (ver
+     `onCancel`). */
+  const alTeclear = (e: React.KeyboardEvent<HTMLDialogElement>) => {
+    // Con un modificador las flechas son de otro: Alt y Cmd son atras y
+    // adelante del navegador.
+    if (diapos.length < 2 || e.altKey || e.metaKey || e.ctrlKey) return;
+    if (e.key === "ArrowRight") verDiapo((v) => (v + 1) % diapos.length);
+    if (e.key === "ArrowLeft") verDiapo((v) => (v - 1 + diapos.length) % diapos.length);
+  };
 
   /* Lo unico que le pone limite a la foto.
      Va en dvh y no en vh para que mida la pantalla que de verdad queda con la
@@ -210,221 +278,252 @@ export function FichaProducto({
      marco vale 358x371.4 desde el primer cuadro y no se mueve. */
   const altoSinFoto = "h-[44dvh] sm:h-[min(60dvh,500px)]";
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <div className="absolute inset-0 bg-tinta/55 backdrop-blur-[2px]" onClick={onCerrar} />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={producto.name}
-        className="relative flex max-h-[92dvh] w-full max-w-4xl flex-col overflow-hidden rounded-t-[18px] bg-papel sm:max-h-[86dvh] sm:rounded-[18px]"
+  /* Sin `aria-modal`: un <dialog> abierto con `showModal()` ya es modal para
+     el lector de pantalla. Y puesto aca haria dano, porque la ficha queda
+     montada despues de cerrarse (ver `Tienda`), y el pop-up y la playlist se
+     callan mientras haya un `[aria-modal="true"]` en la pagina. */
+  return createPortal(
+    <dialog
+      ref={dialogoRef}
+      aria-label={producto.name}
+      tabIndex={-1}
+      onCancel={(e) => {
+        e.preventDefault();
+        onCerrar();
+      }}
+      /* Todos los cierres terminan en `close()` (la salida, "Agregar", un
+         Escape que el navegador no deja cancelar), y todos pasan por aca: el
+         estado queda al dia y el foco vuelve a la tarjeta. */
+      onClose={() => {
+        onCerrar();
+        devolverFoco();
+      }}
+      /* Un clic en el fondo cierra. El fondo es el `::backdrop` del dialogo,
+         asi que el clic le llega al dialogo mismo; adentro de la ficha cae
+         siempre en algo de adentro, porque el scroller la llena entera.
+         Se mira tambien donde EMPEZO: arrastrando para seleccionar texto (el
+         codigo, la descripcion) y soltando afuera de la ficha, el clic le
+         llega igual al dialogo, como ancestro comun de donde se apreto y de
+         donde se solto (probado en Chrome y en WebKit). Mirando solo el
+         `target`, eso cerraria la ficha. */
+      onPointerDown={(e) => {
+        conTeclado.current = false;
+        empezoEnElFondo.current = e.target === e.currentTarget;
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && empezoEnElFondo.current) onCerrar();
+      }}
+      onKeyDown={(e) => {
+        conTeclado.current = true;
+        alTeclear(e);
+      }}
+      className="ficha"
+    >
+      <button
+        onClick={onCerrar}
+        aria-label="Cerrar"
+        className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-pill bg-papel/85 text-tinta-media backdrop-blur transition-colors hover:text-tinta"
       >
-        <button
-          onClick={onCerrar}
-          aria-label="Cerrar"
-          className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-pill bg-papel/85 text-tinta-media backdrop-blur transition-colors hover:text-tinta"
-        >
-          <X size={18} weight="bold" />
-        </button>
+        <X size={18} weight="bold" />
+      </button>
 
-        {/* ACA SCROLLEA TODA LA FICHA, Y ES EL UNICO QUE SCROLLEA.
-            Hubo una version en que scrolleaba solo la columna de texto, con el
-            precio como hermano fijo afuera. El pie quedaba a la vista, si, pero
-            el texto quedaba encerrado en una caja de ~280px de alto sin ninguna
-            pista de que hubiera mas: en un iPhone SE la mitad de la ficha era
-            inalcanzable y la fila "Codigo" directamente no existia para el
-            visitante. Con un solo scroll el contenido no queda encerrado, y el
-            precio igual esta siempre a la vista porque va `sticky` adentro de
-            este mismo scroller.
+      {/* ACA SCROLLEA TODA LA FICHA, Y ES EL UNICO QUE SCROLLEA.
+          Hubo una version en que scrolleaba solo la columna de texto, con el
+          precio como hermano fijo afuera. El pie quedaba a la vista, si, pero
+          el texto quedaba encerrado en una caja de ~280px de alto sin ninguna
+          pista de que hubiera mas: en un iPhone SE la mitad de la ficha era
+          inalcanzable y la fila "Codigo" directamente no existia para el
+          visitante. Con un solo scroll el contenido no queda encerrado, y el
+          precio igual esta siempre a la vista porque va `sticky` adentro de
+          este mismo scroller.
 
-            Sigue siendo flex y no grid: en escritorio las dos columnas se
-            estiran a la misma altura, que es lo que deja el precio apoyado
-            abajo de la columna de texto. */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto sm:flex-row">
-          <div className="relative flex shrink-0 flex-col sm:w-1/2">
-            {/* EL MARCO NO IMPONE PROPORCION, LA PONE LA FOTO.
-                Antes era `aspect-square`. Como el ERP manda todas las fotos en
-                4:5 vertical, cada una entraba achicada dentro de un cuadrado,
-                con dos bandas vacias arriba y abajo: eso es lo que el cliente
-                vio como "demasiado cuadrado". Ahora la caja se ajusta a lo que
-                trae la foto -alto y ancho automaticos, tope en dvh,
-                `object-contain`-, asi que una vertical crece a lo alto y una
-                horizontal a lo ancho, y ninguna sale recortada ni deformada.
-                Cambiar esto por una proporcion fija vuelve a traer el problema,
-                aunque la proporcion elegida sea otra. */}
-            <div className="relative flex items-center justify-center p-4 sm:p-6">
-              {actual && (
-                /* La foto siempre va por `next/image` (optimizada y con
-                   `sizes`) y es la que le da la medida al marco. El video,
-                   cuando la diapositiva es la suya, se monta encima ocupando
-                   ese mismo marco. La foto va centrada dentro del envoltorio
-                   para que los dos coincidan aunque el envoltorio quede mas
-                   ancho que ella. Sin foto, el envoltorio pone la medida el
-                   solo y el video se contiene adentro. */
-                <div
-                  className={`relative max-w-full ${fondo ? "" : `w-full ${altoSinFoto}`}`}
-                >
-                  {fondo && (
-                    <Image
-                      src={fondo}
-                      alt={producto.name}
-                      /* Medida de las fotos del ERP. No fija la proporcion: solo
-                         reserva el lugar mientras carga, despues manda la real. */
-                      width={960}
-                      height={1200}
-                      sizes="(max-width: 640px) 100vw, 448px"
-                      className={`foto-fundida mx-auto block h-auto w-auto max-w-full object-contain transition-opacity duration-300 ${alto} ${
-                        fotoTapada ? "opacity-0" : "opacity-100"
-                      }`}
-                    />
-                  )}
-                  {esVideo && video && (
-                    <VideoProducto
-                      src={video}
-                      alArrancar={() => setVideoAndando(true)}
-                      className="absolute inset-0 h-full w-full object-contain"
-                    />
-                  )}
-                </div>
-              )}
-              {diapos.length > 1 && (
-                <>
-                  <button
-                    onClick={() => verDiapo((v) => (v - 1 + diapos.length) % diapos.length)}
-                    aria-label="Anterior"
-                    className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-pill bg-papel/80 backdrop-blur transition-colors hover:bg-papel"
-                  >
-                    <CaretLeft size={15} weight="bold" />
-                  </button>
-                  <button
-                    onClick={() => verDiapo((v) => (v + 1) % diapos.length)}
-                    aria-label="Siguiente"
-                    className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-pill bg-papel/80 backdrop-blur transition-colors hover:bg-papel"
-                  >
-                    <CaretRight size={15} weight="bold" />
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* Los puntitos: dicen cuantas diapositivas hay y dejan saltar a
-                una. El del video dice "Ver video" y no "Ver foto 1", que es lo
-                que un lector de pantalla escuchaba antes. */}
-            {diapos.length > 1 && (
-              <div className="flex justify-center gap-2 pb-5">
-                {diapos.map((d, n) => (
-                  <button
-                    key={d.src}
-                    onClick={() => verDiapo(n)}
-                    aria-label={d.tipo === "video" ? "Ver video" : `Ver foto ${video ? n : n + 1}`}
-                    aria-current={n === i}
-                    className={`h-1.5 rounded-pill transition-all duration-300 ${
-                      n === i ? "w-7 bg-tinta" : "w-3 bg-linea hover:bg-tinta-suave"
+          Sigue siendo flex y no grid: en escritorio las dos columnas se
+          estiran a la misma altura, que es lo que deja el precio apoyado
+          abajo de la columna de texto. */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto sm:flex-row">
+        <div className="relative flex shrink-0 flex-col sm:w-1/2">
+          {/* EL MARCO NO IMPONE PROPORCION, LA PONE LA FOTO.
+              Antes era `aspect-square`. Como el ERP manda todas las fotos en
+              4:5 vertical, cada una entraba achicada dentro de un cuadrado,
+              con dos bandas vacias arriba y abajo: eso es lo que el cliente
+              vio como "demasiado cuadrado". Ahora la caja se ajusta a lo que
+              trae la foto -alto y ancho automaticos, tope en dvh,
+              `object-contain`-, asi que una vertical crece a lo alto y una
+              horizontal a lo ancho, y ninguna sale recortada ni deformada.
+              Cambiar esto por una proporcion fija vuelve a traer el problema,
+              aunque la proporcion elegida sea otra. */}
+          <div className="relative flex items-center justify-center p-4 sm:p-6">
+            {actual && (
+              /* La foto siempre va por `next/image` (optimizada y con
+                 `sizes`) y es la que le da la medida al marco. El video,
+                 cuando la diapositiva es la suya, se monta encima ocupando
+                 ese mismo marco. La foto va centrada dentro del envoltorio
+                 para que los dos coincidan aunque el envoltorio quede mas
+                 ancho que ella. Sin foto, el envoltorio pone la medida el
+                 solo y el video se contiene adentro. */
+              <div
+                className={`relative max-w-full ${fondo ? "" : `w-full ${altoSinFoto}`}`}
+              >
+                {fondo && (
+                  <Image
+                    src={fondo}
+                    alt={producto.name}
+                    /* Medida de las fotos del ERP. No fija la proporcion: solo
+                       reserva el lugar mientras carga, despues manda la real. */
+                    width={960}
+                    height={1200}
+                    sizes="(max-width: 640px) 100vw, 448px"
+                    className={`foto-fundida mx-auto block h-auto w-auto max-w-full object-contain transition-opacity duration-300 ${alto} ${
+                      fotoTapada ? "opacity-0" : "opacity-100"
                     }`}
                   />
-                ))}
+                )}
+                {esVideo && video && (
+                  <VideoProducto
+                    src={video}
+                    alArrancar={() => setVideoAndando(true)}
+                    className="absolute inset-0 h-full w-full object-contain"
+                  />
+                )}
               </div>
+            )}
+            {diapos.length > 1 && (
+              <>
+                <button
+                  onClick={() => verDiapo((v) => (v - 1 + diapos.length) % diapos.length)}
+                  aria-label="Anterior"
+                  className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-pill bg-papel/80 backdrop-blur transition-colors hover:bg-papel"
+                >
+                  <CaretLeft size={15} weight="bold" />
+                </button>
+                <button
+                  onClick={() => verDiapo((v) => (v + 1) % diapos.length)}
+                  aria-label="Siguiente"
+                  className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-pill bg-papel/80 backdrop-blur transition-colors hover:bg-papel"
+                >
+                  <CaretRight size={15} weight="bold" />
+                </button>
+              </>
             )}
           </div>
 
-          <div className="flex min-w-0 flex-1 flex-col border-t border-linea sm:w-1/2 sm:border-l sm:border-t-0">
-            <div className="flex flex-col gap-4 p-6 sm:p-8">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {/* Tambien aca y no solo en la tarjeta: la ficha se abre
-                      desde cualquier estante o filtro, y es lo que el cliente
-                      quiere que se lea primero. */}
-                  {producto.featured === true && (
-                    <span className="rounded-pill border border-tinta bg-tinta px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-papel">
-                      Más vendido
-                    </span>
-                  )}
-                  {producto.category && (
-                    <span className="rounded-pill border border-linea px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-tinta-suave">
-                      {producto.category.name}
-                    </span>
-                  )}
-                  {producto.subtype && (
-                    <span className="rounded-pill bg-humo px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-tinta-media">
-                      {producto.subtype.name}
-                    </span>
-                  )}
-                </div>
-                <h3 className="type-display mt-3 text-[clamp(1.5rem,3vw,2.25rem)]">
-                  {producto.name}
-                </h3>
-              </div>
+          {/* Los puntitos: dicen cuantas diapositivas hay y dejan saltar a
+              una. El del video dice "Ver video" y no "Ver foto 1", que es lo
+              que un lector de pantalla escuchaba antes. */}
+          {diapos.length > 1 && (
+            <div className="flex justify-center gap-2 pb-5">
+              {diapos.map((d, n) => (
+                <button
+                  key={d.src}
+                  onClick={() => verDiapo(n)}
+                  aria-label={d.tipo === "video" ? "Ver video" : `Ver foto ${video ? n : n + 1}`}
+                  aria-current={n === i}
+                  className={`h-1.5 rounded-pill transition-all duration-300 ${
+                    n === i ? "w-7 bg-tinta" : "w-3 bg-linea hover:bg-tinta-suave"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
-              {producto.description && (
-                <p className="type-body text-sm leading-relaxed text-tinta-media">
-                  {producto.description}
+        <div className="flex min-w-0 flex-1 flex-col border-t border-linea sm:w-1/2 sm:border-l sm:border-t-0">
+          <div className="flex flex-col gap-4 p-6 sm:p-8">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Tambien aca y no solo en la tarjeta: la ficha se abre
+                    desde cualquier estante o filtro, y es lo que el cliente
+                    quiere que se lea primero. */}
+                {producto.featured === true && (
+                  <span className="rounded-pill border border-tinta bg-tinta px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-papel">
+                    Más vendido
+                  </span>
+                )}
+                {producto.category && (
+                  <span className="rounded-pill border border-linea px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-tinta-suave">
+                    {producto.category.name}
+                  </span>
+                )}
+                {producto.subtype && (
+                  <span className="rounded-pill bg-humo px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-tinta-media">
+                    {producto.subtype.name}
+                  </span>
+                )}
+              </div>
+              <h3 className="type-display mt-3 text-[clamp(1.5rem,3vw,2.25rem)]">
+                {producto.name}
+              </h3>
+            </div>
+
+            {producto.description && (
+              <p className="type-body text-sm leading-relaxed text-tinta-media">
+                {producto.description}
+              </p>
+            )}
+
+            {/* Un mate nuevo se cura antes de usarlo, y es lo primero que
+                pregunta quien compra uno. Solo en los mates: en una bombilla
+                o una matera no aplica. Se compara el slug y no el nombre, que
+                es el texto que el cliente puede cambiar desde el ERP. */}
+            {producto.category?.slug === "mates" && (
+              <a
+                href={GUIAS.curar.ruta}
+                className="self-start text-sm font-medium underline decoration-tinta-suave underline-offset-4 transition-colors hover:decoration-tinta"
+              >
+                ¿Mate nuevo? Así se cura
+              </a>
+            )}
+
+            <dl className="mt-1 border-t border-linea pt-4 text-sm">
+              <div className="flex justify-between py-1">
+                <dt className="text-tinta-suave">Código</dt>
+                <dd className="font-mono text-xs">{producto.sku}</dd>
+              </div>
+              {/* Hay o no hay, nunca cuantos: el cliente no quiere que se
+                  vea cuantas unidades le quedan. El tope del carrito sigue
+                  respetando el stock real, pero sin decir el numero. */}
+              {siguiendoStock && (
+                <div className="flex justify-between py-1">
+                  <dt className="text-tinta-suave">Disponibilidad</dt>
+                  <dd>{producto.in_stock ? "En stock" : "Sin stock"}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
+
+          {/* EL PRECIO Y "AGREGAR" VAN PEGADOS AL PIE DEL SCROLL.
+              Si el boton de agregar no se ve, no hay pedido, y la ficha
+              existe justamente para eso. `sticky bottom-0` lo deja siempre a
+              la vista sin sacarlo del scroll: el contenido pasa por detras y
+              se sigue pudiendo llegar al final, que es lo que se rompia
+              cuando el pie era un hermano fijo afuera del scroller.
+              El `mt-auto` es para cuando la ficha es corta: sin el, el pie
+              quedaria pegado al texto con un hueco abajo.
+              El borde de arriba mas el fondo opaco son lo que evita que el
+              texto que pasa por detras se lea encima. */}
+          <div className="sticky bottom-0 mt-auto flex items-end justify-between gap-4 border-t border-linea bg-papel px-6 py-4 sm:px-8 sm:py-5">
+            <div>
+              {producto.discount && (
+                <p className="text-sm text-tinta-suave line-through">
+                  {precio(producto.price)}
                 </p>
               )}
-
-              {/* Un mate nuevo se cura antes de usarlo, y es lo primero que
-                  pregunta quien compra uno. Solo en los mates: en una bombilla
-                  o una matera no aplica. Se compara el slug y no el nombre, que
-                  es el texto que el cliente puede cambiar desde el ERP. */}
-              {producto.category?.slug === "mates" && (
-                <a
-                  href={GUIAS.curar.ruta}
-                  className="self-start text-sm font-medium underline decoration-tinta-suave underline-offset-4 transition-colors hover:decoration-tinta"
-                >
-                  ¿Mate nuevo? Así se cura
-                </a>
+              <p className="type-display text-3xl">{precio(producto.price_final)}</p>
+              {producto.discount && (
+                <p className="mt-1 text-xs font-semibold text-verde">
+                  {producto.discount.percentage}% off · {producto.discount.campaign}
+                </p>
               )}
-
-              <dl className="mt-1 border-t border-linea pt-4 text-sm">
-                <div className="flex justify-between py-1">
-                  <dt className="text-tinta-suave">Código</dt>
-                  <dd className="font-mono text-xs">{producto.sku}</dd>
-                </div>
-                {/* Hay o no hay, nunca cuantos: el cliente no quiere que se
-                    vea cuantas unidades le quedan. El tope del carrito sigue
-                    respetando el stock real, pero sin decir el numero. */}
-                {siguiendoStock && (
-                  <div className="flex justify-between py-1">
-                    <dt className="text-tinta-suave">Disponibilidad</dt>
-                    <dd>{producto.in_stock ? "En stock" : "Sin stock"}</dd>
-                  </div>
-                )}
-              </dl>
             </div>
-
-            {/* EL PRECIO Y "AGREGAR" VAN PEGADOS AL PIE DEL SCROLL.
-                Si el boton de agregar no se ve, no hay pedido, y la ficha
-                existe justamente para eso. `sticky bottom-0` lo deja siempre a
-                la vista sin sacarlo del scroll: el contenido pasa por detras y
-                se sigue pudiendo llegar al final, que es lo que se rompia
-                cuando el pie era un hermano fijo afuera del scroller.
-                El `mt-auto` es para cuando la ficha es corta: sin el, el pie
-                quedaria pegado al texto con un hueco abajo.
-                El borde de arriba mas el fondo opaco son lo que evita que el
-                texto que pasa por detras se lea encima. */}
-            <div className="sticky bottom-0 mt-auto flex items-end justify-between gap-4 border-t border-linea bg-papel px-6 py-4 sm:px-8 sm:py-5">
-              <div>
-                {producto.discount && (
-                  <p className="text-sm text-tinta-suave line-through">
-                    {precio(producto.price)}
-                  </p>
-                )}
-                <p className="type-display text-3xl">{precio(producto.price_final)}</p>
-                {producto.discount && (
-                  <p className="mt-1 text-xs font-semibold text-verde">
-                    {producto.discount.percentage}% off · {producto.discount.campaign}
-                  </p>
-                )}
-              </div>
-              <AddToCart
-                producto={producto}
-                siguiendoStock={siguiendoStock}
-                alAgregar={onCerrar}
-              />
-            </div>
+            <AddToCart
+              producto={producto}
+              siguiendoStock={siguiendoStock}
+              alAgregar={pasarAlPedido}
+            />
           </div>
         </div>
       </div>
-    </div>
+    </dialog>,
+    document.body,
   );
 }
