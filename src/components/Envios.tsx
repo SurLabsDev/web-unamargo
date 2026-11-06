@@ -233,7 +233,7 @@ export function Envios() {
           {/* Sin numero a proposito: decia "seis" y paso a mentir apenas los
               retiros bajaron de tres a uno. La lista manda, el texto no cuenta. */}
           <p className="type-body mt-6 text-lg leading-relaxed text-papel/65">
-            Retiro sin costo o cadetería a tu casa. Segui bajando y vas viendo
+            Retiro sin costo o cadetería a tu casa. Seguí bajando y vas viendo
             cada zona en el mapa.
           </p>
         </div>
