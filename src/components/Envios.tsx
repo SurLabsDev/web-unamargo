@@ -6,6 +6,7 @@ import { SITE } from "@/lib/site";
 import { Instagram } from "./Sociales";
 import { MapaMontevideo } from "./MapaMontevideo";
 import {
+  ENVIO_GRATIS_EXCEPCION,
   ENVIO_GRATIS_TEXTO,
   ENVIO_INTERIOR,
   PICKUPS,
@@ -238,6 +239,9 @@ export function Envios() {
         </div>
         <div className="reveal mt-8 inline-flex rounded-pill bg-verde px-5 py-2.5 text-sm font-semibold">
           Envío gratis en Montevideo a partir de {ENVIO_GRATIS_TEXTO}
+          {ENVIO_GRATIS_EXCEPCION && (
+            <span className="ml-1.5 font-normal opacity-80">{ENVIO_GRATIS_EXCEPCION}</span>
+          )}
         </div>
       </div>
 

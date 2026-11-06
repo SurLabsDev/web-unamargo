@@ -115,6 +115,14 @@ export const ENVIO_GRATIS_TEXTO = `$${new Intl.NumberFormat("es-UY").format(
  *  cobra su zona siempre. */
 export const FUERA_DE_MONTEVIDEO = ["Las Piedras"];
 
+/** La excepcion lista para mostrar al lado de la promesa: "(no incluye Las
+ *  Piedras)". Sale de la lista, asi que si cambia, cambia en todos lados. Sin
+ *  barrios afuera, no dice nada. Se dice siempre junto a la promesa: el envio
+ *  gratis anunciado sin la excepcion le cobraba $250 a quien lo creia gratis. */
+export const ENVIO_GRATIS_EXCEPCION = FUERA_DE_MONTEVIDEO.length
+  ? `(no incluye ${FUERA_DE_MONTEVIDEO.join(" ni ")})`
+  : "";
+
 /** Como se envia al resto del pais. Lo muestran la seccion Envios y llms.txt,
  *  y por eso vive aca y no en el componente. */
 export const ENVIO_INTERIOR =

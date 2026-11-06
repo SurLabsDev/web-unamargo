@@ -2,7 +2,6 @@ import { aCentavos, desdeCentavos } from "./centavos";
 import { precio } from "./catalog";
 import {
   ENVIO_GRATIS_DESDE,
-  ENVIO_GRATIS_TEXTO,
   FUERA_DE_MONTEVIDEO,
   PICKUPS,
   ZONAS_ENVIO,
@@ -132,7 +131,7 @@ export function armarMensaje(
           envio?.tipo === "zona"
             ? `Envío (${envio.zona.rotulo}): ${precio(envio.costo)}`
             : envio?.tipo === "gratis"
-              ? `Envío (${envio.zona.rotulo}): sin costo (compras desde ${ENVIO_GRATIS_TEXTO})`
+              ? `Envío (${envio.zona.rotulo}): sin costo (compras desde ${precio(ENVIO_GRATIS_DESDE)})`
               : "Envío: a coordinar",
           total ? `Total: ${precio(total)}` : `Total: ${precio(subtotal)} + envío`,
         ];

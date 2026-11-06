@@ -18,7 +18,12 @@ import { useCarrito } from "./CartProvider";
 import { aCentavos } from "@/lib/centavos";
 import { precio } from "@/lib/catalog";
 import { SITE, linkWhatsApp } from "@/lib/site";
-import { ENVIO_GRATIS_TEXTO, PICKUPS, ZONAS_ENVIO } from "@/lib/zonas";
+import {
+  ENVIO_GRATIS_DESDE,
+  FUERA_DE_MONTEVIDEO,
+  PICKUPS,
+  ZONAS_ENVIO,
+} from "@/lib/zonas";
 import {
   A_DOMICILIO,
   FORMAS_PAGO,
@@ -328,7 +333,7 @@ export function CartDrawer() {
                     elegido={datos.modo === A_DOMICILIO}
                     onElegir={() => cambiar({ modo: A_DOMICILIO })}
                     titulo="Envío a domicilio"
-                    detalle={`Según el barrio · gratis desde ${ENVIO_GRATIS_TEXTO}`}
+                    detalle={`Según el barrio · gratis desde ${precio(ENVIO_GRATIS_DESDE)}`}
                     costo={ENVIO_DESDE ? `desde ${precio(ENVIO_DESDE)}` : ""}
                   />
                 </div>
@@ -377,12 +382,22 @@ export function CartDrawer() {
                     {envio?.tipo === "zona" && (
                       <span className="mt-2 block text-xs text-tinta-media">
                         {envio.zona.rotulo} · el envío cuesta {precio(envio.costo)}
+                        {/* Si el pedido ya llega al envio gratis y el barrio
+                            queda afuera, se dice por que se cobra: si no, la
+                            promesa del "desde" de arriba parece incumplida. */}
+                        {FUERA_DE_MONTEVIDEO.includes(datos.barrio) &&
+                          aCentavos(total) >= aCentavos(ENVIO_GRATIS_DESDE) && (
+                            <>
+                              . {datos.barrio} queda fuera de Montevideo: el
+                              envío gratis es solo en Montevideo.
+                            </>
+                          )}
                       </span>
                     )}
                     {envio?.tipo === "gratis" && (
                       <span className="mt-2 block text-xs font-semibold text-verde">
                         {envio.zona.rotulo} · envío gratis en compras desde{" "}
-                        {ENVIO_GRATIS_TEXTO}
+                        {precio(ENVIO_GRATIS_DESDE)}
                       </span>
                     )}
                   </label>
