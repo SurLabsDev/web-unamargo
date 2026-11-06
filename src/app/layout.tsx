@@ -39,7 +39,8 @@ export const metadata: Metadata = {
      la pagina (`resolveRelativeUrl` en next/dist/lib/metadata/resolvers) y
      solo colapsa al dominio pelado cuando esa ruta es exactamente "/". Vercel
      regenera la home (ISR) dibujandola como "/index": pasados los primeros
-     5 minutos, la home le decia a Google que su direccion canonica era
+     5 minutos, su canonical y su og:url pasaban a ser .../index, que con el
+     dominio propio le diria a Google que la home es
      https://unamargo.com/index. */
   openGraph: OPEN_GRAPH_BASE,
   robots: { index: SE_INDEXA, follow: SE_INDEXA },

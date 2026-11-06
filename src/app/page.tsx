@@ -33,8 +33,8 @@ export const revalidate = 300;
  *  "/" Next lo resuelve contra `metadataBase` y no contra la ruta con la que
  *  se dibuja la pagina, asi que da el dominio pelado siempre: tambien cuando
  *  Vercel la regenera como "/index", que con el "./" que habia en el layout
- *  le decia a Google que la home era https://unamargo.com/index. Y por eso
- *  mismo /index, que Vercel contesta con la home, apunta a la raiz.
+ *  la declaraba .../index (con el dominio propio, https://unamargo.com/index).
+ *  Y por eso mismo /index, que Vercel contesta con la home, apunta a la raiz.
  *
  *  El `openGraph` de una pagina reemplaza entero el del layout: se parte de
  *  la base compartida y se le suma solo la url. La imagen la sigue agregando

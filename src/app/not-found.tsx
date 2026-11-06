@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
-import { OPEN_GRAPH_BASE } from "@/lib/metadatos";
-import { alt, contentType, size } from "./opengraph-image";
 
 /** La 404 de Next viene en ingles ("This page could not be found"), y en una
  *  tienda uruguaya eso se lee como un sitio roto. Esta dice lo mismo en su
@@ -17,20 +15,12 @@ export const metadata: Metadata = {
   // esta lo dice explicito: si un dia el layout vuelve a tener canonical, la
   // 404 no lo hereda.
   alternates: { canonical: null },
-  // El openGraph de una pagina REEMPLAZA entero el del layout: se parte de la
-  // misma base compartida y se le suma la imagen.
-  openGraph: {
-    ...OPEN_GRAPH_BASE,
-    // Con sus medidas, tipo y texto, como la del resto del sitio: dada como
-    // una URL suelta, la imagen perdia esos datos.
-    images: {
-      url: "/opengraph-image",
-      width: size.width,
-      height: size.height,
-      type: contentType,
-      alt,
-    },
-  },
+  // Sin `openGraph` propio, a proposito: el de una pagina REEMPLAZA entero el
+  // del layout y obliga a repetir a mano todo lo demas, imagen incluida, y la
+  // 404 no tiene nada que cambiarle (el layout no pone og:url). Asi hereda la
+  // base del layout y Next le suma la imagen de `opengraph-image.tsx` con su
+  // ancho, alto, tipo y texto: medido en el build, la misma og:image que la
+  // home.
 };
 
 export default function NoEncontrada() {
