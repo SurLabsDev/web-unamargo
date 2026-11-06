@@ -2,6 +2,26 @@ import Image from "next/image";
 import { SITE } from "@/lib/site";
 import { Instagram } from "./Sociales";
 
+/** El ancho al que se DIBUJA cada foto, que no es el de su celda.
+ *
+ *  En escritorio el bloque es 3:4 y cada celda, una tira de 3:8. Con
+ *  `object-cover` la foto (3:4) se escala hasta llenar el alto y se recorta a
+ *  los costados: se dibuja tan ancha como el bloque entero, que es medio
+ *  contenedor menos 32px. O sea `50vw - 80px` hasta que el contenedor toca su
+ *  tope de 1400 (ventana de 1496) y 668px de ahi en mas. Decia `25vw`, que es
+ *  la celda: medido a 1440, el navegador bajaba w=384 en una pantalla comun y
+ *  w=750 en una retina para una foto que se dibuja a 640px y pide 1280, y se
+ *  veia blanda.
+ *
+ *  En el celular el bloque es 4:3 y la foto se dibuja a un 56% del ancho util.
+ *  `50vw` queda apenas abajo, pero entre los anchos que ofrece el optimizador
+ *  elige la misma variante que el ancho exacto (640 a 390 x3, 828 a 768 x2),
+ *  asi que el celular baja lo mismo que antes.
+ *
+ *  Si cambia el padding, el gap o el tope de la seccion, cambian estos
+ *  numeros. */
+const ANCHO_DIBUJADO = "(min-width: 1496px) 668px, (min-width: 1024px) calc(50vw - 80px), 50vw";
+
 /** Las dos fotos de grabado son las que mando el cliente.
  *
  *  VAN COMO UN SOLO BLOQUE, igual que en su demo: pegadas con 4px de por
@@ -27,7 +47,7 @@ export function Personalizados() {
               src="/secciones/personalizado-1.jpg"
               alt="Mate con grabado láser"
               fill
-              sizes="(max-width: 1024px) 50vw, 25vw"
+              sizes={ANCHO_DIBUJADO}
               className="object-cover"
             />
           </div>
@@ -36,7 +56,7 @@ export function Personalizados() {
               src="/secciones/personalizado-2.jpg"
               alt="Virola trabajada a mano"
               fill
-              sizes="(max-width: 1024px) 50vw, 25vw"
+              sizes={ANCHO_DIBUJADO}
               className="object-cover"
             />
           </div>
