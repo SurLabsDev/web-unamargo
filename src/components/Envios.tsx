@@ -237,10 +237,15 @@ export function Envios() {
             cada zona en el mapa.
           </p>
         </div>
-        <div className="reveal mt-8 inline-flex rounded-pill bg-verde px-5 py-2.5 text-sm font-semibold">
+        {/* `inline-block` y no flex: con flex la excepcion era otra columna
+            al lado de la promesa y, en el celular, se partia en dos bloques. */}
+        <div className="reveal mt-8 inline-block rounded-pill bg-verde px-5 py-2.5 text-sm font-semibold">
           Envío gratis en Montevideo a partir de {ENVIO_GRATIS_TEXTO}
           {ENVIO_GRATIS_EXCEPCION && (
-            <span className="ml-1.5 font-normal opacity-80">{ENVIO_GRATIS_EXCEPCION}</span>
+            <>
+              {" "}
+              <span className="font-normal opacity-80">{ENVIO_GRATIS_EXCEPCION}</span>
+            </>
           )}
         </div>
       </div>

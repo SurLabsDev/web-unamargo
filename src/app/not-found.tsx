@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { SITE } from "@/lib/site";
+import { alt, contentType, size } from "./opengraph-image";
 
 /** La 404 de Next viene en ingles ("This page could not be found"), y en una
  *  tienda uruguaya eso se lee como un sitio roto. Esta dice lo mismo en su
@@ -20,7 +21,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_UY",
     siteName: SITE.nombre,
-    images: "/opengraph-image",
+    // Con sus medidas, tipo y texto, como la del resto del sitio: dada como
+    // una URL suelta, la imagen perdia esos datos.
+    images: {
+      url: "/opengraph-image",
+      width: size.width,
+      height: size.height,
+      type: contentType,
+      alt,
+    },
   },
 };
 

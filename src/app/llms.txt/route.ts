@@ -4,9 +4,9 @@ import { FORMAS_PAGO, enumerar } from "@/lib/pedido";
 import { GUIAS, ORDEN_GUIAS } from "@/lib/guias";
 import { SITE } from "@/lib/site";
 import {
+  ENVIO_GRATIS_EXCEPCION,
   ENVIO_GRATIS_TEXTO,
   ENVIO_INTERIOR,
-  FUERA_DE_MONTEVIDEO,
   PICKUPS,
   ZONAS_ENVIO,
 } from "@/lib/zonas";
@@ -86,7 +86,7 @@ export async function GET(): Promise<Response> {
           precio(z.costo) ?? "costo a coordinar"
         }. Barrios: ${enumerar(z.barrios)}.`,
     ),
-    `- Envío gratis en ${SITE.ciudad} en compras desde ${ENVIO_GRATIS_TEXTO} (no aplica en ${enumerar(FUERA_DE_MONTEVIDEO)}).`,
+    `- Envío gratis en ${SITE.ciudad} en compras desde ${ENVIO_GRATIS_TEXTO}${ENVIO_GRATIS_EXCEPCION ? ` ${ENVIO_GRATIS_EXCEPCION}` : ""}.`,
     `- ${ENVIO_INTERIOR}`,
     "",
     "## Tienda",

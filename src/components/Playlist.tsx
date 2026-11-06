@@ -106,8 +106,11 @@ export function Playlist() {
         setSinAyuda(true);
       }
     }
-    document.addEventListener("keydown", alTeclear);
-    return () => document.removeEventListener("keydown", alTeclear);
+    // En la fase de CAPTURA, antes que los demas: si la ficha de producto
+    // cerraba primero con su propio Escape, cuando llegaba aca ya no habia
+    // `aria-modal` y se cerraba tambien el panel, con un solo Escape.
+    document.addEventListener("keydown", alTeclear, true);
+    return () => document.removeEventListener("keydown", alTeclear, true);
   }, [abierto]);
 
   // Se vigila el hero con un IntersectionObserver y no con "scroll", que corre
@@ -117,7 +120,15 @@ export function Playlist() {
     const hero = document.getElementById("top");
     if (!hero) return;
     const obs = new IntersectionObserver(
-      ([e]) => setFueraDelHero(e.intersectionRatio < 0.4),
+      ([e]) => {
+        const fuera = e.intersectionRatio < 0.4;
+        setFueraDelHero(fuera);
+        // De vuelta en el hero, el panel abierto se pliega: en los celulares
+        // bajos tapaba "Como curar y cebar" y los iconos, y un toque en
+        // Instagram caia en Spotify. Plegarlo no corta la musica (el iframe
+        // no se desmonta) y el boton queda, que cerrado no tapa nada.
+        if (!fuera) setAbierto(false);
+      },
       { threshold: [0, 0.4, 1] },
     );
     obs.observe(hero);

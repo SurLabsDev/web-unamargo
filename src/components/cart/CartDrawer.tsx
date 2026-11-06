@@ -33,6 +33,7 @@ import {
   envioDe,
   faltantes,
   guardarDatos,
+  llegaAlEnvioGratis,
   leerDatosGuardados,
   totalConEnvio,
   type DatosEntrega,
@@ -160,6 +161,8 @@ export function CartDrawer() {
     const w = window.open(href, "_blank");
     if (w) {
       w.opener = null;
+      // Si antes se bloqueo y ahora salio, el aviso ya miente.
+      setBloqueado(false);
       return;
     }
     // Un envio que se traga el bloqueador de popups es un pedido perdido:
@@ -394,7 +397,7 @@ export function CartDrawer() {
                             queda afuera, se dice por que se cobra: si no, la
                             promesa del "desde" de arriba parece incumplida. */}
                         {FUERA_DE_MONTEVIDEO.includes(datos.barrio) &&
-                          aCentavos(total) >= aCentavos(ENVIO_GRATIS_DESDE) && (
+                          llegaAlEnvioGratis(total) && (
                             <>
                               . {datos.barrio} queda fuera de Montevideo: el
                               envío gratis es solo en Montevideo.
@@ -558,9 +561,11 @@ export function CartDrawer() {
                   Enviar el pedido
                 </a>
               )}
-              {bloqueado && (
+              {/* Solo con el pedido completo: si se le borra un dato despues
+                  del bloqueo, el link a mano mandaria un pedido incompleto. */}
+              {bloqueado && falta.length === 0 && (
                 <p className="mt-3 text-xs text-tinta-media">
-                  El navegador bloqueo la ventana.{" "}
+                  El navegador bloqueó la ventana.{" "}
                   <a
                     href={href}
                     target="_blank"

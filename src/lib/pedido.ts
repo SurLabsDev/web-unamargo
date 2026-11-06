@@ -87,7 +87,7 @@ export function envioDe(d: DatosEntrega, subtotal: string): Envio | null {
  *  subtotal puede dar $3.489,65, y en pantalla se lee "$ 3.490". Comparando
  *  centavos exactos, el que ve "$ 3.490" igual pagaba el envio. Redondear para
  *  arriba desde los 50 centavos es lo mismo que hace `Intl` al mostrarlo. */
-function llegaAlEnvioGratis(subtotal: string): boolean {
+export function llegaAlEnvioGratis(subtotal: string): boolean {
   const pesos = ((aCentavos(subtotal) + 50n) / 100n) * 100n;
   return pesos >= aCentavos(ENVIO_GRATIS_DESDE);
 }
