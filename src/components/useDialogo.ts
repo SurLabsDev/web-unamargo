@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useEffectEvent, useSyncExternalStore, type RefObject } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useSyncExternalStore,
+  type RefObject,
+} from "react";
 
 /**
  * Abre y cierra un <dialog> nativo con animacion de entrada y de salida. Lo
@@ -128,4 +134,60 @@ export function useMontado(): boolean {
     () => true,
     () => false,
   );
+}
+
+/** Lo que dura, despues de abrirse un dialogo, la ventana en la que se ignoran
+ *  los clics adentro y en el fondo. Es el segundo toque del gesto que lo abrio:
+ *  un doble toque en "Agregar" abre el cajon con el primero, y el segundo cae
+ *  en lo que quedo debajo del dedo. Medido en el iPhone: con 40 a 500ms entre
+ *  toques caia en "Continuar" y salteaba la lista; con 0ms caia en el fondo y
+ *  lo cerraba. Con el mouse, un doble clic abria y cerraba en el mismo gesto. */
+const GRACIA_MS = 500;
+
+/**
+ * Cerrar con un clic en el fondo, y solo con eso. Lo usan los tres dialogos
+ * que se cierran asi: el cajon del pedido, el pop-up y la ficha.
+ *
+ * El fondo es el `::backdrop`, y un clic ahi le llega al dialogo mismo. Pero
+ * si se aprieta de un lado del borde y se suelta del otro, el clic TAMBIEN le
+ * llega al dialogo, como ancestro comun de los dos. Por eso tiene que empezar
+ * Y terminar en el fondo: si no, cerraban gestos que no son un clic en el
+ * fondo, como seleccionar texto adentro (el nombre en el formulario, la
+ * descripcion) y soltar afuera, o resbalar unos pixeles por el borde. Con el
+ * dedo el `pointerup` le llega al mismo elemento que el `pointerdown`, asi que
+ * un toque en el fondo sigue cerrando.
+ *
+ * Ademas, durante `GRACIA_MS` despues de abrirse no pasa ningun clic, ni al
+ * fondo ni a lo de adentro: ver la constante.
+ */
+export function useCierreEnFondo(abierto: boolean, cerrar: () => void) {
+  const empezo = useRef(false);
+  const termino = useRef(false);
+  const abiertoEn = useRef(0);
+
+  useEffect(() => {
+    if (abierto) abiertoEn.current = performance.now();
+  }, [abierto]);
+
+  return {
+    onClickCapture: (e: React.MouseEvent<HTMLDialogElement>) => {
+      // `detail` es 0 en un clic de teclado (Enter, Espacio): ese no viene
+      // de un doble toque y pasa siempre.
+      if (e.detail > 0 && performance.now() - abiertoEn.current < GRACIA_MS) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    },
+    onPointerDown: (e: React.PointerEvent<HTMLDialogElement>) => {
+      empezo.current = e.target === e.currentTarget;
+    },
+    onPointerUp: (e: React.PointerEvent<HTMLDialogElement>) => {
+      termino.current = e.target === e.currentTarget;
+    },
+    onClick: (e: React.MouseEvent<HTMLDialogElement>) => {
+      if (e.target === e.currentTarget && empezo.current && termino.current) {
+        cerrar();
+      }
+    },
+  };
 }

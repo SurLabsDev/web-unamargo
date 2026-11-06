@@ -13,7 +13,7 @@ import {
   X,
 } from "@phosphor-icons/react/dist/ssr";
 import { Whatsapp } from "../Sociales";
-import { useDialogo, useMontado } from "../useDialogo";
+import { useCierreEnFondo, useDialogo, useMontado } from "../useDialogo";
 import { useCarrito, type Ajustes } from "./CartProvider";
 import { aCentavos } from "@/lib/centavos";
 import { precio } from "@/lib/catalog";
@@ -169,6 +169,7 @@ export function CartDrawer() {
   useDialogo(dialogoRef, abierto, {
     alAbrir: () => dialogoRef.current?.focus(),
   });
+  const fondo = useCierreEnFondo(abierto, () => setAbierto(false));
 
   useEffect(() => {
     guardarDatos(datos);
@@ -226,12 +227,17 @@ export function CartDrawer() {
         e.preventDefault();
         setAbierto(false);
       }}
-      /* Un clic en el fondo cierra. El <dialog> ocupa toda la pantalla y el
-         panel vive adentro, asi que se compara contra el panel: si el clic no
-         cayo dentro de el, cayo en el fondo. */
-      onClick={(e) => {
-        if (e.target === dialogoRef.current) setAbierto(false);
-      }}
+      /* Un clic en el fondo cierra, solo si empieza y termina ahi: antes
+         cerraba al seleccionar el nombre en el formulario y soltar afuera, y
+         al reabrir el pedido volvia a la lista. Y en el primer medio segundo
+         no pasa ningun clic: el segundo toque de un doble toque en "Agregar"
+         caia en "Continuar" y salteaba la lista. Ver `useCierreEnFondo`. El
+         panel llena el dialogo entero, asi que un clic adentro nunca le llega
+         al dialogo mismo. */
+      onClickCapture={fondo.onClickCapture}
+      onPointerDown={fondo.onPointerDown}
+      onPointerUp={fondo.onPointerUp}
+      onClick={fondo.onClick}
       className="cajon-pedido"
     >
       <div className="flex h-full w-full flex-col bg-papel">

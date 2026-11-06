@@ -7,7 +7,7 @@ import { X, CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { precio, videoDe, type Producto } from "@/lib/catalog";
 import { GUIAS } from "@/lib/guias";
 import { AddToCart } from "./cart/AddToCart";
-import { useDialogo } from "./useDialogo";
+import { useCierreEnFondo, useDialogo } from "./useDialogo";
 import { VideoProducto } from "./VideoProducto";
 
 /** La ficha completa del producto. Se abre al tocar una pieza del estante y
@@ -41,10 +41,7 @@ export function FichaProducto({
   onCerrar: () => void;
 }) {
   const dialogoRef = useRef<HTMLDialogElement>(null);
-  /** Si el clic que esta por llegar empezo en el fondo, y si termino ahi.
-   *  Ver el `onClick`. */
-  const empezoEnElFondo = useRef(false);
-  const terminoEnElFondo = useRef(false);
+  const cierre = useCierreEnFondo(abierta, onCerrar);
   /** Si lo ultimo que se uso adentro de la ficha fue el teclado. Ver
    *  `devolverFoco`. */
   const conTeclado = useRef(false);
@@ -185,35 +182,18 @@ export function FichaProducto({
         onCerrar();
         devolverFoco();
       }}
-      /* Un clic en el fondo cierra. El fondo es el `::backdrop` del dialogo,
-         asi que el clic le llega al dialogo mismo; adentro de la ficha cae
-         siempre en algo de adentro, porque el scroller la llena entera.
-         Pero si se aprieta de un lado del borde y se suelta del otro, el
-         clic tambien le llega al dialogo, como ancestro comun de los dos
-         (probado en Chrome y en WebKit). Por eso tiene que EMPEZAR y
-         TERMINAR en el fondo. Si no, la cerrarian dos gestos que no son un
-         clic en el fondo: arrastrar para seleccionar texto (el codigo, la
-         descripcion) y soltar afuera, y apretar en el fondo y soltar
-         adentro, que pasa con resbalar 8px por el borde. Cuando el fondo era
-         un div aparte, eso ultimo no cerraba.
-         Con el dedo el `pointerup` le llega al mismo elemento que el
-         `pointerdown`, asi que un toque en el fondo sigue cerrando. */
+      /* Un clic en el fondo cierra, solo si empieza y termina ahi, y nada
+         pasa en el primer medio segundo (un doble clic en una tarjeta abria
+         la ficha y el segundo clic caia en el fondo o en "Agregar"). Ver
+         `useCierreEnFondo`. Adentro de la ficha un clic cae siempre en algo
+         de adentro, porque el scroller la llena entera. */
+      onClickCapture={cierre.onClickCapture}
       onPointerDown={(e) => {
         conTeclado.current = false;
-        empezoEnElFondo.current = e.target === e.currentTarget;
+        cierre.onPointerDown(e);
       }}
-      onPointerUp={(e) => {
-        terminoEnElFondo.current = e.target === e.currentTarget;
-      }}
-      onClick={(e) => {
-        if (
-          e.target === e.currentTarget &&
-          empezoEnElFondo.current &&
-          terminoEnElFondo.current
-        ) {
-          onCerrar();
-        }
-      }}
+      onPointerUp={cierre.onPointerUp}
+      onClick={cierre.onClick}
       onKeyDown={(e) => {
         conTeclado.current = true;
         alTeclear(e);
@@ -394,15 +374,18 @@ export function FichaProducto({
             )}
 
             <dl className="mt-1 border-t border-linea pt-4 text-sm">
-              <div className="flex justify-between py-1">
+              {/* Con `gap` y alineado a la derecha: en 320px los codigos mas
+                  largos parten en dos lineas, y sin esto quedaban pegados a la
+                  etiqueta ("CódigoCOMBO-PORONGO-..."). */}
+              <div className="flex justify-between gap-4 py-1">
                 <dt className="text-tinta-suave">Código</dt>
-                <dd className="font-mono text-xs">{producto.sku}</dd>
+                <dd className="text-right font-mono text-xs">{producto.sku}</dd>
               </div>
               {/* Hay o no hay, nunca cuantos: el cliente no quiere que se
                   vea cuantas unidades le quedan. El tope del carrito sigue
                   respetando el stock real, pero sin decir el numero. */}
               {siguiendoStock && (
-                <div className="flex justify-between py-1">
+                <div className="flex justify-between gap-4 py-1">
                   <dt className="text-tinta-suave">Disponibilidad</dt>
                   <dd>{producto.in_stock ? "En stock" : "Sin stock"}</dd>
                 </div>

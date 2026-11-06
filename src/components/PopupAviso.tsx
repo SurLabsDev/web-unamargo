@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { X } from "@phosphor-icons/react/dist/ssr";
-import { useDialogo, useMontado } from "./useDialogo";
+import { useCierreEnFondo, useDialogo, useMontado } from "./useDialogo";
 import type { Popup } from "@/lib/popup";
 
 /** Lo que el visitante ya vio: la `version` del ultimo pop-up mostrado. */
@@ -34,6 +34,9 @@ export function PopupAviso({ popup }: { popup: Popup | null }) {
   useDialogo(dialogoRef, abierto, {
     alAbrir: () => dialogoRef.current?.focus(),
   });
+  // Aparece solo, sin que nadie toque nada: un clic que justo iba a otra
+  // cosa de la pagina no lo cierra ni toca el boton al aparecer.
+  const fondo = useCierreEnFondo(abierto, () => setAbierto(false));
 
   useEffect(() => {
     if (!popup) return;
@@ -78,9 +81,10 @@ export function PopupAviso({ popup }: { popup: Popup | null }) {
         e.preventDefault();
         setAbierto(false);
       }}
-      onClick={(e) => {
-        if (e.target === dialogoRef.current) setAbierto(false);
-      }}
+      onClickCapture={fondo.onClickCapture}
+      onPointerDown={fondo.onPointerDown}
+      onPointerUp={fondo.onPointerUp}
+      onClick={fondo.onClick}
       className="aviso"
     >
       <div
