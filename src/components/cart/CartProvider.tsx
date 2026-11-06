@@ -50,6 +50,35 @@ type Carrito = {
 
 const Ctx = createContext<Carrito | null>(null);
 const CLAVE = "unamargo:carrito:v1";
+/** La nota que nadie vio todavia. Ver `nota` en `CartProvider`. */
+const CLAVE_NOTA = "unamargo:carrito-nota:v1";
+
+/** La nota guardada, si tiene la forma de unos `Ajustes`. Cualquier otra cosa
+ *  (rota, de otra version) se descarta: es solo un aviso. */
+function leerNota(raw: string | null): Ajustes | null {
+  if (!raw) return null;
+  try {
+    const o = JSON.parse(raw);
+    const lista = (v: unknown) =>
+      Array.isArray(v) && v.every((x) => typeof x === "string");
+    if (o && lista(o.precio) && lista(o.cantidad) && lista(o.quitados)) {
+      return { precio: o.precio, cantidad: o.cantidad, quitados: o.quitados };
+    }
+  } catch {
+    /* idem */
+  }
+  return null;
+}
+
+/** Dos notas que nadie vio, en una sola y sin repetir nombres. */
+function unir(a: Ajustes, b: Ajustes): Ajustes {
+  const u = (x: string[], y: string[]) => [...new Set([...x, ...y])];
+  return {
+    precio: u(a.precio, b.precio),
+    cantidad: u(a.cantidad, b.cantidad),
+    quitados: u(a.quitados, b.quitados),
+  };
+}
 
 /** Lo que una linea del carrito toma de su producto. null si hoy no se puede
  *  pedir: sin precio no hay a cuanto venderlo. */
@@ -169,6 +198,17 @@ export function CartProvider({
   const [items, setItems] = useState<ItemCarrito[]>([]);
   const [abierto, setAbierto] = useState(false);
   const [hidratado, setHidratado] = useState(false);
+  /* La nota del cajon. `pendiente` mientras nadie la vio: la proxima apertura
+     la muestra y la siguiente la saca. Se decide al ABRIR y no al cerrar:
+     borrada al cerrar, la lista saltaria hacia arriba mientras el cajon
+     todavia se esta yendo.
+     Mientras esta pendiente vive TAMBIEN en localStorage: la primera carga ya
+     guarda el carrito puesto al dia, asi que si la pagina se recarga antes
+     de abrir el cajon, la nota en memoria se perdia y el pedido aparecia con
+     otros precios y productos de menos, sin una palabra. */
+  const [nota, setNota] = useState<{ ajustes: Ajustes; pendiente: boolean } | null>(
+    null,
+  );
 
   // Se lee despues del montaje, no durante el render: en el servidor no hay
   // localStorage y leerlo antes rompe la hidratacion.
@@ -181,19 +221,14 @@ export function CartProvider({
       // haria que el HTML del servidor y el del cliente no coincidan.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setItems(leerGuardado(localStorage.getItem(CLAVE)));
+      const guardada = leerNota(localStorage.getItem(CLAVE_NOTA));
+      if (guardada) setNota({ ajustes: guardada, pendiente: true });
     } catch {
       /* carrito corrupto: se arranca vacio, no se rompe la pagina */
     }
     setHidratado(true);
   }, []);
 
-  /* La nota del cajon. `pendiente` mientras nadie la vio: la proxima apertura
-     la muestra y la siguiente la saca. Se decide al ABRIR y no al cerrar:
-     borrada al cerrar, la lista saltaria hacia arriba mientras el cajon
-     todavia se esta yendo. */
-  const [nota, setNota] = useState<{ ajustes: Ajustes; pendiente: boolean } | null>(
-    null,
-  );
   const [abiertoAntes, setAbiertoAntes] = useState(abierto);
   if (abierto !== abiertoAntes) {
     setAbiertoAntes(abierto);
@@ -218,8 +253,15 @@ export function CartProvider({
     if (!catalogo.caido && catalogo.productos.length > 0) {
       const r = reconciliar(items, catalogo.productos, catalogo.siguiendoStock);
       if (r.items !== items) setItems(r.items);
-      // Con el cajon abierto se ve en el acto; si no, al abrirlo.
-      if (r.ajustes) setNota({ ajustes: r.ajustes, pendiente: !abierto });
+      // Con el cajon abierto se ve en el acto; si no, al abrirlo. Si ya habia
+      // una nota sin ver (la guardada de la vez anterior), se suman.
+      const nuevos = r.ajustes;
+      if (nuevos) {
+        setNota((n) => ({
+          ajustes: n?.pendiente ? unir(n.ajustes, nuevos) : nuevos,
+          pendiente: !abierto,
+        }));
+      }
     }
   }
   const ajustes = nota && !nota.pendiente ? nota.ajustes : null;
@@ -232,6 +274,19 @@ export function CartProvider({
       /* sin espacio o en modo privado: el carrito vive solo en memoria */
     }
   }, [items, hidratado]);
+
+  useEffect(() => {
+    if (!hidratado) return;
+    try {
+      if (nota?.pendiente) {
+        localStorage.setItem(CLAVE_NOTA, JSON.stringify(nota.ajustes));
+      } else {
+        localStorage.removeItem(CLAVE_NOTA);
+      }
+    } catch {
+      /* idem: la nota queda solo en memoria */
+    }
+  }, [nota, hidratado]);
 
   const agregar = useCallback((p: Producto, siguiendoStock: boolean) => {
     const datos = datosDe(p, siguiendoStock);
