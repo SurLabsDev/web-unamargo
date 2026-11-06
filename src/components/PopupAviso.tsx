@@ -44,7 +44,10 @@ export function PopupAviso({ popup }: { popup: Popup | null }) {
 
     let t: ReturnType<typeof setTimeout>;
     const intentar = () => {
-      if (document.querySelector("dialog[open]")) {
+      // La ficha de producto no es un <dialog> sino un div con aria-modal: si
+      // solo se miraba `dialog[open]`, el pop-up se abria encima de una ficha
+      // abierta, y un Escape cerraba los dos y dejaba la pagina sin scroll.
+      if (document.querySelector('dialog[open], [aria-modal="true"]')) {
         t = setTimeout(intentar, REINTENTO_MS);
         return;
       }

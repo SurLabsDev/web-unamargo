@@ -175,6 +175,9 @@ export function FichaProducto({
   // Escape cierra y el fondo no scrollea mientras esta abierta.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Con un dialogo nativo encima (el pop-up, el pedido, el menu), las
+      // teclas son de el: su Escape lo cierra a el y no tambien a la ficha.
+      if (document.querySelector("dialog[open]")) return;
       if (e.key === "Escape") onCerrar();
       if (e.key === "ArrowRight" && diapos.length > 1)
         verDiapo((v) => (v + 1) % diapos.length);
