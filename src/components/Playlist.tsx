@@ -22,8 +22,16 @@ const EMBED = `https://open.spotify.com/embed/playlist/${new URL(
  *  mientras se recorre la tienda. Ya estuvo una vez y se habia caido en el
  *  camino.
  *
- *  LA ESQUINA Y EL TAMANO CAMBIAN CON LA PANTALLA, Y ESTA MEDIDO. Con el panel
- *  abierto, lo que importa es no tapar la fila de botones del hero:
+ *  APARECE RECIEN CUANDO SE SALE DEL HERO, y desde que se abre una vez no se
+ *  va mas (la musica puede estar sonando). Se midio contra la fila de botones
+ *  del hero y, cuando esa fila sumo "Como curar y cebar", en los celulares
+ *  bajos (375x667, 390x664) el boton cerrado y el panel abierto le tapaban
+ *  botones e iconos: en una pantalla chica no hay esquina libre en el hero.
+ *  Fuera del hero si la hay, y es justo donde se compra, que es para lo que
+ *  el cliente lo pidio ("escuchar la playlist mientras comprabas").
+ *
+ *  LA ESQUINA Y EL TAMANO CAMBIAN CON LA PANTALLA. Con el panel abierto, lo
+ *  que importa es no tapar contenido:
  *    - En escritorio, desde lg, va abajo a la DERECHA y no a la izquierda como
  *      en la demo. Alla "Ver productos" estaba a la derecha; aca esta abajo a
  *      la izquierda, y el panel abierto lo tapaba en todas las notebooks
@@ -69,6 +77,8 @@ export function Playlist() {
   /** La etiqueta ya cumplio: se toco el boton o se apreto Escape. Vuelve
    *  cuando el puntero o el foco se van, no en el medio. */
   const [sinAyuda, setSinAyuda] = useState(false);
+  /** El hero ya quedo atras (ver arriba). */
+  const [fueraDelHero, setFueraDelHero] = useState(false);
   const raizRef = useRef<HTMLDivElement>(null);
   const botonRef = useRef<HTMLButtonElement>(null);
   const idPanel = useId();
@@ -100,6 +110,20 @@ export function Playlist() {
     return () => document.removeEventListener("keydown", alTeclear);
   }, [abierto]);
 
+  // Se vigila el hero con un IntersectionObserver y no con "scroll", que corre
+  // en cada cuadro. Con menos del 40% del hero a la vista, lo que queda en
+  // pantalla ya es la tira o la tienda.
+  useEffect(() => {
+    const hero = document.getElementById("top");
+    if (!hero) return;
+    const obs = new IntersectionObserver(
+      ([e]) => setFueraDelHero(e.intersectionRatio < 0.4),
+      { threshold: [0, 0.4, 1] },
+    );
+    obs.observe(hero);
+    return () => obs.disconnect();
+  }, []);
+
   function alternar() {
     setCargado(true);
     setAbierto((v) => !v);
@@ -111,12 +135,17 @@ export function Playlist() {
   if (!montado) return null;
 
   const ayuda = !abierto && !sinAyuda;
+  // Una vez abierto se queda, aunque se vuelva al hero: puede estar sonando.
+  const visible = fueraDelHero || cargado;
 
   return createPortal(
     <div
       ref={raizRef}
+      inert={!visible}
       onPointerLeave={() => setSinAyuda(false)}
-      className="entra group fixed bottom-[calc(1rem_+_env(safe-area-inset-bottom,0px))] left-[calc(1rem_+_env(safe-area-inset-left,0px))] z-30 sm:left-[calc(1.5rem_+_env(safe-area-inset-left,0px))] lg:left-auto lg:right-[calc(1.5rem_+_env(safe-area-inset-right,0px))] print:hidden"
+      className={`group fixed transition-[opacity,translate] duration-300 ease-out motion-reduce:transition-none ${
+        visible ? "" : "pointer-events-none translate-y-3 opacity-0"
+      } bottom-[calc(1rem_+_env(safe-area-inset-bottom,0px))] left-[calc(1rem_+_env(safe-area-inset-left,0px))] z-30 sm:left-[calc(1.5rem_+_env(safe-area-inset-left,0px))] lg:left-auto lg:right-[calc(1.5rem_+_env(safe-area-inset-right,0px))] print:hidden`}
     >
       {/* El verde oscuro de base y el claro en el hover, al reves que la
           demo: el claro no da contraste con el blanco (ver globals.css), y
