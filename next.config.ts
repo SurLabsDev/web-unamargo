@@ -24,7 +24,18 @@ const nextConfig: NextConfig = {
         pathname: "/storage/v1/object/public/**",
       },
     ],
+    /* Los anchos chicos de siempre mas 448 y 512. Sin esos dos, un celular de
+     * densidad 1.75 a 2 que dibuja una foto de la tira (224px) o una pieza del
+     * estante (62vw, ~255px) necesita 392 a 510 pixeles y saltaba de 384 a
+     * 640: bajaba casi el doble de lo que usa. Con densidad 3 se sigue
+     * eligiendo 750, como antes. Tienen que ser menores que el primer
+     * `deviceSizes` (640). */
+    imageSizes: [32, 48, 64, 96, 128, 256, 384, 448, 512],
   },
+
+  /* `experimental.inlineCss` se probo y NO conviene aca: saca el archivo CSS
+   * (11 KB) pero Next lo repite adentro del payload de React, y el HTML crecio
+   * 34 KB. PageSpeed no mejoro. */
 
   /* Este header es para Bing. Google decide el idioma por el texto y el `lang`
    * del <html>; Bing ademas lee `Content-Language`, y en un .com, que no dice
