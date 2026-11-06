@@ -1,5 +1,6 @@
 import { getCatalogo } from "@/lib/catalog";
 import { getPopup } from "@/lib/popup";
+import { getTira } from "@/lib/tira";
 import { construirSchema } from "@/lib/schema";
 import { FAQ } from "@/lib/faq";
 import { CartProvider } from "@/components/cart/CartProvider";
@@ -27,8 +28,12 @@ export const revalidate = 300;
 
 
 export default async function Home() {
-  // En paralelo: son dos pedidos al mismo ERP y ninguno depende del otro.
-  const [catalogo, popup] = await Promise.all([getCatalogo(), getPopup()]);
+  // En paralelo: son tres pedidos al mismo ERP y ninguno depende de otro.
+  const [catalogo, popup, tira] = await Promise.all([
+    getCatalogo(),
+    getPopup(),
+    getTira(),
+  ]);
 
   const schema = construirSchema(catalogo, FAQ);
 
@@ -48,7 +53,7 @@ export default async function Home() {
       <Header />
       <main>
         <Hero />
-        <Tira />
+        <Tira fotos={tira} />
         <Tienda catalogo={catalogo} />
         <Nosotros />
         <Personalizados />

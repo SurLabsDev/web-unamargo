@@ -1,4 +1,5 @@
 import { ERP_API } from "./site";
+import { fotoServible } from "./fotos";
 
 /** Contrato de /api/public/v1/popup del ERP: el pop-up que el cliente tiene
  *  prendido hoy, o null. Lo arma el cliente desde el ERP (pantalla Pop-ups) y
@@ -29,22 +30,6 @@ function linkSeguro(url: string): boolean {
   }
 }
 
-/** La foto pasa por el optimizador de Next, que solo acepta los hosts de
- *  `next.config.ts` y TIRA LA PAGINA ENTERA si le llega otro. Una foto de un
- *  host inesperado se descarta y el pop-up sale sin foto. */
-function fotoServible(url: string): boolean {
-  try {
-    const u = new URL(url);
-    return (
-      u.protocol === "https:" &&
-      u.hostname.endsWith(".supabase.co") &&
-      u.pathname.startsWith("/storage/v1/object/public/")
-    );
-  } catch {
-    return false;
-  }
-}
-
 function texto(v: unknown): string | null {
   return typeof v === "string" && v.trim() ? v.trim() : null;
 }
@@ -68,6 +53,8 @@ function leer(crudo: unknown): Popup | null {
     version,
     title,
     body: texto(p.body),
+    // Una foto que `next/image` no puede servir se descarta y el pop-up sale
+    // sin foto (ver `fotoServible`).
     image: image && fotoServible(image) ? image : null,
     cta: ctaLabel && ctaUrl && linkSeguro(ctaUrl) ? { label: ctaLabel, url: ctaUrl } : null,
   };
