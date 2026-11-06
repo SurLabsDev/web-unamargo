@@ -447,9 +447,14 @@ function revisar(html, { revisado }) {
   // por https en este sitio). Las "//host" se buscan solo detras de comillas,
   // "(" o "=", que es donde las pone un atributo, un string o un url() de
   // CSS: detras de un espacio son casi siempre comentarios de JS.
+  // Antes de buscar: "\/" vale "/" adentro de un string de JS
+  // ("https:\/\/host" carga igual), asi que se normaliza.
+  const plano = html.replace(/\\\//g, "/");
   const candidatas = [
-    ...html.matchAll(/\b[a-z][a-z0-9+.-]*:\/\/[^\s"'`<>()\\]+/gi),
-    ...html.matchAll(/(?<=["'`(=])\/\/[^\s"'`<>()\\/]+[^\s"'`<>()\\]*/g),
+    ...plano.matchAll(/\b[a-z][a-z0-9+.-]*:\/\/[^\s"'`<>()\\]+/gi),
+    // Detras de comillas, "(", "=" o "," (los candidatos de un srcset), con
+    // espacios opcionales en el medio: "src= //host", "1x, //host 2x".
+    ...plano.matchAll(/(?<=["'`(=,]\s*)\/\/[^\s"'`<>()\\/]+[^\s"'`<>()\\]*/g),
   ].map((m) => m[0]);
   for (const url of candidatas) {
     let host;
@@ -480,7 +485,11 @@ function revisar(html, { revisado }) {
   });
   // Los manejadores en linea (onclick=, onload=...) tambien son codigo, aunque
   // no esten adentro de un <script>: se revisan con las mismas reglas.
-  const enLinea = [...html.matchAll(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*')/gi)].map(([, valor]) => valor);
+  // Tambien sin comillas (onerror=eval(...)) y sin espacio adelante
+  // (<img src="x"onerror=...>, <svg/onload=...>): el navegador los corre igual.
+  const enLinea = [
+    ...html.matchAll(/(?:^|[\s/"'])on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi),
+  ].map(([, valor]) => valor);
   const avisosEnLinea = [...new Set(enLinea.flatMap((v) => SOSPECHOSOS.filter(([re]) => re.test(v)).map(([, n]) => n)))];
   if (avisosEnLinea.length) {
     scripts.push({ tipo: "manejadores en linea (on*=)", bytes: Buffer.byteLength(enLinea.join("")), primera: "", avisos: avisosEnLinea });
