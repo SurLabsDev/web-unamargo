@@ -10,7 +10,7 @@ import { SE_INDEXA, SITE } from "@/lib/site";
  *
  * La plantilla ya viene limpia de `scripts/importar-guia.mjs`; aca no se toca
  * su codigo. Se agrega titulo, descripcion, canonical, robots, Open Graph,
- * favicon y JSON-LD en el lugar de `<!--guia:head-->`, y se saca la cabecera
+ * iconos y JSON-LD en el lugar de `<!--guia:head-->`, y se saca la cabecera
  * interna de la plantilla, que es una nota para quien la mantiene.
  *
  * Corre al construir: las rutas son `force-static`, como el resto del sitio,
@@ -203,7 +203,15 @@ function cabeza(id: IdGuia, html: string): string {
     meta("name", "twitter:description", guia.descripcion),
     meta("name", "twitter:image", imagen),
     meta("name", "twitter:image:alt", alt),
+    // Los mismos iconos, en el mismo orden, que Next le declara al resto del
+    // sitio desde `src/app` (favicon.ico, icon.svg, apple-icon.png). El .ico
+    // es para los navegadores y las herramientas que no leen un favicon en
+    // SVG. El de la pantalla de inicio del iPhone: sin ese link, guardar una
+    // guia ahi la muestra con una captura achicada de la pagina en vez del
+    // isotipo.
+    `<link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="32x32">`,
     `<link rel="icon" href="/icon.svg" type="image/svg+xml" sizes="any">`,
+    `<link rel="apple-touch-icon" href="/apple-icon.png" type="image/png" sizes="180x180">`,
     // La escena 3D baja three.js de este CDN. Abrir la conexion mientras se lee
     // el HTML le gana un viaje de ida y vuelta al primer cuadro.
     `<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>`,
