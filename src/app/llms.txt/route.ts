@@ -1,6 +1,7 @@
 import { aCentavos } from "@/lib/centavos";
 import { getCatalogo, precio, type Producto } from "@/lib/catalog";
 import { FORMAS_PAGO, enumerar } from "@/lib/pedido";
+import { GUIAS, ORDEN_GUIAS } from "@/lib/guias";
 import { SITE } from "@/lib/site";
 import {
   ENVIO_GRATIS_TEXTO,
@@ -94,8 +95,11 @@ export async function GET(): Promise<Response> {
     `- [Preguntas frecuentes](${url("/#preguntas")}): envíos, retiro, pagos, personalizados y empresas.`,
     "",
     "## Guías",
-    `- [Cómo curar un mate](${url("/como-curar-un-mate")}): cómo curar un mate nuevo antes de usarlo, de calabaza o de algarrobo, paso a paso.`,
-    `- [Cómo cebar un mate](${url("/como-cebar-un-mate")}): el ritual del mate paso a paso: yerba, montañita, agua tibia y bombilla.`,
+    // De los datos de cada guia, no escrito aca: la linea a mano decia "agua
+    // tibia", que es justo lo que la guia de cebar corrige (agua fria para la
+    // montañita, 70-80 °C para cebar). Asi lleva la misma descripcion revisada
+    // que la meta de cada guia, y la ruta sigue si alguna vez cambia.
+    ...ORDEN_GUIAS.map((id) => `- [${GUIAS[id].nombre}](${url(GUIAS[id].ruta)}): ${GUIAS[id].descripcion}`),
     "",
     "## Servicios",
     `- [Personalizados](${url("/#personalizados")}): grabado láser en mates y trabajos en virola. Se coordina por Instagram.`,
