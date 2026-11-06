@@ -154,8 +154,10 @@ export function FichaProducto({
   onCerrar: () => void;
 }) {
   const dialogoRef = useRef<HTMLDialogElement>(null);
-  /** Si el clic que esta por llegar empezo en el fondo. Ver el `onClick`. */
+  /** Si el clic que esta por llegar empezo en el fondo, y si termino ahi.
+   *  Ver el `onClick`. */
   const empezoEnElFondo = useRef(false);
+  const terminoEnElFondo = useRef(false);
   /** Si lo ultimo que se uso adentro de la ficha fue el teclado. Ver
    *  `devolverFoco`. */
   const conTeclado = useRef(false);
@@ -301,17 +303,31 @@ export function FichaProducto({
       /* Un clic en el fondo cierra. El fondo es el `::backdrop` del dialogo,
          asi que el clic le llega al dialogo mismo; adentro de la ficha cae
          siempre en algo de adentro, porque el scroller la llena entera.
-         Se mira tambien donde EMPEZO: arrastrando para seleccionar texto (el
-         codigo, la descripcion) y soltando afuera de la ficha, el clic le
-         llega igual al dialogo, como ancestro comun de donde se apreto y de
-         donde se solto (probado en Chrome y en WebKit). Mirando solo el
-         `target`, eso cerraria la ficha. */
+         Pero si se aprieta de un lado del borde y se suelta del otro, el
+         clic tambien le llega al dialogo, como ancestro comun de los dos
+         (probado en Chrome y en WebKit). Por eso tiene que EMPEZAR y
+         TERMINAR en el fondo. Si no, la cerrarian dos gestos que no son un
+         clic en el fondo: arrastrar para seleccionar texto (el codigo, la
+         descripcion) y soltar afuera, y apretar en el fondo y soltar
+         adentro, que pasa con resbalar 8px por el borde. Cuando el fondo era
+         un div aparte, eso ultimo no cerraba.
+         Con el dedo el `pointerup` le llega al mismo elemento que el
+         `pointerdown`, asi que un toque en el fondo sigue cerrando. */
       onPointerDown={(e) => {
         conTeclado.current = false;
         empezoEnElFondo.current = e.target === e.currentTarget;
       }}
+      onPointerUp={(e) => {
+        terminoEnElFondo.current = e.target === e.currentTarget;
+      }}
       onClick={(e) => {
-        if (e.target === e.currentTarget && empezoEnElFondo.current) onCerrar();
+        if (
+          e.target === e.currentTarget &&
+          empezoEnElFondo.current &&
+          terminoEnElFondo.current
+        ) {
+          onCerrar();
+        }
       }}
       onKeyDown={(e) => {
         conTeclado.current = true;
