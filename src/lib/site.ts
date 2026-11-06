@@ -1,5 +1,13 @@
 /** Datos del negocio. Todos salen de la demo que armo el cliente, ninguno
  *  esta inventado: el numero, el mail y las zonas son los suyos. */
+const WHATSAPP = "59897022638";
+
+/** "59897022638" -> "097 022 638": sin el 598, con el 0 adelante, de a tres. */
+function legible(internacional: string): string {
+  const local = `0${internacional.replace(/^598/, "")}`;
+  return `${local.slice(0, 3)} ${local.slice(3, 6)} ${local.slice(6)}`;
+}
+
 export const SITE = {
   nombre: "Un Amargo",
   /** ~155 caracteres, que es lo que entra en un resultado de busqueda. La
@@ -13,8 +21,14 @@ export const SITE = {
    *  y lo siguen las metadatas, el JSON-LD y el sitemap. Se puede pisar por
    *  entorno para no tener que redeployar. */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://web-unamargo.vercel.app",
-  whatsapp: "59897022638",
-  whatsappLegible: "098 702 638",
+  /** El numero al que llegan los pedidos (wa.me). Es el de la demo del
+   *  cliente, donde aparece en sus siete links de WhatsApp. */
+  whatsapp: WHATSAPP,
+  /** El mismo numero escrito como se lee en Uruguay ("097 022 638"). Se
+   *  DERIVA del de arriba y no se escribe: estaba escrito a mano como "098 702
+   *  638", un numero distinto, y el carrito le decia a la gente que escribiera
+   *  a un numero mientras el pedido salia para otro. */
+  whatsappLegible: legible(WHATSAPP),
   email: "unamargo.info@gmail.com",
   ciudad: "Montevideo",
   instagram: "https://www.instagram.com/unamargo_/",

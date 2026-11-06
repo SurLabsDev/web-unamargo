@@ -61,7 +61,9 @@ export type Envio =
   /** A domicilio en Montevideo, con el pedido por encima de
    *  `ENVIO_GRATIS_DESDE`: la zona se sigue diciendo, pero no se cobra. */
   | { tipo: "gratis"; zona: Zona }
-  | { tipo: "a-coordinar" };
+  /** `gratisSiEsMontevideo`: con "Otro barrio" no se sabe la zona, pero si el
+   *  pedido ya llega al envio gratis, en Montevideo no se cobra, y se dice. */
+  | { tipo: "a-coordinar"; gratisSiEsMontevideo?: boolean };
 
 /** Como sale el pedido, o null mientras falte elegir.
  *
@@ -71,13 +73,23 @@ export function envioDe(d: DatosEntrega, subtotal: string): Envio | null {
   const punto = PICKUPS.find((p) => p.id === d.modo);
   if (punto) return { tipo: "retiro", punto };
   if (d.modo !== A_DOMICILIO || !d.barrio) return null;
-  if (d.barrio === OTRO_BARRIO) return { tipo: "a-coordinar" };
+  if (d.barrio === OTRO_BARRIO) {
+    return { tipo: "a-coordinar", gratisSiEsMontevideo: llegaAlEnvioGratis(subtotal) };
+  }
   const zona = ZONAS_ENVIO.find((z) => z.barrios.includes(d.barrio));
   if (!zona?.costo) return { tipo: "a-coordinar" };
-  const gratis =
-    !FUERA_DE_MONTEVIDEO.includes(d.barrio) &&
-    aCentavos(subtotal) >= aCentavos(ENVIO_GRATIS_DESDE);
+  const gratis = !FUERA_DE_MONTEVIDEO.includes(d.barrio) && llegaAlEnvioGratis(subtotal);
   return gratis ? { tipo: "gratis", zona } : { tipo: "zona", zona, costo: zona.costo };
+}
+
+/** Si el pedido llega al envio gratis. Se compara contra el subtotal
+ *  REDONDEADO A PESOS, como lo muestra `precio()`: con un descuento el
+ *  subtotal puede dar $3.489,65, y en pantalla se lee "$ 3.490". Comparando
+ *  centavos exactos, el que ve "$ 3.490" igual pagaba el envio. Redondear para
+ *  arriba desde los 50 centavos es lo mismo que hace `Intl` al mostrarlo. */
+function llegaAlEnvioGratis(subtotal: string): boolean {
+  const pesos = ((aCentavos(subtotal) + 50n) / 100n) * 100n;
+  return pesos >= aCentavos(ENVIO_GRATIS_DESDE);
 }
 
 /** El total con el envio sumado, en centavos como todo el carrito. null
@@ -132,8 +144,14 @@ export function armarMensaje(
             ? `Envío (${envio.zona.rotulo}): ${precio(envio.costo)}`
             : envio?.tipo === "gratis"
               ? `Envío (${envio.zona.rotulo}): sin costo (compras desde ${precio(ENVIO_GRATIS_DESDE)})`
-              : "Envío: a coordinar",
-          total ? `Total: ${precio(total)}` : `Total: ${precio(subtotal)} + envío`,
+              : envio?.tipo === "a-coordinar" && envio.gratisSiEsMontevideo
+                ? "Envío: gratis si es en Montevideo; si no, a coordinar"
+                : "Envío: a coordinar",
+          total
+            ? `Total: ${precio(total)}`
+            : envio?.tipo === "a-coordinar" && envio.gratisSiEsMontevideo
+              ? `Total: ${precio(subtotal)} (+ envío si es fuera de Montevideo)`
+              : `Total: ${precio(subtotal)} + envío`,
         ];
 
   const entrega =

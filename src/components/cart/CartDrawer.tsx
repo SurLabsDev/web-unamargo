@@ -153,10 +153,18 @@ export function CartDrawer() {
 
   function enviar(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    const w = window.open(href, "_blank", "noopener,noreferrer");
+    // Sin "noopener" en las opciones: con esa opcion `window.open` devuelve
+    // SIEMPRE null aunque la ventana se abra (lo manda la especificacion), y el
+    // aviso de "el navegador bloqueo la ventana" salia en cada pedido enviado.
+    // El acceso de vuelta a esta pagina se corta a mano, que es lo mismo.
+    const w = window.open(href, "_blank");
+    if (w) {
+      w.opener = null;
+      return;
+    }
     // Un envio que se traga el bloqueador de popups es un pedido perdido:
     // se ofrece el link a mano en vez de fallar en silencio.
-    if (!w || w.closed) setBloqueado(true);
+    setBloqueado(true);
   }
 
   if (!montado) return null;
@@ -499,7 +507,9 @@ export function CartDrawer() {
                         : envio?.tipo === "zona"
                           ? precio(envio.costo)
                           : envio?.tipo === "a-coordinar"
-                            ? "A coordinar"
+                            ? envio.gratisSiEsMontevideo
+                              ? "Gratis si es en Montevideo"
+                              : "A coordinar"
                             : "—"}
                   </dd>
                 </div>
@@ -507,10 +517,18 @@ export function CartDrawer() {
                   <dt className="text-tinta-media">Total</dt>
                   <dd className="text-2xl font-semibold tabular-nums tracking-tight">
                     {precio(totalFinal ?? total)}
+                    {/* El espacio va escrito y no solo como margen: sin el, el
+                        texto quedaba "$ 3.630+ envío" para un lector de
+                        pantalla o al copiarlo. */}
                     {!totalFinal && datos.modo === A_DOMICILIO && (
-                      <span className="ml-1 text-sm font-normal text-tinta-media">
-                        + envío
-                      </span>
+                      <>
+                        {" "}
+                        <span className="text-sm font-normal text-tinta-media">
+                          {envio?.tipo === "a-coordinar" && envio.gratisSiEsMontevideo
+                            ? "+ envío si es fuera de Montevideo"
+                            : "+ envío"}
+                        </span>
+                      </>
                     )}
                   </dd>
                 </div>
