@@ -27,14 +27,22 @@ function Pieza({
   siguiendoStock: boolean;
   /** Recibe el boton que se toco: la ficha le devuelve el foco al cerrarse. */
   onAbrir: (origen: HTMLElement) => void;
-  /** En la grilla del filtro la tarjeta llena su columna, que en el celular
-   *  es la mitad de la pantalla. Ahi el nombre en un solo renglon se corta
-   *  justo en lo que distingue a un producto de otro: "Mate Camionero (..."
-   *  salia dos veces, Clasico y Pulido, iguales. Por eso en la grilla el
-   *  nombre usa hasta tres renglones. Dos no alcanzan: a 390px "Combo
-   *  Camionero + Posamate..." tambien salia repetido. Con tres entran enteros
-   *  todos los nombres del catalogo, y el tope queda para uno que no entre
-   *  nunca. */
+  /** EL NOMBRE NO VA EN UN SOLO RENGLON EN NINGUN LADO. Cortado en uno, se
+   *  corta justo en lo que distingue a un producto de otro.
+   *
+   *  En el estante eran un renglon, y a 390 y a 1280 "Combo Camionero +
+   *  Posama..." salia dos veces y "Combo Porongo + Posamate..." tres. Ahora
+   *  son hasta dos, y la tarjeta reserva los dos aunque el nombre entre en
+   *  uno: asi el precio y el + quedan a la misma altura en toda la fila.
+   *  Medido en Chrome y WebKit de 360 a 1440: con dos entran enteros todos
+   *  los nombres del catalogo.
+   *
+   *  En la grilla del filtro la tarjeta llena su columna, que en el celular
+   *  es la mitad de la pantalla. Con un renglon, "Mate Camionero (..." salia
+   *  dos veces, Clasico y Pulido; con dos, a 390px "Combo Camionero +
+   *  Posamate..." tambien salia repetido. Por eso en la grilla son hasta
+   *  tres. Con tres entran enteros todos los nombres del catalogo, y el tope
+   *  queda para uno que no entre nunca. */
   enGrilla?: boolean;
 }) {
   const { agregar } = useCarrito();
@@ -134,7 +142,7 @@ function Pieza({
         <div className="min-w-0">
           <button onClick={(e) => onAbrir(e.currentTarget)} className="block w-full text-left">
             <p
-              className={`text-sm font-medium group-hover:underline ${enGrilla ? "line-clamp-3" : "truncate"}`}
+              className={`text-sm font-medium group-hover:underline ${enGrilla ? "line-clamp-3" : "line-clamp-2 min-h-[2lh]"}`}
             >
               {producto.name}
             </p>
