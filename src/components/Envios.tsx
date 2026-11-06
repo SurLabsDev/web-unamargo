@@ -221,32 +221,41 @@ export function Envios() {
 
   return (
     <section id="envios" className="scroll-mt-0 bg-tinta text-papel">
-      {/* Encabezado, antes de que empiece la pista */}
-      <div className="mx-auto max-w-[1400px] px-5 pt-24 sm:px-8 lg:px-12 lg:pt-28">
-        <div className="reveal max-w-[36ch]">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-papel/50">
-            Logística
-          </p>
-          <h2 className="type-display text-[clamp(2.5rem,6vw,4.5rem)]">
-            Cómo recibís tu pedido
-          </h2>
-          {/* Sin numero a proposito: decia "seis" y paso a mentir apenas los
-              retiros bajaron de tres a uno. La lista manda, el texto no cuenta. */}
-          <p className="type-body mt-6 text-lg leading-relaxed text-papel/65">
-            Retiro sin costo o cadetería a tu casa. Seguí bajando y vas viendo
-            cada zona en el mapa.
-          </p>
-        </div>
-        {/* `inline-block` y no flex: con flex la excepcion era otra columna
-            al lado de la promesa y, en el celular, se partia en dos bloques. */}
-        <div className="reveal mt-8 inline-block rounded-pill bg-verde px-5 py-2.5 text-sm font-semibold">
-          Envío gratis en Montevideo a partir de {ENVIO_GRATIS_TEXTO}
-          {ENVIO_GRATIS_EXCEPCION && (
-            <>
-              {" "}
-              <span className="font-normal opacity-80">{ENVIO_GRATIS_EXCEPCION}</span>
-            </>
-          )}
+      {/* Encabezado, antes de que empiece la pista.
+
+          El padding va AFUERA del tope de 1400 y el tope adentro, como en el
+          resto de las secciones (y en el panel de la pista, mas abajo). Con
+          el padding adentro, pasados los 1400 de ancho el contenido quedaba
+          mas adentro que el de las demas, hasta 48px de cada lado: medido, el
+          titulo arrancaba en 68 y no en 48 a 1440, y en 308 y no en 260 a
+          1920. Lo mismo la nota del final de la seccion. */}
+      <div className="px-5 pt-24 sm:px-8 lg:px-12 lg:pt-28">
+        <div className="mx-auto max-w-[1400px]">
+          <div className="reveal max-w-[36ch]">
+            <p className="mb-4 text-xs font-medium uppercase tracking-[0.16em] text-papel/50">
+              Logística
+            </p>
+            <h2 className="type-display text-[clamp(2.5rem,6vw,4.5rem)]">
+              Cómo recibís tu pedido
+            </h2>
+            {/* Sin numero a proposito: decia "seis" y paso a mentir apenas los
+                retiros bajaron de tres a uno. La lista manda, el texto no cuenta. */}
+            <p className="type-body mt-6 text-lg leading-relaxed text-papel/65">
+              Retiro sin costo o cadetería a tu casa. Seguí bajando y vas viendo
+              cada zona en el mapa.
+            </p>
+          </div>
+          {/* `inline-block` y no flex: con flex la excepcion era otra columna
+              al lado de la promesa y, en el celular, se partia en dos bloques. */}
+          <div className="reveal mt-8 inline-block rounded-pill bg-verde px-5 py-2.5 text-sm font-semibold">
+            Envío gratis en Montevideo a partir de {ENVIO_GRATIS_TEXTO}
+            {ENVIO_GRATIS_EXCEPCION && (
+              <>
+                {" "}
+                <span className="font-normal opacity-80">{ENVIO_GRATIS_EXCEPCION}</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -449,13 +458,15 @@ export function Envios() {
         )}
       </div>
 
-      <div className="mx-auto max-w-[1400px] px-5 pb-24 pt-10 sm:px-8 lg:px-12 lg:pt-0">
-        {/* Esta nota estaba para aclarar el pickup de Ciudad de la Costa. Ese
-            punto ya no existe y no hay dato nuevo sobre esa zona, asi que queda
-            solo lo que si esta confirmado. */}
-        <p className="max-w-[62ch] text-xs leading-relaxed text-papel/50">
-          {ENVIO_INTERIOR}
-        </p>
+      <div className="px-5 pb-24 pt-10 sm:px-8 lg:px-12 lg:pt-0">
+        <div className="mx-auto max-w-[1400px]">
+          {/* Esta nota estaba para aclarar el pickup de Ciudad de la Costa. Ese
+              punto ya no existe y no hay dato nuevo sobre esa zona, asi que queda
+              solo lo que si esta confirmado. */}
+          <p className="max-w-[62ch] text-xs leading-relaxed text-papel/50">
+            {ENVIO_INTERIOR}
+          </p>
+        </div>
       </div>
     </section>
   );

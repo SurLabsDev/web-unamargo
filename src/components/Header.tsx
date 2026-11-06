@@ -49,14 +49,19 @@ export function Header() {
   return (
     <>
       <div ref={centinela} className="absolute top-0 h-24 w-px" aria-hidden />
+      {/* El padding va en el <header>, que ocupa todo el ancho con su fondo,
+          y el tope de 1400 adentro: es como estan armadas las secciones. Con
+          el padding adentro del tope, pasados los 1400 de ancho el logo y
+          "Pedido" quedaban mas adentro que el contenido de la pagina (medido
+          a 1440: 68 y 1372, contra 48 y 1392 del resto). */}
       <header
-        className={`fixed inset-x-0 top-0 z-40 transition-colors duration-300 ${
+        className={`fixed inset-x-0 top-0 z-40 px-5 transition-colors duration-300 sm:px-8 lg:px-12 ${
           bajado
             ? "border-b border-linea bg-papel/90 backdrop-blur-md"
             : "border-b border-transparent bg-papel"
         }`}
       >
-        <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-6 px-5 sm:px-8 md:h-[72px] lg:px-12">
+        <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-6 md:h-[72px]">
           <a
             href="#top"
             aria-label="Un Amargo, ir al inicio"
