@@ -107,7 +107,7 @@ export function construirSchema(catalogo: Catalogo, faq: { pregunta: string; res
         //    nadie la iba a ver deshecha.
         // 2. Rompia la regla de arriba. Medido en el navegador sobre la
         //    pagina recien cargada: `document.body.innerText` no contiene
-        //    "098 702 638" en ningun lado, y las dos unicas apariciones del
+        //    el numero en ningun lado, y las dos unicas apariciones del
         //    numero en el HTML servido eran este campo (el <script> de
         //    JSON-LD y su copia en el payload de React). Se estaba marcando
         //    un canal de contacto que la pagina no ofrece.
