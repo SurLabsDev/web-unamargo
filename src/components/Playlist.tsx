@@ -44,12 +44,13 @@ const EMBED = `https://open.spotify.com/embed/playlist/${new URL(
  *      libre desde 360x780. Va a todo el ancho porque a 80px de alto Spotify
  *      necesita unos 300 de ancho, y con menos corta el boton de reproducir.
  *
- *  NO ES UN <dialog>, A PROPOSITO. El cajon, el menu y el pop-up usan
- *  `useDialogo`, que abre con `showModal()`: deja inerte el resto de la pagina
- *  y bloquea el scroll, y aca la idea es justamente seguir comprando con la
- *  musica puesta. Ademas el pop-up espera a que no quede ningun `dialog[open]`:
- *  si esto fuera un dialogo, con la musica sonando el pop-up no apareceria
- *  nunca. Es un boton que despliega un panel, con `aria-expanded`.
+ *  NO ES UN <dialog>, A PROPOSITO. El cajon, el menu, el pop-up y la ficha de
+ *  producto usan `useDialogo`, que abre con `showModal()`: deja inerte el
+ *  resto de la pagina y bloquea el scroll, y aca la idea es justamente seguir
+ *  comprando con la musica puesta. Ademas el pop-up espera a que no quede
+ *  ningun `dialog[open]`: si esto fuera un dialogo, con la musica sonando el
+ *  pop-up no apareceria nunca. Es un boton que despliega un panel, con
+ *  `aria-expanded`.
  *
  *  EL IFRAME SE CREA EN EL PRIMER CLIC Y DESPUES NO SE DESMONTA NUNCA. Antes
  *  del clic no hay ningun pedido a Spotify, asi que el que no lo toca no paga
@@ -61,9 +62,9 @@ const EMBED = `https://open.spotify.com/embed/playlist/${new URL(
  *  `[open]` a ellos. Escondido es `invisible` e `inert`: no se ve, no recibe
  *  clics ni foco, y el iframe sigue vivo y sonando.
  *
- *  Va en z-30: debajo del header (z-40) y de la ficha de producto (z-50), que
- *  es un div y no un dialogo. El cajon, el menu y el pop-up van en la capa
- *  superior del navegador y lo tapan igual, con su fondo oscurecido.
+ *  Va en z-30, debajo del header (z-40). El cajon, el menu, el pop-up y la
+ *  ficha de producto van en la capa superior del navegador y lo tapan igual,
+ *  con su fondo oscurecido.
  *
  *  A 1rem del borde de abajo y no a los 28px de la demo: con 28px, al llegar
  *  al final de la pagina el boton se apoyaba sobre la ultima linea del pie.
@@ -93,7 +94,7 @@ export function Playlist() {
       if (e.key !== "Escape" || e.defaultPrevented) return;
       // Con el pedido, el menu, el pop-up o una ficha encima, el Escape es de
       // ellos: cierra lo de arriba y no tambien esto, que queda debajo.
-      if (document.querySelector('dialog[open], [aria-modal="true"]')) return;
+      if (document.querySelector("dialog[open]")) return;
       const raiz = raizRef.current;
       if (!raiz) return;
       const adentro = raiz.contains(document.activeElement);
@@ -106,9 +107,11 @@ export function Playlist() {
         setSinAyuda(true);
       }
     }
-    // En la fase de CAPTURA, antes que los demas: si la ficha de producto
-    // cerraba primero con su propio Escape, cuando llegaba aca ya no habia
-    // `aria-modal` y se cerraba tambien el panel, con un solo Escape.
+    // En la fase de CAPTURA, antes que los demas: asi ve lo que estaba
+    // abierto cuando se apreto la tecla, aunque lo de encima se cierre con
+    // ese mismo Escape. Le paso con la ficha de producto cuando era un div:
+    // cerraba primero, aca ya no la encontraba y se cerraba tambien el
+    // panel, con un solo Escape.
     document.addEventListener("keydown", alTeclear, true);
     return () => document.removeEventListener("keydown", alTeclear, true);
   }, [abierto]);

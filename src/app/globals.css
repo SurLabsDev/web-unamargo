@@ -93,7 +93,7 @@ html { scroll-behavior: smooth; }
    Soportado en Safari 17.4+ y Chrome 117+. En un navegador viejo no anima, pero
    abre y cierra igual, que es lo que importa.
 
-   Y UNA REGLA QUE VALE PARA LOS TRES DIALOGOS (cajon, menu y pop-up): el
+   Y UNA REGLA PARA LOS CUATRO DIALOGOS (cajon, menu, pop-up y ficha): el
    estado SIN `[open]` tiene que ser el ESCONDIDO, igual al de `@starting-style`
    y al de `[data-cerrando]`. Despues de `close()`, Chrome sigue pintando el
    dialogo lo que dura la salida (eso es `allow-discrete`) y lo anima hacia el

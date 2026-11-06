@@ -18,9 +18,10 @@ const REINTENTO_MS = 1500;
  *
  *  Aparece una sola vez por visitante. Si lo cierra no vuelve, hasta que el
  *  cliente lo edite o prenda otro: ahi cambia la `version` y se muestra de
- *  nuevo. Nunca aparece encima del pedido ni del menu: si a los 4 segundos hay
- *  uno abierto, espera a que se cierre. Interrumpir a alguien que esta
- *  armando un pedido es la forma mas rapida de perderlo. */
+ *  nuevo. Nunca aparece encima del pedido, del menu ni de la ficha de un
+ *  producto: si a los 4 segundos hay uno abierto, espera a que se cierre.
+ *  Interrumpir a alguien que esta armando un pedido es la forma mas rapida
+ *  de perderlo. */
 export function PopupAviso({ popup }: { popup: Popup | null }) {
   const [abierto, setAbierto] = useState(false);
   const dialogoRef = useRef<HTMLDialogElement>(null);
@@ -44,10 +45,9 @@ export function PopupAviso({ popup }: { popup: Popup | null }) {
 
     let t: ReturnType<typeof setTimeout>;
     const intentar = () => {
-      // La ficha de producto no es un <dialog> sino un div con aria-modal: si
-      // solo se miraba `dialog[open]`, el pop-up se abria encima de una ficha
-      // abierta, y un Escape cerraba los dos y dejaba la pagina sin scroll.
-      if (document.querySelector('dialog[open], [aria-modal="true"]')) {
+      // Cualquier dialogo abierto lo hace esperar: el pedido, el menu y
+      // tambien la ficha de un producto, que es un <dialog> como ellos.
+      if (document.querySelector("dialog[open]")) {
         t = setTimeout(intentar, REINTENTO_MS);
         return;
       }

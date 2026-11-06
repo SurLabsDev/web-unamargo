@@ -281,9 +281,7 @@ export function FichaProducto({
   const altoSinFoto = "h-[44dvh] sm:h-[min(60dvh,500px)]";
 
   /* Sin `aria-modal`: un <dialog> abierto con `showModal()` ya es modal para
-     el lector de pantalla. Y puesto aca haria dano, porque la ficha queda
-     montada despues de cerrarse (ver `Tienda`), y el pop-up y la playlist se
-     callan mientras haya un `[aria-modal="true"]` en la pagina. */
+     el lector de pantalla. */
   return createPortal(
     <dialog
       ref={dialogoRef}
