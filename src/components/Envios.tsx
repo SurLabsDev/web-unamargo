@@ -71,8 +71,7 @@ const SALIDA = 45;
 /* El texto tenue de esta seccion no baja de `text-papel/50`. Sobre el negro de
  * la marca, /50 da 5.3:1 y pasa el minimo de 4.5:1 que pide la letra chica; /45
  * queda en el limite y Lighthouse ya la marca, /40 da 3.8:1 y /35, 3.1:1. Eran
- * esos tres valores en el "Segui bajando" y las notas: justo lo que aclara que
- * cuesta y que no. */
+ * esos tres valores en el "Segui bajando" y las notas. */
 
 /** El scroll recorre las zonas. Se entra a la seccion, queda fija, y al bajar
  *  va cambiando de zona hasta que se acaban; ahi la pagina sigue de largo.
@@ -137,8 +136,8 @@ export function Envios() {
             <h2 className="type-display text-[clamp(2.5rem,6vw,4.5rem)]">
               Cómo recibís tu pedido
             </h2>
-            {/* Sin numero a proposito: decia "seis" y paso a mentir apenas los
-                retiros bajaron de tres a uno. La lista manda, el texto no cuenta. */}
+            {/* Sin numero a proposito: la cantidad de zonas puede cambiar. La
+                lista manda, el texto no cuenta. */}
             <p className="type-body mt-6 text-lg leading-relaxed text-papel/65">
               Cadetería a tu casa, con precio por zona. Seguí bajando y vas
               viendo cada zona en el mapa.
