@@ -7,7 +7,6 @@ import {
   ENVIO_GRATIS_EXCEPCION,
   ENVIO_GRATIS_TEXTO,
   ENVIO_INTERIOR,
-  PICKUPS,
   ZONAS_ENVIO,
 } from "@/lib/zonas";
 
@@ -68,7 +67,7 @@ export async function GET(): Promise<Response> {
   const lineas = [
     `# ${SITE.nombre}`,
     "",
-    `> Tienda de mates, bombillas y accesorios en ${SITE.ciudad}, ${SITE.pais}. El pedido se arma en el carrito de la web y se cierra por WhatsApp. Envío a domicilio por zonas en ${SITE.ciudad} y retiro sin costo.`,
+    `> Tienda de mates, bombillas y accesorios en ${SITE.ciudad}, ${SITE.pais}. El pedido se arma en el carrito de la web y se cierra por WhatsApp. Envío a domicilio por zonas en ${SITE.ciudad}.`,
     "",
     `${SITE.nombre} vende mates, bombillas, combos y accesorios materos, y hace grabado láser sobre mates y trabajos artesanales en virola, para regalo o para empresas. No hay pasarela de pago online: el pago se coordina en el chat del pedido, en ${pagos}.`,
     "",
@@ -79,10 +78,9 @@ export async function GET(): Promise<Response> {
       ? []
       : ["Catálogo actual, con precios en pesos uruguayos:", ...rubros(catalogo.productos), ""]),
     "Entregas:",
-    ...PICKUPS.map((p) => `- Retiro sin costo en ${p.titulo}. ${p.detalle}`),
     ...ZONAS_ENVIO.map(
       (z) =>
-        `- Envío por cadetería, ${z.rotulo ? `${z.rotulo} (${z.titulo})` : z.titulo}: ${
+        `- Envío por cadetería, ${z.rotulo} (${z.titulo}): ${
           precio(z.costo) ?? "costo a coordinar"
         }. Barrios: ${enumerar(z.barrios)}.`,
     ),
@@ -91,8 +89,8 @@ export async function GET(): Promise<Response> {
     "",
     "## Tienda",
     `- [Catálogo con precios](${url("/#tienda")}): todos los productos, por rubro, con su precio.`,
-    `- [Envíos y retiro](${url("/#envios")}): zonas de entrega, precio por zona y barrios.`,
-    `- [Preguntas frecuentes](${url("/#preguntas")}): envíos, retiro, pagos, personalizados y empresas.`,
+    `- [Envíos](${url("/#envios")}): zonas de entrega, precio por zona y barrios.`,
+    `- [Preguntas frecuentes](${url("/#preguntas")}): envíos, pagos, personalizados y empresas.`,
     "",
     "## Guías",
     // De los datos de cada guia, no escrito aca: la linea a mano decia "agua

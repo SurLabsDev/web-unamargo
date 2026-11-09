@@ -34,7 +34,7 @@ const SALIDAS: Salida[] = [
     href: "#preguntas",
     icono: <Question size={16} weight="bold" />,
     titulo: "Preguntas frecuentes",
-    detalle: "Envíos, retiros, pagos y personalizados, respondidos más arriba.",
+    detalle: "Envíos, pagos y personalizados, respondidos más arriba.",
   },
   {
     href: SITE.instagram,

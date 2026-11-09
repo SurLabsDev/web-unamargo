@@ -3,56 +3,29 @@
 
 export type Zona = {
   id: string;
-  /** Opcional a proposito: es el indice de la zona dentro de su grupo
-   *  ("Zona 1" de 3) y el retiro, que es uno solo, no numera nada. Lo tenia
-   *  puesto y no se dibujaba en ningun lado, asi que el proximo que agregara
-   *  un pickup iba a inventar un valor creyendo que se ve. Ahora el tipo dice
-   *  la verdad: si esta, se pinta; si no esta, no hay chapa. */
-  rotulo?: string;
+  /** El indice de la zona: "Zona 1" de 3. */
+  rotulo: string;
   titulo: string;
   /** Lo que cuesta llegar a esta zona, en pesos, como string decimal: la plata
-   *  nunca viaja como float (ver `centavos.ts`). null en el retiro, que no
-   *  tiene costo. El checkout lo suma al total del pedido. */
-  costo: string | null;
+   *  nunca viaja como float (ver `centavos.ts`). El checkout lo suma al total
+   *  del pedido. */
+  costo: string;
   /** `costo` listo para mostrar. NO se escribe: lo arma `zona()` a partir de
    *  `costo`, asi el precio de la seccion Envios, el de las preguntas
    *  frecuentes y el que se suma en el carrito no pueden contradecirse. */
-  precio: string | null;
+  precio: string;
   detalle: string;
   nota: string;
   barrios: string[];
 };
 
 function zona(z: Omit<Zona, "precio">): Zona {
-  return { ...z, precio: z.costo === null ? null : `$${z.costo}` };
+  return { ...z, precio: `$${z.costo}` };
 }
 
-/** El unico punto de retiro. Eran tres (Pocitos, Cordon y Ciudad de la Costa)
- *  y el cliente los bajo a uno: la venta va hacia el e-commerce, y ofrecer tres
- *  pickups tiraba justo para el otro lado. Sigue siendo una lista porque la
- *  seccion y las FAQ la recorren igual, pero el texto de la pagina ya no cuenta
- *  cuantos hay: si vuelve a haber mas de uno hay que releer esas dos redacciones.
- *
- *  El horario no se declara en ningun lado a proposito: todavia no esta
- *  definido. Lo que se promete es como se coordina, nunca cuando.
- *
- *  Y se coordina AL CONFIRMAR EL PEDIDO, no antes. El texto decia "escribinos
- *  con anticipacion por WhatsApp", que es justo la consulta suelta previa al
- *  pedido que el cliente pidio sacar: WhatsApp queda solo para el pedido ya
- *  armado que sale del carrito. Por eso tampoco aparece el numero. */
-export const PICKUPS: Zona[] = [
-  zona({
-    id: "retiro",
-    titulo: "Cordón Sur / Centro",
-    costo: null,
-    detalle:
-      "El punto exacto y el horario los arreglamos al confirmar el pedido, en el mismo chat en el que lo mandás. Zona céntrica, cómoda si estás por el microcentro, Palermo o Parque Rodó.",
-    nota: "Sin costo · Se coordina al confirmar el pedido",
-    barrios: ["Cordón", "Centro", "Palermo", "Parque Rodó"],
-  }),
-];
-
-/** Cadeteria a domicilio. Precios y barrios exactos de la demo del cliente. */
+/** Cadeteria a domicilio. Precios y barrios exactos de la demo del cliente.
+ *  Es la unica forma de entrega: en noviembre de 2026 el cliente saco el
+ *  retiro y paso a vender todo con envio. */
 export const ZONAS_ENVIO: Zona[] = [
   zona({
     id: "zona1",

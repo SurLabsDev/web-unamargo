@@ -21,11 +21,9 @@ import { SITE, linkWhatsApp } from "@/lib/site";
 import {
   ENVIO_GRATIS_DESDE,
   FUERA_DE_MONTEVIDEO,
-  PICKUPS,
   ZONAS_ENVIO,
 } from "@/lib/zonas";
 import {
-  A_DOMICILIO,
   FORMAS_PAGO,
   OTRO_BARRIO,
   armarMensaje,
@@ -45,15 +43,15 @@ import {
  *  lo que se eligio. */
 type Paso = "pedido" | "entrega";
 
-/** El envio mas barato, para el "desde" de la opcion a domicilio. Sale de las
+/** El envio mas barato, para el "desde" de la ayuda del barrio. Sale de las
  *  zonas, asi que si cambia un precio cambia solo.
  *
  *  Adentro del cajon toda la plata pasa por `precio()`, tambien la de las
  *  zonas: al lado del subtotal, "$195" y "$ 1.990" se leen como dos formatos
  *  distintos. */
-const ENVIO_DESDE = [...ZONAS_ENVIO]
-  .flatMap((z) => (z.costo === null ? [] : [z.costo]))
-  .sort((a, b) => Number(aCentavos(a) - aCentavos(b)))[0];
+const ENVIO_DESDE = ZONAS_ENVIO.map((z) => z.costo).sort((a, b) =>
+  Number(aCentavos(a) - aCentavos(b)),
+)[0];
 
 /* Todo es pill, tambien los campos: es la firma del cliente. 16px de letra
    como minimo, porque con menos Safari en el iPhone hace zoom al tocar el
@@ -85,49 +83,6 @@ function textoAjustes({ precio, cantidad, quitados }: Ajustes): string {
     );
   }
   return frases.join(" ");
-}
-
-/** Una opcion de "como lo recibis": el radio de verdad queda invisible pero
- *  presente, asi el teclado y los lectores de pantalla lo manejan como lo que
- *  es. */
-function Opcion({
-  valor,
-  elegido,
-  onElegir,
-  titulo,
-  detalle,
-  costo,
-}: {
-  valor: string;
-  elegido: boolean;
-  onElegir: () => void;
-  titulo: string;
-  detalle: string;
-  costo: string;
-}) {
-  return (
-    <label className="flex items-center gap-3 rounded-pill border border-linea px-5 py-3 transition-colors hover:border-tinta has-checked:border-tinta has-checked:bg-humo has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-tinta">
-      <input
-        type="radio"
-        name="modo"
-        value={valor}
-        checked={elegido}
-        onChange={onElegir}
-        className="peer sr-only"
-      />
-      <span
-        aria-hidden
-        className="flex h-4 w-4 shrink-0 items-center justify-center rounded-pill border border-tinta-suave peer-checked:border-tinta peer-checked:[&>span]:scale-100"
-      >
-        <span className="h-2 w-2 scale-0 rounded-pill bg-tinta transition-transform duration-200" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium leading-snug">{titulo}</span>
-        <span className="block text-xs text-tinta-media">{detalle}</span>
-      </span>
-      <span className="shrink-0 text-sm font-semibold tabular-nums">{costo}</span>
-    </label>
-  );
 }
 
 export function CartDrawer() {
@@ -373,7 +328,7 @@ export function CartDrawer() {
                 </span>
               </div>
               <p className="type-body mb-3 text-xs text-tinta-media">
-                En el paso siguiente elegís retiro o envío y cómo pagás.
+                En el paso siguiente elegís el barrio del envío y cómo pagás.
               </p>
               {/* Negro y no verde: el verde queda para el boton que de verdad
                   abre WhatsApp, que es el del paso siguiente. */}
@@ -392,118 +347,97 @@ export function CartDrawer() {
               onSubmit={(e) => e.preventDefault()}
               className="flex-1 space-y-7 overflow-y-auto px-5 py-6"
             >
-              <fieldset>
-                <legend className={ETIQUETA}>¿Cómo lo recibís?</legend>
-                <div className="mt-3 grid gap-2">
-                  {PICKUPS.map((p) => (
-                    <Opcion
-                      key={p.id}
-                      valor={p.id}
-                      elegido={datos.modo === p.id}
-                      onElegir={() => cambiar({ modo: p.id })}
-                      titulo={`Retiro en ${p.titulo}`}
-                      detalle="Punto y horario, al confirmar"
-                      costo="Sin costo"
+              <div className="space-y-5">
+                <label className="block">
+                  <span className={ETIQUETA}>Barrio</span>
+                  {/* Un <select> nativo con un grupo por zona: en el celular
+                      abre la rueda del sistema, que es la forma mas rapida
+                      de elegir de una lista, y el grupo dice cuanto cuesta
+                      antes de elegir. */}
+                  <span className="relative block">
+                    <select
+                      value={datos.barrio}
+                      onChange={(e) => cambiar({ barrio: e.target.value })}
+                      className={`${CAMPO} appearance-none pr-12`}
+                    >
+                      <option value="" disabled>
+                        Elegí tu barrio
+                      </option>
+                      {ZONAS_ENVIO.map((z) => (
+                        <optgroup
+                          key={z.id}
+                          label={`${z.rotulo} · ${precio(z.costo) ?? "a coordinar"}`}
+                        >
+                          {[...z.barrios]
+                            .sort((a, b) => a.localeCompare(b, "es"))
+                            .map((b) => (
+                              <option key={b} value={b}>
+                                {b}
+                              </option>
+                            ))}
+                        </optgroup>
+                      ))}
+                      <option value={OTRO_BARRIO}>Otro barrio (costo a coordinar)</option>
+                    </select>
+                    <CaretDown
+                      size={14}
+                      weight="bold"
+                      aria-hidden
+                      className="pointer-events-none absolute right-5 top-1/2 mt-1 -translate-y-1/2 text-tinta-media"
                     />
-                  ))}
-                  <Opcion
-                    valor={A_DOMICILIO}
-                    elegido={datos.modo === A_DOMICILIO}
-                    onElegir={() => cambiar({ modo: A_DOMICILIO })}
-                    titulo="Envío a domicilio"
-                    detalle={`Según el barrio · gratis desde ${precio(ENVIO_GRATIS_DESDE)}`}
-                    costo={ENVIO_DESDE ? `desde ${precio(ENVIO_DESDE)}` : ""}
-                  />
-                </div>
-              </fieldset>
-
-              {datos.modo === A_DOMICILIO && (
-                <div className="space-y-5">
-                  <label className="block">
-                    <span className={ETIQUETA}>Barrio</span>
-                    {/* Un <select> nativo con un grupo por zona: en el celular
-                        abre la rueda del sistema, que es la forma mas rapida
-                        de elegir de una lista, y el grupo dice cuanto cuesta
-                        antes de elegir. */}
-                    <span className="relative block">
-                      <select
-                        value={datos.barrio}
-                        onChange={(e) => cambiar({ barrio: e.target.value })}
-                        className={`${CAMPO} appearance-none pr-12`}
-                      >
-                        <option value="" disabled>
-                          Elegí tu barrio
-                        </option>
-                        {ZONAS_ENVIO.map((z) => (
-                          <optgroup
-                            key={z.id}
-                            label={`${z.rotulo} · ${precio(z.costo) ?? "a coordinar"}`}
-                          >
-                            {[...z.barrios]
-                              .sort((a, b) => a.localeCompare(b, "es"))
-                              .map((b) => (
-                                <option key={b} value={b}>
-                                  {b}
-                                </option>
-                              ))}
-                          </optgroup>
-                        ))}
-                        <option value={OTRO_BARRIO}>Otro barrio (costo a coordinar)</option>
-                      </select>
-                      <CaretDown
-                        size={14}
-                        weight="bold"
-                        aria-hidden
-                        className="pointer-events-none absolute right-5 top-1/2 mt-1 -translate-y-1/2 text-tinta-media"
-                      />
+                  </span>
+                  {!envio && (
+                    <span className="mt-2 block text-xs text-tinta-media">
+                      El envío depende del barrio, desde {precio(ENVIO_DESDE)}.
+                      Gratis en Montevideo desde {precio(ENVIO_GRATIS_DESDE)}.
                     </span>
-                    {envio?.tipo === "zona" && (
-                      <span className="mt-2 block text-xs text-tinta-media">
-                        {envio.zona.rotulo} · el envío cuesta {precio(envio.costo)}
-                        {/* Si el pedido ya llega al envio gratis y el barrio
-                            queda afuera, se dice por que se cobra: si no, la
-                            promesa del "desde" de arriba parece incumplida. */}
-                        {FUERA_DE_MONTEVIDEO.includes(datos.barrio) &&
-                          llegaAlEnvioGratis(total) && (
-                            <>
-                              . {datos.barrio} queda fuera de Montevideo: el
-                              envío gratis es solo en Montevideo.
-                            </>
-                          )}
-                      </span>
-                    )}
-                    {envio?.tipo === "gratis" && (
-                      <span className="mt-2 block text-xs font-semibold text-verde">
-                        {envio.zona.rotulo} · envío gratis en compras desde{" "}
-                        {precio(ENVIO_GRATIS_DESDE)}
-                      </span>
-                    )}
-                  </label>
-
-                  {datos.barrio === OTRO_BARRIO && (
-                    <label className="block">
-                      <span className={ETIQUETA}>¿Qué barrio?</span>
-                      <input
-                        value={datos.otroBarrio}
-                        onChange={(e) => cambiar({ otroBarrio: e.target.value })}
-                        placeholder="Barrio o localidad"
-                        className={CAMPO}
-                      />
-                    </label>
                   )}
+                  {envio?.tipo === "zona" && (
+                    <span className="mt-2 block text-xs text-tinta-media">
+                      {envio.zona.rotulo} · el envío cuesta {precio(envio.costo)}
+                      {/* Si el pedido ya llega al envio gratis y el barrio
+                          queda afuera, se dice por que se cobra: si no, la
+                          promesa del "desde" de arriba parece incumplida. */}
+                      {FUERA_DE_MONTEVIDEO.includes(datos.barrio) &&
+                        llegaAlEnvioGratis(total) && (
+                          <>
+                            . {datos.barrio} queda fuera de Montevideo: el
+                            envío gratis es solo en Montevideo.
+                          </>
+                        )}
+                    </span>
+                  )}
+                  {envio?.tipo === "gratis" && (
+                    <span className="mt-2 block text-xs font-semibold text-verde">
+                      {envio.zona.rotulo} · envío gratis en compras desde{" "}
+                      {precio(ENVIO_GRATIS_DESDE)}
+                    </span>
+                  )}
+                </label>
 
+                {datos.barrio === OTRO_BARRIO && (
                   <label className="block">
-                    <span className={ETIQUETA}>Dirección</span>
+                    <span className={ETIQUETA}>¿Qué barrio?</span>
                     <input
-                      value={datos.direccion}
-                      onChange={(e) => cambiar({ direccion: e.target.value })}
-                      autoComplete="street-address"
-                      placeholder="Calle, número y apartamento"
+                      value={datos.otroBarrio}
+                      onChange={(e) => cambiar({ otroBarrio: e.target.value })}
+                      placeholder="Barrio o localidad"
                       className={CAMPO}
                     />
                   </label>
-                </div>
-              )}
+                )}
+
+                <label className="block">
+                  <span className={ETIQUETA}>Dirección</span>
+                  <input
+                    value={datos.direccion}
+                    onChange={(e) => cambiar({ direccion: e.target.value })}
+                    autoComplete="street-address"
+                    placeholder="Calle, número y apartamento"
+                    className={CAMPO}
+                  />
+                </label>
+              </div>
 
               <label className="block">
                 <span className={ETIQUETA}>Nombre</span>
@@ -561,26 +495,22 @@ export function CartDrawer() {
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-tinta-media">
-                    {envio?.tipo === "retiro"
-                      ? "Retiro"
-                      : envio?.tipo === "zona" || envio?.tipo === "gratis"
-                        ? `Envío · ${envio.zona.rotulo}`
-                        : "Envío"}
+                    {envio?.tipo === "zona" || envio?.tipo === "gratis"
+                      ? `Envío · ${envio.zona.rotulo}`
+                      : "Envío"}
                   </dt>
                   <dd
                     className={`tabular-nums ${envio?.tipo === "gratis" ? "font-semibold text-verde" : ""}`}
                   >
-                    {envio?.tipo === "retiro"
-                      ? "Sin costo"
-                      : envio?.tipo === "gratis"
-                        ? "Gratis"
-                        : envio?.tipo === "zona"
-                          ? precio(envio.costo)
-                          : envio?.tipo === "a-coordinar"
-                            ? envio.gratisSiEsMontevideo
-                              ? "Gratis si es en Montevideo"
-                              : "A coordinar"
-                            : "—"}
+                    {envio?.tipo === "gratis"
+                      ? "Gratis"
+                      : envio?.tipo === "zona"
+                        ? precio(envio.costo)
+                        : envio?.tipo === "a-coordinar"
+                          ? envio.gratisSiEsMontevideo
+                            ? "Gratis si es en Montevideo"
+                            : "A coordinar"
+                          : "—"}
                   </dd>
                 </div>
                 <div className="flex items-baseline justify-between pt-1">
@@ -590,7 +520,7 @@ export function CartDrawer() {
                     {/* El espacio va escrito y no solo como margen: sin el, el
                         texto quedaba "$ 3.630+ envío" para un lector de
                         pantalla o al copiarlo. */}
-                    {!totalFinal && datos.modo === A_DOMICILIO && (
+                    {!totalFinal && (
                       <>
                         {" "}
                         <span className="text-sm font-normal text-tinta-media">

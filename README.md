@@ -75,8 +75,8 @@ lenguaje fue el primer intento y estuvo mal: acá se parte del suyo.
   (`#0E6E50`), 5.69:1. El claro queda para el hover, donde aclarar sube el
   contraste.
 - **Los textos son los de ellos, palabra por palabra.** El hero, "¿Qué hacemos?",
-  "Personalizados", "Trabajo para empresas", el punto de retiro y
-  "Trabajá con nosotros" salen de su demo. No se reescriben.
+  "Personalizados", "Trabajo para empresas" y "Trabajá con nosotros" salen de su
+  demo. No se reescriben.
 - **Sus assets**: el logo, las 6 fotos de la tira y las fotos de sección están
   en `public/`, copiadas de la demo. Las de la tira son las de siempre: las que
   se ven mientras el cliente no cargue otras en `/tira` del ERP.

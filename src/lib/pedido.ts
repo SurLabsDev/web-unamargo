@@ -3,7 +3,6 @@ import { precio } from "./catalog";
 import {
   ENVIO_GRATIS_DESDE,
   FUERA_DE_MONTEVIDEO,
-  PICKUPS,
   ZONAS_ENVIO,
   type Zona,
 } from "./zonas";
@@ -24,18 +23,11 @@ export const FORMAS_PAGO = [
 ] as const;
 export type FormaPago = (typeof FORMAS_PAGO)[number]["id"];
 
-/** El `modo` de un envio a domicilio. Los retiros usan el `id` de su punto en
- *  `PICKUPS`, asi que si vuelve a haber mas de un punto, cada uno aparece como
- *  opcion solo, sin tocar el checkout. */
-export const A_DOMICILIO = "domicilio";
-
 /** El barrio elegido cuando no esta en ninguna zona. El costo queda a
  *  coordinar en vez de inventar uno. */
 export const OTRO_BARRIO = "otro";
 
 export type DatosEntrega = {
-  /** El `id` de un punto de retiro, `A_DOMICILIO`, o null si todavia no eligio. */
-  modo: string | null;
   barrio: string;
   /** El barrio escrito a mano, solo cuando `barrio` es `OTRO_BARRIO`. */
   otroBarrio: string;
@@ -46,7 +38,6 @@ export type DatosEntrega = {
 };
 
 export const DATOS_VACIOS: DatosEntrega = {
-  modo: null,
   barrio: "",
   otroBarrio: "",
   direccion: "",
@@ -56,7 +47,6 @@ export const DATOS_VACIOS: DatosEntrega = {
 };
 
 export type Envio =
-  | { tipo: "retiro"; punto: Zona }
   | { tipo: "zona"; zona: Zona; costo: string }
   /** A domicilio en Montevideo, con el pedido por encima de
    *  `ENVIO_GRATIS_DESDE`: la zona se sigue diciendo, pero no se cobra. */
@@ -70,14 +60,12 @@ export type Envio =
  *  Necesita el subtotal porque el envio depende de el: en Montevideo, desde
  *  `ENVIO_GRATIS_DESDE` no se cobra, que es lo que promete la seccion Envios. */
 export function envioDe(d: DatosEntrega, subtotal: string): Envio | null {
-  const punto = PICKUPS.find((p) => p.id === d.modo);
-  if (punto) return { tipo: "retiro", punto };
-  if (d.modo !== A_DOMICILIO || !d.barrio) return null;
+  if (!d.barrio) return null;
   if (d.barrio === OTRO_BARRIO) {
     return { tipo: "a-coordinar", gratisSiEsMontevideo: llegaAlEnvioGratis(subtotal) };
   }
   const zona = ZONAS_ENVIO.find((z) => z.barrios.includes(d.barrio));
-  if (!zona?.costo) return { tipo: "a-coordinar" };
+  if (!zona) return { tipo: "a-coordinar" };
   const gratis = !FUERA_DE_MONTEVIDEO.includes(d.barrio) && llegaAlEnvioGratis(subtotal);
   return gratis ? { tipo: "gratis", zona } : { tipo: "zona", zona, costo: zona.costo };
 }
@@ -97,7 +85,7 @@ export function llegaAlEnvioGratis(subtotal: string): boolean {
  *  se muestra como si fuera el final. */
 export function totalConEnvio(subtotal: string, envio: Envio | null): string | null {
   if (!envio || envio.tipo === "a-coordinar") return null;
-  if (envio.tipo === "retiro" || envio.tipo === "gratis") return subtotal;
+  if (envio.tipo === "gratis") return subtotal;
   return desdeCentavos(aCentavos(subtotal) + aCentavos(envio.costo));
 }
 
@@ -105,12 +93,9 @@ export function totalConEnvio(subtotal: string, envio: Envio | null): string | n
  *  formulario. Vacio = se puede mandar. */
 export function faltantes(d: DatosEntrega): string[] {
   const f: string[] = [];
-  if (!d.modo) f.push("cómo lo recibís");
-  if (d.modo === A_DOMICILIO) {
-    if (!d.barrio) f.push("el barrio");
-    if (d.barrio === OTRO_BARRIO && !d.otroBarrio.trim()) f.push("qué barrio");
-    if (!d.direccion.trim()) f.push("la dirección");
-  }
+  if (!d.barrio) f.push("el barrio");
+  if (d.barrio === OTRO_BARRIO && !d.otroBarrio.trim()) f.push("qué barrio");
+  if (!d.direccion.trim()) f.push("la dirección");
   if (!d.nombre.trim()) f.push("tu nombre");
   if (!d.pago) f.push("la forma de pago");
   return f;
@@ -143,37 +128,29 @@ export function armarMensaje(
   const pago = FORMAS_PAGO.find((f) => f.id === d.pago)?.etiqueta;
   const notas = d.notas.trim();
 
-  // En el retiro no hay nada que sumar: subtotal y total serian el mismo
-  // numero dos veces.
-  const cuentas =
-    envio?.tipo === "retiro"
-      ? [`Total: ${precio(subtotal)}`]
-      : [
-          `Subtotal: ${precio(subtotal)}`,
-          envio?.tipo === "zona"
-            ? `Envío (${envio.zona.rotulo}): ${precio(envio.costo)}`
-            : envio?.tipo === "gratis"
-              ? `Envío (${envio.zona.rotulo}): sin costo (compras desde ${precio(ENVIO_GRATIS_DESDE)})`
-              : envio?.tipo === "a-coordinar" && envio.gratisSiEsMontevideo
-                ? "Envío: gratis si es en Montevideo; si no, a coordinar"
-                : "Envío: a coordinar",
-          total
-            ? `Total: ${precio(total)}`
-            : envio?.tipo === "a-coordinar" && envio.gratisSiEsMontevideo
-              ? `Total: ${precio(subtotal)} (+ envío si es fuera de Montevideo)`
-              : `Total: ${precio(subtotal)} + envío`,
-        ];
+  const cuentas = [
+    `Subtotal: ${precio(subtotal)}`,
+    envio?.tipo === "zona"
+      ? `Envío (${envio.zona.rotulo}): ${precio(envio.costo)}`
+      : envio?.tipo === "gratis"
+        ? `Envío (${envio.zona.rotulo}): sin costo (compras desde ${precio(ENVIO_GRATIS_DESDE)})`
+        : envio?.tipo === "a-coordinar" && envio.gratisSiEsMontevideo
+          ? "Envío: gratis si es en Montevideo; si no, a coordinar"
+          : "Envío: a coordinar",
+    total
+      ? `Total: ${precio(total)}`
+      : envio?.tipo === "a-coordinar" && envio.gratisSiEsMontevideo
+        ? `Total: ${precio(subtotal)} (+ envío si es fuera de Montevideo)`
+        : `Total: ${precio(subtotal)} + envío`,
+  ];
 
-  const entrega =
-    envio?.tipo === "retiro"
-      ? [`Entrega: retiro en ${envio.punto.titulo}`]
-      : [
-          "Entrega: envío a domicilio",
-          d.barrio === OTRO_BARRIO
-            ? `Barrio: ${d.otroBarrio.trim()} (fuera de las zonas)`
-            : `Barrio: ${d.barrio}`,
-          `Dirección: ${d.direccion.trim()}`,
-        ];
+  const entrega = [
+    "Entrega: envío a domicilio",
+    d.barrio === OTRO_BARRIO
+      ? `Barrio: ${d.otroBarrio.trim()} (fuera de las zonas)`
+      : `Barrio: ${d.barrio}`,
+    `Dirección: ${d.direccion.trim()}`,
+  ];
 
   return [
     "Hola! Quiero hacer un pedido:",
@@ -203,17 +180,12 @@ export function leerDatosGuardados(): DatosEntrega {
     if (typeof crudo !== "object" || crudo === null) return DATOS_VACIOS;
     const g = crudo as Record<string, unknown>;
     const texto = (v: unknown) => (typeof v === "string" ? v : "");
-    const modo = texto(g.modo);
     const barrio = texto(g.barrio);
     const pago = FORMAS_PAGO.find((f) => f.id === g.pago)?.id ?? null;
     return {
       ...DATOS_VACIOS,
-      // Un punto de retiro o un barrio que ya no existen no se restauran:
-      // quedaria elegido algo que no esta en pantalla.
-      modo:
-        modo === A_DOMICILIO || PICKUPS.some((p) => p.id === modo)
-          ? modo
-          : null,
+      // Un barrio que ya no existe no se restaura: quedaria elegido algo que
+      // no esta en pantalla.
       barrio:
         barrio === OTRO_BARRIO || ZONAS_ENVIO.some((z) => z.barrios.includes(barrio))
           ? barrio

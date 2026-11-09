@@ -49,7 +49,7 @@ export default function Imagen() {
           <span style={{ color: "#8a8a8a" }}>en Montevideo</span>
         </div>
         <div style={{ display: "flex", fontSize: 30, color: "#a8a8a8" }}>
-          Envíos en todo Montevideo · Retiro sin costo · Grabado láser
+          Envíos en todo Montevideo · Grabado láser
         </div>
       </div>
     ),
