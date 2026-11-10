@@ -86,9 +86,10 @@ export function Envios() {
   const centinelas = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return; // sin scroll guiado: quedan los botones
-
+    // Tambien con movimiento reducido: cambiar de zona es cambiar texto y color,
+    // no mueve nada. Sin el observer el panel se quedaba en la primera zona y
+    // las otras no se veian de ninguna manera en la compu, donde la lista de
+    // barrios no esta.
     const obs = new IntersectionObserver(
       (entradas) => {
         for (const e of entradas) {
@@ -108,7 +109,11 @@ export function Envios() {
   }, []);
 
   function irA(n: number) {
-    centinelas.current[n]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    centinelas.current[n]?.scrollIntoView({
+      behavior: reduce ? "auto" : "smooth",
+      block: "center",
+    });
   }
 
   const zona = ZONAS_ENVIO[i];
